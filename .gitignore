@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.nx/cache/
+.nx/workspace-data/
+
+# Testing
+coverage/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+
+
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md

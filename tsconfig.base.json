@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": true,
+    "moduleResolution": "nodenext",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "esnext",
+    "module": "nodenext",
+    "lib": ["ESNext", "DOM"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": "."
+  },
+  "exclude": ["node_modules", "tmp"]
+}
