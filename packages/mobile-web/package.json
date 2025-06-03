@@ -1,5 +1,5 @@
 {
-  "name": "@salesforce/sfdc-mobile-web-mcp-server",
+  "name": "@salesforce/mobile-web-mcp-server",
   "version": "0.0.1",
   "description": "Salesforce Mobile Web MCP Server",
   "license": "MIT",
