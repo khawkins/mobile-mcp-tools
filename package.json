@@ -1,0 +1,42 @@
+{
+  "name": "mobile-mcp-tools",
+  "version": "0.0.1",
+  "description": "A collection of MCP servers and tools for Salesforce Mobile use cases",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "lint": "eslint \"**/*.{ts,tsx,js,jsx}\"",
+    "test": "echo \"No tests at the top level\" && exit 0",
+    "test-all": "nx run-many --target=test",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forcedotcom/mobile-mcp-tools.git"
+  },
+  "author": "Kevin Hawkins <khawkins@salesforce.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/mobile-mcp-tools/issues"
+  },
+  "homepage": "https://github.com/forcedotcom/mobile-mcp-tools#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@typescript-eslint/eslint-plugin": "^8.33.1",
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.4.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
+    "nx": "^21.1.2",
+    "prettier": "^3.2.5",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.33.1"
+  },
+  "nx": {
+    "extends": "@nx/workspace/presets/npm.json"
+  }
+}
