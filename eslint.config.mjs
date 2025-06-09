@@ -13,4 +13,5 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
   },
+  ignores: ['**/dist/*', '**/*.d.ts'],
 });
