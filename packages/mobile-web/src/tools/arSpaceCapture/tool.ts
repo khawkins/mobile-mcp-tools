@@ -1,9 +1,46 @@
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { McpToolAnnotations } from '../../utils/util.js';
+import { readTypeDefinitionFile, createServiceGroundingText } from '../../utils/util.js';
 
-export function registerArSpaceCaptureTool(server: McpServer, annotations: McpToolAnnotations) {
+const template = `# AR Space Capture Service Grounding Context
+
+The following content provides grounding information for generating a Salesforce LWC that leverages AR Space Capture facilities
+on mobile devices. Specifically, this context will cover the API types and methods available to leverage the AR Space Capture API
+of the mobile device, within the LWC.
+
+# AR Space Capture Service API
+\`\`\`typescript
+\${typeDefinitions}
+\`\`\`
+`;
+
+export async function handleArSpaceCaptureRequest() {
+  try {
+    const typeDefinitions = await readTypeDefinitionFile('resources/arSpaceCapture.d.ts');
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: createServiceGroundingText(template, typeDefinitions),
+        },
+      ],
+    };
+  } catch {
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: 'Error: Unable to load AR Space Capture type definitions.',
+        },
+      ],
+    };
+  }
+}
+
+export function registerArSpaceCaptureTool(
+  server: McpServer,
+  annotations: McpToolAnnotations
+): void {
   server.tool(
     'sfmobile-web-ar-space-capture',
     {
@@ -11,14 +48,6 @@ export function registerArSpaceCaptureTool(server: McpServer, annotations: McpTo
         'Provides expert grounding to implement an AR Space Capture feature in a Salesforce Lightning web component (LWC).',
       annotations,
     },
-    async () => {
-      const content = await readFile(
-        join(process.cwd(), 'resources', 'arSpaceCapture.d.ts'),
-        'utf-8'
-      );
-      return {
-        content: [{ type: 'text', text: content }],
-      };
-    }
+    handleArSpaceCaptureRequest
   );
 }

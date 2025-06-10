@@ -1,9 +1,42 @@
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { McpToolAnnotations } from '../../utils/util.js';
+import { readTypeDefinitionFile, createServiceGroundingText } from '../../utils/util.js';
 
-export function registerAppReviewTool(server: McpServer, annotations: McpToolAnnotations) {
+const template = `# App Review Service Grounding Context
+
+The following content provides grounding information for generating a Salesforce LWC that leverages app review facilities
+on mobile devices. Specifically, this context will cover the API types and methods available to leverage the app review API
+of the mobile device, within the LWC.
+
+# App Review Service API
+\`\`\`typescript
+\${typeDefinitions}
+\`\`\``;
+
+export async function handleAppReviewRequest() {
+  try {
+    const typeDefinitions = await readTypeDefinitionFile('resources/appReviewService.d.ts');
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: createServiceGroundingText(template, typeDefinitions),
+        },
+      ],
+    };
+  } catch {
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: 'Error: Unable to load App Review type definitions.',
+        },
+      ],
+    };
+  }
+}
+
+export function registerAppReviewTool(server: McpServer, annotations: McpToolAnnotations): void {
   server.tool(
     'sfmobile-web-app-review',
     {
@@ -11,14 +44,6 @@ export function registerAppReviewTool(server: McpServer, annotations: McpToolAnn
         'Provides expert grounding to implement a mobile app store review feature in a Salesforce Lightning web component (LWC).',
       annotations,
     },
-    async () => {
-      const content = await readFile(
-        join(process.cwd(), 'resources', 'appReviewService.d.ts'),
-        'utf-8'
-      );
-      return {
-        content: [{ type: 'text', text: content }],
-      };
-    }
+    handleAppReviewRequest
   );
 }

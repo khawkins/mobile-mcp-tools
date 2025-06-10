@@ -1,9 +1,42 @@
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { McpToolAnnotations } from '../../utils/util.js';
+import { readTypeDefinitionFile, createServiceGroundingText } from '../../utils/util.js';
 
-export function registerLocationTool(server: McpServer, annotations: McpToolAnnotations) {
+const template = `# Location Service Grounding Context
+
+The following content provides grounding information for generating a Salesforce LWC that leverages location facilities
+on mobile devices. Specifically, this context will cover the API types and methods available to leverage the location
+API of the mobile device, within the LWC.
+
+# Location Service API
+\`\`\`typescript
+\${typeDefinitions}
+\`\`\``;
+
+export async function handleLocationRequest() {
+  try {
+    const typeDefinitions = await readTypeDefinitionFile('resources/locationService.d.ts');
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: createServiceGroundingText(template, typeDefinitions),
+        },
+      ],
+    };
+  } catch {
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: 'Error: Unable to load Location type definitions.',
+        },
+      ],
+    };
+  }
+}
+
+export function registerLocationTool(server: McpServer, annotations: McpToolAnnotations): void {
   server.tool(
     'sfmobile-web-location',
     {
@@ -11,14 +44,6 @@ export function registerLocationTool(server: McpServer, annotations: McpToolAnno
         'Provides expert grounding to implement a Location feature in a Salesforce Lightning web component (LWC).',
       annotations,
     },
-    async () => {
-      const content = await readFile(
-        join(process.cwd(), 'resources', 'locationService.d.ts'),
-        'utf-8'
-      );
-      return {
-        content: [{ type: 'text', text: content }],
-      };
-    }
+    handleLocationRequest
   );
 }

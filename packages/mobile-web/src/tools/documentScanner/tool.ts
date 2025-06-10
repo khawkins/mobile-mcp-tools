@@ -1,9 +1,45 @@
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { McpToolAnnotations } from '../../utils/util.js';
+import { readTypeDefinitionFile, createServiceGroundingText } from '../../utils/util.js';
 
-export function registerDocumentScannerTool(server: McpServer, annotations: McpToolAnnotations) {
+const template = `# Document Scanner Service Grounding Context
+
+The following content provides grounding information for generating a Salesforce LWC that leverages document scanning facilities
+on mobile devices. Specifically, this context will cover the API types and methods available to leverage the document scanner
+API of the mobile device, within the LWC.
+
+# Document Scanner Service API
+\`\`\`typescript
+\${typeDefinitions}
+\`\`\``;
+
+export async function handleDocumentScannerRequest() {
+  try {
+    const typeDefinitions = await readTypeDefinitionFile('resources/documentScannerService.d.ts');
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: createServiceGroundingText(template, typeDefinitions),
+        },
+      ],
+    };
+  } catch {
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: 'Error: Unable to load Document Scanner type definitions.',
+        },
+      ],
+    };
+  }
+}
+
+export function registerDocumentScannerTool(
+  server: McpServer,
+  annotations: McpToolAnnotations
+): void {
   server.tool(
     'sfmobile-web-document-scanner',
     {
@@ -11,14 +47,6 @@ export function registerDocumentScannerTool(server: McpServer, annotations: McpT
         'Provides expert grounding to implement a Document Scanner feature in a Salesforce Lightning web component (LWC).',
       annotations,
     },
-    async () => {
-      const content = await readFile(
-        join(process.cwd(), 'resources', 'documentScanner.d.ts'),
-        'utf-8'
-      );
-      return {
-        content: [{ type: 'text', text: content }],
-      };
-    }
+    handleDocumentScannerRequest
   );
 }

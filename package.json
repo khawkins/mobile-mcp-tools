@@ -12,7 +12,7 @@
     "test": "echo \"No tests at the top level\" && exit 0",
     "test-all": "nx run-many --target=test",
     "build-all": "nx run-many --target=build",
-    "start": "npx -y @salesforce/mobile-web-mcp-server",
+    "start": "npm run build-all && chmod +x packages/mobile-web/dist/index.js && npx -y @salesforce/mobile-web-mcp-server",
     "prepare": "husky"
   },
   "repository": {
