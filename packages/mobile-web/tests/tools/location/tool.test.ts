@@ -26,7 +26,7 @@ describe('Location Tool', () => {
   it('should read the correct type definition file', async () => {
     const readFileSpy = vi.spyOn(util, 'readTypeDefinitionFile').mockResolvedValue('');
     await handleLocationRequest();
-    expect(readFileSpy).toHaveBeenCalledWith('resources/locationService.d.ts');
+    expect(readFileSpy).toHaveBeenCalledWith('location/locationService.d.ts');
   });
 
   it('should return content with type definitions', async () => {

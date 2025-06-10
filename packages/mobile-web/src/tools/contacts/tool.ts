@@ -15,7 +15,7 @@ API of the mobile device, within the LWC.
 
 export async function handleContactsRequest() {
   try {
-    const typeDefinitions = await readTypeDefinitionFile('resources/contactsService.d.ts');
+    const typeDefinitions = await readTypeDefinitionFile('contacts/contactsService.d.ts');
     return {
       content: [
         {

@@ -15,7 +15,7 @@ API of the mobile device, within the LWC.
 
 export async function handleGeofencingRequest() {
   try {
-    const typeDefinitions = await readTypeDefinitionFile('resources/geofencingService.d.ts');
+    const typeDefinitions = await readTypeDefinitionFile('geofencing/geofencingService.d.ts');
     return {
       content: [
         {

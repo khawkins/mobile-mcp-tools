@@ -14,7 +14,10 @@ export interface McpToolAnnotations {
  * @returns The contents of the type definition file
  */
 export async function readTypeDefinitionFile(fileName: string): Promise<string> {
-  return readFile(join(process.cwd(), 'resources', fileName), 'utf-8');
+  return readFile(
+    join(process.cwd(), 'packages', 'mobile-web', 'dist', 'resources', fileName),
+    'utf-8'
+  );
 }
 
 /**

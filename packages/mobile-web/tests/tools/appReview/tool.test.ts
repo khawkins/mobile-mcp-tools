@@ -29,7 +29,7 @@ describe('App Review Tool', () => {
   it('should read the correct type definition file', async () => {
     const readFileSpy = vi.spyOn(util, 'readTypeDefinitionFile').mockResolvedValue('');
     await handleAppReviewRequest();
-    expect(readFileSpy).toHaveBeenCalledWith('resources/appReviewService.d.ts');
+    expect(readFileSpy).toHaveBeenCalledWith('appReview/appReviewService.d.ts');
   });
 
   it('should return content with type definitions', async () => {

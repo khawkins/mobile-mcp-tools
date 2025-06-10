@@ -15,7 +15,7 @@ API of the mobile device, within the LWC.
 
 export async function handleCalendarRequest() {
   try {
-    const typeDefinitions = await readTypeDefinitionFile('resources/calendarService.d.ts');
+    const typeDefinitions = await readTypeDefinitionFile('calendar/calendarService.d.ts');
     return {
       content: [
         {

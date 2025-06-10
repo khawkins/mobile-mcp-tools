@@ -26,7 +26,7 @@ describe('Payments Tool', () => {
   it('should read the correct type definition file', async () => {
     const readFileSpy = vi.spyOn(util, 'readTypeDefinitionFile').mockResolvedValue('');
     await handlePaymentsRequest();
-    expect(readFileSpy).toHaveBeenCalledWith('resources/paymentsService.d.ts');
+    expect(readFileSpy).toHaveBeenCalledWith('payments/paymentsService.d.ts');
   });
 
   it('should return content with type definitions', async () => {

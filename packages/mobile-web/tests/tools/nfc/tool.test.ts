@@ -26,7 +26,7 @@ describe('NFC Tool', () => {
   it('should read the correct type definition file', async () => {
     const readFileSpy = vi.spyOn(util, 'readTypeDefinitionFile').mockResolvedValue('');
     await handleNfcRequest();
-    expect(readFileSpy).toHaveBeenCalledWith('resources/nfcService.d.ts');
+    expect(readFileSpy).toHaveBeenCalledWith('nfc/nfcService.d.ts');
   });
 
   it('should return content with type definitions', async () => {

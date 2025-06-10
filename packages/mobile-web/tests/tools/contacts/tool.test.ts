@@ -26,7 +26,7 @@ describe('Contacts Tool', () => {
   it('should read the correct type definition file', async () => {
     const readFileSpy = vi.spyOn(util, 'readTypeDefinitionFile').mockResolvedValue('');
     await handleContactsRequest();
-    expect(readFileSpy).toHaveBeenCalledWith('resources/contactsService.d.ts');
+    expect(readFileSpy).toHaveBeenCalledWith('contacts/contactsService.d.ts');
   });
 
   it('should return content with type definitions', async () => {

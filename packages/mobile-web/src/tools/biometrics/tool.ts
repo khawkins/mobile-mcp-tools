@@ -15,7 +15,7 @@ the finger printing scanner of the mobile device to authorize the user, within t
 
 export async function handleBiometricsRequest() {
   try {
-    const typeDefinitions = await readTypeDefinitionFile('resources/biometricsService.d.ts');
+    const typeDefinitions = await readTypeDefinitionFile('biometrics/biometricsService.d.ts');
     return {
       content: [
         {

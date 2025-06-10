@@ -15,7 +15,7 @@ API of the mobile device, within the LWC.
 
 export async function handleLocationRequest() {
   try {
-    const typeDefinitions = await readTypeDefinitionFile('resources/locationService.d.ts');
+    const typeDefinitions = await readTypeDefinitionFile('location/locationService.d.ts');
     return {
       content: [
         {

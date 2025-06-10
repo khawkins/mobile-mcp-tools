@@ -29,7 +29,7 @@ describe('Barcode Scanner Tool', () => {
   it('should read the correct type definition file', async () => {
     const readFileSpy = vi.spyOn(util, 'readTypeDefinitionFile').mockResolvedValue('');
     await handleBarcodeScannerRequest();
-    expect(readFileSpy).toHaveBeenCalledWith('resources/barcodeScannerService.d.ts');
+    expect(readFileSpy).toHaveBeenCalledWith('barcodeScanner/barcodeScanner.d.ts');
   });
 
   it('should return content with type definitions', async () => {

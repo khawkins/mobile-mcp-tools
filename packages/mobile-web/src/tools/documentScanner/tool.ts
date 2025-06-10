@@ -15,7 +15,7 @@ API of the mobile device, within the LWC.
 
 export async function handleDocumentScannerRequest() {
   try {
-    const typeDefinitions = await readTypeDefinitionFile('resources/documentScannerService.d.ts');
+    const typeDefinitions = await readTypeDefinitionFile('documentScanner/documentScanner.d.ts');
     return {
       content: [
         {

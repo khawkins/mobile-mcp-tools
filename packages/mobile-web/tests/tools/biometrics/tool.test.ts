@@ -29,7 +29,7 @@ describe('Biometrics Tool', () => {
   it('should read the correct type definition file', async () => {
     const readFileSpy = vi.spyOn(util, 'readTypeDefinitionFile').mockResolvedValue('');
     await handleBiometricsRequest();
-    expect(readFileSpy).toHaveBeenCalledWith('resources/biometricsService.d.ts');
+    expect(readFileSpy).toHaveBeenCalledWith('biometrics/biometricsService.d.ts');
   });
 
   it('should return content with type definitions', async () => {

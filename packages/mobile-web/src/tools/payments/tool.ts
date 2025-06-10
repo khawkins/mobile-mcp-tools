@@ -15,7 +15,7 @@ API of the mobile device, within the LWC.
 
 export async function handlePaymentsRequest() {
   try {
-    const typeDefinitions = await readTypeDefinitionFile('resources/paymentsService.d.ts');
+    const typeDefinitions = await readTypeDefinitionFile('payments/paymentsService.d.ts');
     return {
       content: [
         {

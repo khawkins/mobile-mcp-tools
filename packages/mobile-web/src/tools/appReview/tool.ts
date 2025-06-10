@@ -15,7 +15,7 @@ of the mobile device, within the LWC.
 
 export async function handleAppReviewRequest() {
   try {
-    const typeDefinitions = await readTypeDefinitionFile('resources/appReviewService.d.ts');
+    const typeDefinitions = await readTypeDefinitionFile('appReview/appReviewService.d.ts');
     return {
       content: [
         {

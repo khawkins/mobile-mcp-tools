@@ -26,7 +26,7 @@ describe('Calendar Tool', () => {
   it('should read the correct type definition file', async () => {
     const readFileSpy = vi.spyOn(util, 'readTypeDefinitionFile').mockResolvedValue('');
     await handleCalendarRequest();
-    expect(readFileSpy).toHaveBeenCalledWith('resources/calendarService.d.ts');
+    expect(readFileSpy).toHaveBeenCalledWith('calendar/calendarService.d.ts');
   });
 
   it('should return content with type definitions', async () => {

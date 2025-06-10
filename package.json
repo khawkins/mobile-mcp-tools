@@ -13,6 +13,7 @@
     "test-all": "nx run-many --target=test",
     "build-all": "nx run-many --target=build",
     "start": "npm run build-all && chmod +x packages/mobile-web/dist/index.js && npx -y @salesforce/mobile-web-mcp-server",
+    "inspect": "npm run build-all && chmod +x packages/mobile-web/dist/index.js && npx @modelcontextprotocol/inspector node ./packages/mobile-web/dist/index.js",
     "prepare": "husky"
   },
   "repository": {

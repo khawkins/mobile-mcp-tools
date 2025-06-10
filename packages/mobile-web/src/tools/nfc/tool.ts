@@ -15,7 +15,7 @@ API of the mobile device, within the LWC.
 
 export async function handleNfcRequest() {
   try {
-    const typeDefinitions = await readTypeDefinitionFile('resources/nfcService.d.ts');
+    const typeDefinitions = await readTypeDefinitionFile('nfc/nfcService.d.ts');
     return {
       content: [
         {

@@ -29,7 +29,7 @@ describe('AR Space Capture Tool', () => {
   it('should read the correct type definition file', async () => {
     const readFileSpy = vi.spyOn(util, 'readTypeDefinitionFile').mockResolvedValue('');
     await handleArSpaceCaptureRequest();
-    expect(readFileSpy).toHaveBeenCalledWith('resources/arSpaceCapture.d.ts');
+    expect(readFileSpy).toHaveBeenCalledWith('arSpaceCapture/arSpaceCapture.d.ts');
   });
 
   it('should return content with type definitions', async () => {

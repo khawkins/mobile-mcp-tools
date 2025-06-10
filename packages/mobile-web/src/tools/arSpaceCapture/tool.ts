@@ -16,7 +16,7 @@ of the mobile device, within the LWC.
 
 export async function handleArSpaceCaptureRequest() {
   try {
-    const typeDefinitions = await readTypeDefinitionFile('resources/arSpaceCapture.d.ts');
+    const typeDefinitions = await readTypeDefinitionFile('arSpaceCapture/arSpaceCapture.d.ts');
     return {
       content: [
         {

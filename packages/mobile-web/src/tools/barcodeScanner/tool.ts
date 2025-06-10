@@ -15,7 +15,7 @@ of the mobile device, within the LWC.
 
 export async function handleBarcodeScannerRequest() {
   try {
-    const typeDefinitions = await readTypeDefinitionFile('resources/barcodeScannerService.d.ts');
+    const typeDefinitions = await readTypeDefinitionFile('barcodeScanner/barcodeScanner.d.ts');
     return {
       content: [
         {

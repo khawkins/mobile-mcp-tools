@@ -29,7 +29,7 @@ describe('Document Scanner Tool', () => {
   it('should read the correct type definition file', async () => {
     const readFileSpy = vi.spyOn(util, 'readTypeDefinitionFile').mockResolvedValue('');
     await handleDocumentScannerRequest();
-    expect(readFileSpy).toHaveBeenCalledWith('resources/documentScannerService.d.ts');
+    expect(readFileSpy).toHaveBeenCalledWith('documentScanner/documentScanner.d.ts');
   });
 
   it('should return content with type definitions', async () => {

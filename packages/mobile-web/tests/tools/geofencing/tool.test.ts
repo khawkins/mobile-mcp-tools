@@ -29,7 +29,7 @@ describe('Geofencing Tool', () => {
   it('should read the correct type definition file', async () => {
     const readFileSpy = vi.spyOn(util, 'readTypeDefinitionFile').mockResolvedValue('');
     await handleGeofencingRequest();
-    expect(readFileSpy).toHaveBeenCalledWith('resources/geofencingService.d.ts');
+    expect(readFileSpy).toHaveBeenCalledWith('geofencing/geofencingService.d.ts');
   });
 
   it('should return content with type definitions', async () => {
