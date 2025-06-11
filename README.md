@@ -18,8 +18,6 @@ A collection of Model Context Protocol (MCP) tools for Salesforce Mobile Web app
 
 ## Prerequisites
 
-- Node.js (v16 or later)
-- npm (v7 or later)
 - Visual Studio Code or Cursor IDE (for debugging)
 
 ## Installation
@@ -75,9 +73,17 @@ Debugger attached.
 
 4. Open the MCP Inspector URL (e.g., http://127.0.0.1:6274)
 5. Click "Connect" to connect to the MCP server
+
+![image](https://github.com/user-attachments/assets/7886de99-3a9c-46a3-9749-1c2334c17ff2)
+
 6. Click "List Tools" to see available tools
+![image](https://github.com/user-attachments/assets/dc38c37c-04ed-41e5-8af8-69978694841f)
+
 7. Select a tool and click "Run Tool" to test it
+![image](https://github.com/user-attachments/assets/0a128ee3-74f3-44d0-ad27-6cf8bf3825dd)
+
 8. If you set a breakpoint, execution will pause there for debugging
+![image](https://github.com/user-attachments/assets/e77d36da-6f5f-4edf-bb47-e2aecc4e53d6)
 
 ## Project Structure
 
