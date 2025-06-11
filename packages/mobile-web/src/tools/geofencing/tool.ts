@@ -29,7 +29,7 @@ export async function handleGeofencingRequest() {
       content: [
         {
           type: 'text' as const,
-          text: `Error: Unable to load geofencing type definitions.`,
+          text: `Error: Unable to load Geofencing type definitions.`,
         },
       ],
     };
