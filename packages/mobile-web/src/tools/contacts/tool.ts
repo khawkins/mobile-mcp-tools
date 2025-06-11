@@ -1,9 +1,42 @@
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { McpToolAnnotations } from '../../utils/util.js';
+import { readTypeDefinitionFile, createServiceGroundingText } from '../../utils/util.js';
 
-export function registerContactsTool(server: McpServer, annotations: McpToolAnnotations) {
+const template = `# Contacts Service Grounding Context
+
+The following content provides grounding information for generating a Salesforce LWC that leverages contacts facilities
+on mobile devices. Specifically, this context will cover the API types and methods available to leverage the contacts
+API of the mobile device, within the LWC.
+
+# Contacts Service API
+\`\`\`typescript
+\${typeDefinitions}
+\`\`\``;
+
+export async function handleContactsRequest() {
+  try {
+    const typeDefinitions = await readTypeDefinitionFile('contacts/contactsService.d.ts');
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: createServiceGroundingText(template, typeDefinitions),
+        },
+      ],
+    };
+  } catch {
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: 'Error: Unable to load Contacts type definitions.',
+        },
+      ],
+    };
+  }
+}
+
+export function registerContactsTool(server: McpServer, annotations: McpToolAnnotations): void {
   server.tool(
     'sfmobile-web-contacts',
     {
@@ -11,14 +44,6 @@ export function registerContactsTool(server: McpServer, annotations: McpToolAnno
         'Provides expert grounding to implement a Contacts feature in a Salesforce Lightning web component (LWC).',
       annotations,
     },
-    async () => {
-      const content = await readFile(
-        join(process.cwd(), 'resources', 'contactsService.d.ts'),
-        'utf-8'
-      );
-      return {
-        content: [{ type: 'text', text: content }],
-      };
-    }
+    handleContactsRequest
   );
 }

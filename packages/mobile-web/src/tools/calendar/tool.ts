@@ -1,9 +1,42 @@
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { McpToolAnnotations } from '../../utils/util.js';
+import { readTypeDefinitionFile, createServiceGroundingText } from '../../utils/util.js';
 
-export function registerCalendarTool(server: McpServer, annotations: McpToolAnnotations) {
+const template = `# Calendar Service Grounding Context
+
+The following content provides grounding information for generating a Salesforce LWC that leverages calendar facilities
+on mobile devices. Specifically, this context will cover the API types and methods available to leverage the calendar
+API of the mobile device, within the LWC.
+
+# Calendar Service API
+\`\`\`typescript
+\${typeDefinitions}
+\`\`\``;
+
+export async function handleCalendarRequest() {
+  try {
+    const typeDefinitions = await readTypeDefinitionFile('calendar/calendarService.d.ts');
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: createServiceGroundingText(template, typeDefinitions),
+        },
+      ],
+    };
+  } catch {
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: 'Error: Unable to load Calendar type definitions.',
+        },
+      ],
+    };
+  }
+}
+
+export function registerCalendarTool(server: McpServer, annotations: McpToolAnnotations): void {
   server.tool(
     'sfmobile-web-calendar',
     {
@@ -11,14 +44,6 @@ export function registerCalendarTool(server: McpServer, annotations: McpToolAnno
         'Provides expert grounding to implement a Calendar feature in a Salesforce Lightning web component (LWC).',
       annotations,
     },
-    async () => {
-      const content = await readFile(
-        join(process.cwd(), 'resources', 'calendarService.d.ts'),
-        'utf-8'
-      );
-      return {
-        content: [{ type: 'text', text: content }],
-      };
-    }
+    handleCalendarRequest
   );
 }
