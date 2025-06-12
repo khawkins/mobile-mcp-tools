@@ -29,7 +29,7 @@ export async function handleAppReviewRequest() {
       content: [
         {
           type: 'text' as const,
-          text: 'Error: Unable to load App Review type definitions.',
+          text: 'Error: Unable to load App Review Service type definitions.',
         },
       ],
     };
