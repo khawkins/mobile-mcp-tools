@@ -29,7 +29,7 @@ export async function handleCalendarRequest() {
       content: [
         {
           type: 'text' as const,
-          text: 'Error: Unable to load Calendar type definitions.',
+          text: 'Error: Unable to load Calendar Service type definitions.',
         },
       ],
     };
