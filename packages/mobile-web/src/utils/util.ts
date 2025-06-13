@@ -1,13 +1,6 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 
-export interface McpToolAnnotations {
-  readOnlyHint: boolean;
-  destructiveHint: boolean;
-  idempotentHint: boolean;
-  openWorldHint: boolean;
-}
-
 /**
  * Reads a type definition file from the resources directory
  * @param fileName - The name of the type definition file (e.g., 'appReviewService.d.ts')

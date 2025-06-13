@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { readFile } from 'fs/promises';
 import { readTypeDefinitionFile, createServiceGroundingText } from '../../src/utils/util';
 
@@ -8,10 +8,6 @@ vi.mock('fs/promises', () => ({
 }));
 
 describe('Utility Functions', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   describe('readTypeDefinitionFile', () => {
     it('should read type definition file from resources directory', async () => {
       const mockContent = 'mock type definitions';

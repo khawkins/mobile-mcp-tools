@@ -5,9 +5,6 @@
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "bin": {
-    "sfdc-mobile-web-mcp-server": "./dist/index.js"
-  },
   "scripts": {
     "build": "tsc && cp -r resources dist/",
     "start": "node dist/index.js",
@@ -16,7 +13,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.1"
+    "@modelcontextprotocol/sdk": "^1.12.3"
   },
   "devDependencies": {
     "@modelcontextprotocol/inspector": "^0.14.0",

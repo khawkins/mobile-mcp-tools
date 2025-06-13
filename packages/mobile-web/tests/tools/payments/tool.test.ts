@@ -1,10 +1,9 @@
-import { registerPaymentsTool, handlePaymentsRequest } from '../../../src/tools/payments/tool.js';
+import { PaymentsTool } from '../../../src/tools/payments/tool.js';
 import { setupToolTest } from '../../utils/tool-test-helper.js';
 
 const { runCommonTests } = setupToolTest({
-  toolName: 'Payments',
-  registerTool: registerPaymentsTool,
-  handleRequest: handlePaymentsRequest,
+  toolName: 'Payments Service',
+  toolClass: PaymentsTool,
   typeDefinitionPath: 'payments/paymentsService.d.ts',
 });
 

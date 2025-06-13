@@ -7,7 +7,3 @@ export const createMockTransport = (): Transport => ({
   send: vi.fn().mockResolvedValue(undefined),
   close: vi.fn().mockResolvedValue(undefined),
 });
-
-export const mockReadFile = (content: string) => {
-  vi.mocked(readFile).mockResolvedValue(content);
-};
