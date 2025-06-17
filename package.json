@@ -9,7 +9,9 @@
   "scripts": {
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "lint": "eslint \"**/*.{ts,tsx,js,jsx}\"",
-    "test": "echo \"No tests at the top level\" && exit 0",
+    "test": "nx run-many --target=test",
+    "test:coverage": "nx run-many --target=test:coverage",
+    "test:watch": "nx run-many --target=test:watch",
     "test:all": "nx run-many --target=test",
     "build:all": "nx run-many --target=build && chmod +x packages/mobile-web/dist/index.js",
     "mobile-web:server:start": "npm run build:all && npx -y @salesforce/mobile-web-mcp-server",
