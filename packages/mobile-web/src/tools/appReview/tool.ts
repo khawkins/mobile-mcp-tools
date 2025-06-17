@@ -12,8 +12,20 @@ The following content provides grounding information for generating a Salesforce
 on mobile devices. Specifically, this context will cover the API types and methods available to leverage the app review API
 of the mobile device, within the LWC.
 
-# App Review Service API
+## Base Capability
+\`\`\`typescript
+\${baseCapability}
+\`\`\`
+
+## Mobile Capabilities
+\`\`\`typescript
+\${mobileCapabilities}
+\`\`\`
+
+## App Review Service API
 \`\`\`typescript
 \${typeDefinitions}
 \`\`\``;
+
+
 }

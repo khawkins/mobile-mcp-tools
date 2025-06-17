@@ -50,7 +50,12 @@ export function setupToolTest(config: ToolTestConfig) {
 
         it('should return content with type definitions', async () => {
           const mockTypeDefinitions = 'mock type definitions';
+          const mockBaseCapability = 'mock base capability';
+          const mockMobileCapabilities = 'mock mobile capabilities';
           vi.spyOn(util, 'readTypeDefinitionFile').mockResolvedValue(mockTypeDefinitions);
+          vi.spyOn(util, 'readBaseCapability').mockResolvedValue(mockBaseCapability);
+          vi.spyOn(util, 'readMobileCapabilities').mockResolvedValue(mockMobileCapabilities);
+          vi.spyOn(util, 'readBaseCapability').mockResolvedValue(mockTypeDefinitions);
           vi.spyOn(util, 'createServiceGroundingText').mockReturnValue('mock grounding text');
 
           const result = await tool?.['handleRequest']();

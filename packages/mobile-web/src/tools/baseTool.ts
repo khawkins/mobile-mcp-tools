@@ -1,6 +1,11 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
-import { readTypeDefinitionFile, createServiceGroundingText } from '../utils/util.js';
+import {
+  readTypeDefinitionFile,
+  createServiceGroundingText,
+  readBaseCapability,
+  readMobileCapabilities,
+} from '../utils/util.js';
 
 export abstract class BaseTool {
   protected abstract readonly name: string;
@@ -17,11 +22,18 @@ export abstract class BaseTool {
   protected async handleRequest() {
     try {
       const typeDefinitions = await readTypeDefinitionFile(this.typeDefinitionPath);
+      const baseCapability = await readBaseCapability();
+      const mobileCapabilities = await readMobileCapabilities();
       return {
         content: [
           {
             type: 'text' as const,
-            text: createServiceGroundingText(this.template, typeDefinitions),
+            text: createServiceGroundingText(
+              this.template,
+              typeDefinitions,
+              baseCapability,
+              mobileCapabilities
+            ),
           },
         ],
       };

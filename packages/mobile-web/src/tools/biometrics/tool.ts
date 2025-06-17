@@ -12,7 +12,17 @@ The following content provides grounding information for generating a Salesforce
 on mobile devices. Specifically, this context will cover the API types and methods available to leverage the face recognition and 
 the finger printing scanner of the mobile device to authorize the user, within the LWC.
 
-# Biometrics Service API
+## Base Capability
+\`\`\`typescript
+\${baseCapability}
+\`\`\`
+
+## Mobile Capabilities
+\`\`\`typescript
+\${mobileCapabilities}
+\`\`\`
+
+## Biometrics Service API
 \`\`\`typescript
 \${typeDefinitions}
 \`\`\``;

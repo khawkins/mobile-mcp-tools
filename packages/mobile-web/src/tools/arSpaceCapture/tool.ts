@@ -12,7 +12,17 @@ The following content provides grounding information for generating a Salesforce
 on mobile devices. Specifically, this context will cover the API types and methods available to leverage the AR Space Capture API
 of the mobile device, within the LWC.
 
-# AR Space Capture Service API
+## Base Capability
+\`\`\`typescript
+\${baseCapability}
+\`\`\`
+
+## Mobile Capabilities
+\`\`\`typescript
+\${mobileCapabilities}
+\`\`\`
+
+## AR Space Capture Service API
 \`\`\`typescript
 \${typeDefinitions}
 \`\`\``;
