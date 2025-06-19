@@ -15,7 +15,14 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: 'npm'
       - run: npm install
-      - run: npm run test
+      - run: npm run test:coverage
+      - run: killall Xvfb || true
+      - name: Upload coverage to codecov
+        uses: codecov/codecov-action@v3
+        with:
+            token: ${{ secrets.CODECOV_TOKEN }}
+            files: packages/mobile-web/coverage/*.json
+            flags: src
   run-tests-win:
     runs-on: windows-latest
     strategy:
@@ -29,4 +36,4 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: 'npm'
       - run: npm install
-      - run: npm run test
+      - run: npm run test:coverage
