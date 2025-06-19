@@ -6,24 +6,6 @@ export class DocumentScannerTool extends BaseTool {
   protected readonly description =
     'Provides expert grounding to implement a Document Scanner feature in a Salesforce Lightning web component (LWC).';
   protected readonly typeDefinitionPath = 'documentScanner/documentScanner.d.ts';
-  protected readonly template = `# Document Scanner Grounding Context
-
-The following content provides grounding information for generating a Salesforce LWC that leverages document scanning facilities
-on mobile devices. Specifically, this context will cover the API types and methods available to leverage the document scanner
-API of the mobile device, within the LWC.
-
-## Base Capability
-\`\`\`typescript
-\${baseCapability}
-\`\`\`
-
-## Mobile Capabilities
-\`\`\`typescript
-\${mobileCapabilities}
-\`\`\`
-
-## Document Scanner API
-\`\`\`typescript
-\${typeDefinitions}
-\`\`\``;
+  protected readonly serviceName = 'Document Scanner';
+  protected readonly serviceDescription = `The following content provides grounding information for generating a Salesforce LWC that leverages document scanning facilities on mobile devices. Specifically, this context will cover the API types and methods available to leverage the document scanner API of the mobile device, within the LWC.`;
 }

@@ -7,8 +7,9 @@ export abstract class BaseTool {
   protected abstract readonly name: string;
   protected abstract readonly description: string;
   protected abstract readonly typeDefinitionPath: string;
-  protected abstract readonly template: string;
   protected abstract readonly toolId: string;
+  protected abstract readonly serviceDescription: string;
+  protected abstract readonly serviceName: string;
 
   // Extract repeated path as a protected member
   protected readonly resourcesPath = join(
@@ -38,15 +39,28 @@ export abstract class BaseTool {
   }
 
   protected createServiceGroundingText(
-    template: string,
     typeDefinitions: string,
     baseCapability: string,
     mobileCapabilities: string
   ): string {
-    return template
-      .replace('${typeDefinitions}', typeDefinitions)
-      .replace('${baseCapability}', baseCapability)
-      .replace('${mobileCapabilities}', mobileCapabilities);
+    return `# ${this.serviceName} Service Grounding Context
+
+${this.serviceDescription}
+
+## Base Capability
+\`\`\`typescript
+${baseCapability}
+\`\`\`
+
+## Mobile Capabilities
+\`\`\`typescript
+${mobileCapabilities}
+\`\`\`
+
+## ${this.serviceName} Service API
+\`\`\`typescript
+${typeDefinitions}
+\`\`\``;
   }
 
   protected async handleRequest() {
@@ -60,7 +74,6 @@ export abstract class BaseTool {
           {
             type: 'text' as const,
             text: this.createServiceGroundingText(
-              this.template,
               typeDefinitions,
               baseCapability,
               mobileCapabilities

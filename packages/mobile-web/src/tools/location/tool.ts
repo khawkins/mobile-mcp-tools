@@ -6,24 +6,6 @@ export class LocationTool extends BaseTool {
   protected readonly description =
     'Provides expert grounding to implement a Location feature in a Salesforce Lightning web component (LWC).';
   protected readonly typeDefinitionPath = 'location/locationService.d.ts';
-  protected readonly template = `# Location Service Grounding Context
-
-The following content provides grounding information for generating a Salesforce LWC that leverages location facilities
-on mobile devices. Specifically, this context will cover the API types and methods available to leverage the location
-API of the mobile device, within the LWC.
-
-## Base Capability
-\`\`\`typescript
-\${baseCapability}
-\`\`\`
-
-## Mobile Capabilities
-\`\`\`typescript
-\${mobileCapabilities}
-\`\`\`
-
-## Location Service API
-\`\`\`typescript
-\${typeDefinitions}
-\`\`\``;
+  protected readonly serviceName = 'Location';
+  protected readonly serviceDescription = `The following content provides grounding information for generating a Salesforce LWC that leverages location facilities on mobile devices. Specifically, this context will cover the API types and methods available to leverage the location API of the mobile device, within the LWC.`;
 }

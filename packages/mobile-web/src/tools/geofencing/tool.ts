@@ -6,24 +6,6 @@ export class GeofencingTool extends BaseTool {
   protected readonly description =
     'Provides expert grounding to implement a Geofencing feature in a Salesforce Lightning web component (LWC).';
   protected readonly typeDefinitionPath = 'geofencing/geofencingService.d.ts';
-  protected readonly template = `# Geofencing Service Grounding Context
-
-The following content provides grounding information for generating a Salesforce LWC that leverages geofencing facilities
-on mobile devices. Specifically, this context will cover the API types and methods available to leverage the geofencing
-API of the mobile device, within the LWC.
-
-## Base Capability
-\`\`\`typescript
-\${baseCapability}
-\`\`\`
-
-## Mobile Capabilities
-\`\`\`typescript
-\${mobileCapabilities}
-\`\`\`
-
-## Geofencing Service API
-\`\`\`typescript
-\${typeDefinitions}
-\`\`\``;
+  protected readonly serviceName = 'Geofencing';
+  protected readonly serviceDescription = `The following content provides grounding information for generating a Salesforce LWC that leverages geofencing facilities on mobile devices. Specifically, this context will cover the API types and methods available to leverage the geofencing API of the mobile device, within the LWC.`;
 }

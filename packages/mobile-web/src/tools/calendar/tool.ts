@@ -6,24 +6,6 @@ export class CalendarTool extends BaseTool {
   protected readonly description =
     'Provides expert grounding to implement a Calendar feature in a Salesforce Lightning web component (LWC).';
   protected readonly typeDefinitionPath = 'calendar/calendarService.d.ts';
-  protected readonly template = `# Calendar Service Grounding Context
-
-The following content provides grounding information for generating a Salesforce LWC that leverages calendar facilities
-on mobile devices. Specifically, this context will cover the API types and methods available to leverage the calendar
-API of the mobile device, within the LWC.
-
-## Base Capability
-\`\`\`typescript
-\${baseCapability}
-\`\`\`
-
-## Mobile Capabilities
-\`\`\`typescript
-\${mobileCapabilities}
-\`\`\`
-
-## Calendar Service API
-\`\`\`typescript
-\${typeDefinitions}
-\`\`\``;
+  protected readonly serviceName = 'Calendar';
+  protected readonly serviceDescription = `The following content provides grounding information for generating a Salesforce LWC that leverages calendar facilities on mobile devices. Specifically, this context will cover the API types and methods available to leverage the calendar API of the mobile device, within the LWC.`;
 }

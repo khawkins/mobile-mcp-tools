@@ -34,23 +34,3 @@ export async function readMobileCapabilities(): Promise<string> {
     'utf-8'
   );
 }
-
-/**
- * Creates a service grounding context text by interpolating type definitions and capability definitions into a template
- * @param template - The template string containing placeholders for type and capability definitions
- * @param typeDefinitions - The service type definitions to be interpolated
- * @param baseCapability - The base capability interface definition to be interpolated
- * @param mobileCapabilities - The mobile capabilities module definition to be interpolated
- * @returns The interpolated text with all definitions
- */
-export function createServiceGroundingText(
-  template: string,
-  typeDefinitions: string,
-  baseCapability: string,
-  mobileCapabilities: string
-): string {
-  return template
-    .replace('${typeDefinitions}', typeDefinitions)
-    .replace('${baseCapability}', baseCapability)
-    .replace('${mobileCapabilities}', mobileCapabilities);
-}

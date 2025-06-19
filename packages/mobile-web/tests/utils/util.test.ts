@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from 'vitest';
 import { readFile } from 'fs/promises';
 import {
   readTypeDefinitionFile,
-  createServiceGroundingText,
   readBaseCapability,
   readMobileCapabilities,
 } from '../../src/utils/util';
@@ -78,76 +77,6 @@ describe('Utility Functions', () => {
       vi.mocked(readFile).mockRejectedValue(error);
 
       await expect(readMobileCapabilities()).rejects.toThrow('File not found');
-    });
-  });
-
-  describe('createServiceGroundingText', () => {
-    it('should interpolate type definitions into template', () => {
-      const template = `# Service API
-\`\`\`typescript
-\${typeDefinitions}
-\${baseCapability}
-\${mobileCapabilities}
-\`\`\``;
-      const typeDefinitions = 'interface Test { value: string; }';
-      const baseCapability = 'interface BaseCapability { /* mock */ }';
-      const mobileCapabilities = 'interface MobileCapabilities { /* mock */ }';
-
-      const result = createServiceGroundingText(
-        template,
-        typeDefinitions,
-        baseCapability,
-        mobileCapabilities
-      );
-
-      expect(result).toBe(`# Service API
-\`\`\`typescript
-interface Test { value: string; }
-interface BaseCapability { /* mock */ }
-interface MobileCapabilities { /* mock */ }
-\`\`\``);
-    });
-
-    it('should handle empty type definitions', () => {
-      const template = `# Service API
-\`\`\`typescript
-\${typeDefinitions}
-\${baseCapability}
-\${mobileCapabilities}
-\`\`\``;
-      const typeDefinitions = '';
-      const baseCapability = '';
-      const mobileCapabilities = '';
-
-      const result = createServiceGroundingText(
-        template,
-        typeDefinitions,
-        baseCapability,
-        mobileCapabilities
-      );
-
-      expect(result).toBe(`# Service API
-\`\`\`typescript
-
-
-
-\`\`\``);
-    });
-
-    it('should handle template without placeholders', () => {
-      const template = '# Service API';
-      const typeDefinitions = 'interface Test { value: string; }';
-      const baseCapability = 'interface BaseCapability { /* mock */ }';
-      const mobileCapabilities = 'interface MobileCapabilities { /* mock */ }';
-
-      const result = createServiceGroundingText(
-        template,
-        typeDefinitions,
-        baseCapability,
-        mobileCapabilities
-      );
-
-      expect(result).toBe('# Service API');
     });
   });
 });
