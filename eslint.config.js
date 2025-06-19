@@ -9,15 +9,15 @@ const js = require('@eslint/js');
 const tseslint = require('typescript-eslint');
 
 module.exports = [
-    {
-        ignores: [
-            'packages/mobile-web/dist/**',
-            'packages/mobile-web/resources/**',
-            'packages/mobile-web/coverage/**',
-        ]
-    },
-    ...tseslint.configs.recommended.map((config) => ({
-        ...config,
-        files: ['packages/mobile-web/src/**/*.ts']
-    }))
+  {
+    ignores: [
+      'packages/mobile-web/dist/**',
+      'packages/mobile-web/resources/**',
+      'packages/mobile-web/coverage/**',
+    ],
+  },
+  ...tseslint.configs.recommended.map(config => ({
+    ...config,
+    files: ['packages/mobile-web/src/**/*.ts'],
+  })),
 ];
