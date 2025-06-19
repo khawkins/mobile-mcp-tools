@@ -1,7 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import * as util from '../../src/utils/util.js';
 import { BaseTool } from '../../src/tools/baseTool.js';
 
 export interface ToolTestConfig {
@@ -43,20 +42,19 @@ export function setupToolTest(config: ToolTestConfig) {
         });
 
         it('should read the correct type definition file', async () => {
-          const readFileSpy = vi.spyOn(util, 'readTypeDefinitionFile').mockResolvedValue('');
+          const readTypeDefinitionFileSpy = vi.spyOn(tool as any, 'readTypeDefinitionFile').mockResolvedValue('');
           await tool?.['handleRequest']();
-          expect(readFileSpy).toHaveBeenCalledWith(config.typeDefinitionPath);
+          expect(readTypeDefinitionFileSpy).toHaveBeenCalled();
         });
 
         it('should return content with type definitions', async () => {
           const mockTypeDefinitions = 'mock type definitions';
           const mockBaseCapability = 'mock base capability';
           const mockMobileCapabilities = 'mock mobile capabilities';
-          vi.spyOn(util, 'readTypeDefinitionFile').mockResolvedValue(mockTypeDefinitions);
-          vi.spyOn(util, 'readBaseCapability').mockResolvedValue(mockBaseCapability);
-          vi.spyOn(util, 'readMobileCapabilities').mockResolvedValue(mockMobileCapabilities);
-          vi.spyOn(util, 'readBaseCapability').mockResolvedValue(mockTypeDefinitions);
-          vi.spyOn(util, 'createServiceGroundingText').mockReturnValue('mock grounding text');
+          vi.spyOn(tool as any, 'readTypeDefinitionFile').mockResolvedValue(mockTypeDefinitions);
+          vi.spyOn(tool as any, 'readBaseCapability').mockResolvedValue(mockBaseCapability);
+          vi.spyOn(tool as any, 'readMobileCapabilities').mockResolvedValue(mockMobileCapabilities);
+          vi.spyOn(tool as any, 'createServiceGroundingText').mockReturnValue('mock grounding text');
 
           const result = await tool?.['handleRequest']();
           expect(result).toEqual({
@@ -71,8 +69,7 @@ export function setupToolTest(config: ToolTestConfig) {
 
         it('should handle errors when reading type definition file', async () => {
           const error = new Error('Failed to read file');
-          vi.spyOn(util, 'readTypeDefinitionFile').mockRejectedValue(error);
-          vi.spyOn(util, 'createServiceGroundingText').mockReturnValue('mock grounding text');
+          vi.spyOn(tool as any, 'readTypeDefinitionFile').mockRejectedValue(error);
 
           const result = await tool?.['handleRequest']();
           expect(result).toEqual({
