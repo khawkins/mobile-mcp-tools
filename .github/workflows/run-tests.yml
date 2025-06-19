@@ -17,12 +17,42 @@ jobs:
       - run: npm install
       - run: npm run test:coverage
       - run: killall Xvfb || true
-      - name: Upload coverage to codecov
+      
+      # Upload individual package coverage
+      - name: Upload mobile-web coverage
         uses: codecov/codecov-action@v3
         with:
             token: ${{ secrets.CODECOV_TOKEN }}
             files: packages/mobile-web/coverage/*.json
-            flags: src
+            flags: mobile-web-${{ runner.os }}-node${{ matrix.node }}
+            name: mobile-web-coverage
+            
+      # Add more packages as you create them
+      # - name: Upload backend-api coverage
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #       token: ${{ secrets.CODECOV_TOKEN }}
+      #       files: packages/backend-api/coverage/*.json
+      #       flags: backend-api-${{ runner.os }}-node${{ matrix.node }}
+      #       name: backend-api-coverage
+      
+      # - name: Upload shared-utils coverage
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #       token: ${{ secrets.CODECOV_TOKEN }}
+      #       files: packages/shared-utils/coverage/*.json
+      #       flags: shared-utils-${{ runner.os }}-node${{ matrix.node }}
+      #       name: shared-utils-coverage
+      
+      # Upload combined coverage for overall monorepo metrics
+      - name: Upload combined monorepo coverage
+        uses: codecov/codecov-action@v3
+        with:
+            token: ${{ secrets.CODECOV_TOKEN }}
+            files: packages/*/coverage/*.json
+            flags: monorepo-${{ runner.os }}-node${{ matrix.node }}
+            name: monorepo-combined-coverage
+
   run-tests-win:
     runs-on: windows-latest
     strategy:
@@ -37,3 +67,30 @@ jobs:
           cache: 'npm'
       - run: npm install
       - run: npm run test:coverage
+      
+      # Upload individual package coverage for Windows
+      - name: Upload mobile-web coverage
+        uses: codecov/codecov-action@v3
+        with:
+            token: ${{ secrets.CODECOV_TOKEN }}
+            files: packages/mobile-web/coverage/*.json
+            flags: mobile-web-${{ runner.os }}-node${{ matrix.node }}
+            name: mobile-web-coverage
+            
+      # Add more packages as you create them
+      # - name: Upload backend-api coverage
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #       token: ${{ secrets.CODECOV_TOKEN }}
+      #       files: packages/backend-api/coverage/*.json
+      #       flags: backend-api-${{ runner.os }}-node${{ matrix.node }}
+      #       name: backend-api-coverage
+      
+      # Upload combined coverage for overall monorepo metrics
+      - name: Upload combined monorepo coverage
+        uses: codecov/codecov-action@v3
+        with:
+            token: ${{ secrets.CODECOV_TOKEN }}
+            files: packages/*/coverage/*.json
+            flags: monorepo-${{ runner.os }}-node${{ matrix.node }}
+            name: monorepo-combined-coverage
