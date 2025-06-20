@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug MCP Server",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/packages/mobile-web/dist/index.js",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "inspect"],
+      "console": "integratedTerminal",
+      "outFiles": ["${workspaceFolder}/packages/mobile-web/dist/**/*.js"],
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/packages/mobile-web/src/**",
+        "!**/node_modules/**"
+      ]
+    }
+  ]
+}

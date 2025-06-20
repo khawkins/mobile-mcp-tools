@@ -10,7 +10,10 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "lint": "eslint \"**/*.{ts,tsx,js,jsx}\"",
     "test": "echo \"No tests at the top level\" && exit 0",
-    "test-all": "nx run-many --target=test",
+    "test:all": "nx run-many --target=test",
+    "build:all": "nx run-many --target=build && chmod +x packages/mobile-web/dist/index.js",
+    "mobile-web:server:start": "npm run build:all && npx -y @salesforce/mobile-web-mcp-server",
+    "inspect": "npm run build:all && npx @modelcontextprotocol/inspector node ./packages/mobile-web/dist/index.js",
     "prepare": "husky"
   },
   "repository": {
@@ -25,6 +28,7 @@
   "homepage": "https://github.com/forcedotcom/mobile-mcp-tools#readme",
   "devDependencies": {
     "@eslint/js": "^9.28.0",
+    "@nx/workspace": "^21.1.2",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
