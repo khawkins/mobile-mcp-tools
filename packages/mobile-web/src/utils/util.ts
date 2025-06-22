@@ -1,5 +1,7 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import { z } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 /**
  * Reads a type definition file from the resources directory
@@ -13,6 +15,13 @@ export async function readTypeDefinitionFile(fileName: string): Promise<string> 
   );
 }
 
+export const EmptySchema = z.object({});
+
+export const LintToolInputSchema = z.object({
+  jsContent: z.string().min(1).describe('Content of JS file of the LWC component.'),
+});
+
+export const EmptyJsonSchema = zodToJsonSchema(EmptySchema);
 /**
  * Reads the BaseCapability type definition file from the resources directory
  * @returns The contents of the BaseCapability type definition file
@@ -34,3 +43,4 @@ export async function readMobileCapabilities(): Promise<string> {
     'utf-8'
   );
 }
+

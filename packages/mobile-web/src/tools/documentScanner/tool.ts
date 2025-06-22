@@ -1,7 +1,7 @@
 import { BaseTool } from '../baseTool';
 
 export class DocumentScannerTool extends BaseTool {
-  protected readonly name = 'Document Scanner';
+  readonly name = 'Document Scanner';
   protected readonly toolId = 'sfmobile-web-document-scanner';
   protected readonly description =
     'Provides expert grounding to implement a Document Scanner feature in a Salesforce Lightning web component (LWC).';

@@ -1,7 +1,7 @@
 import { BaseTool } from '../baseTool';
 
 export class ArSpaceCaptureTool extends BaseTool {
-  protected readonly name = 'AR Space Capture';
+  readonly name = 'AR Space Capture';
   protected readonly toolId = 'sfmobile-web-ar-space-capture';
   protected readonly description =
     'Provides expert grounding to implement an AR Space Capture feature in a Salesforce Lightning web component (LWC).';

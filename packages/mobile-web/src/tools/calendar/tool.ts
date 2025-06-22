@@ -1,7 +1,7 @@
 import { BaseTool } from '../baseTool';
 
 export class CalendarTool extends BaseTool {
-  protected readonly name = 'Calendar Service';
+  readonly name = 'Calendar Service';
   protected readonly toolId = 'sfmobile-web-calendar';
   protected readonly description =
     'Provides expert grounding to implement a Calendar feature in a Salesforce Lightning web component (LWC).';

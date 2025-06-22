@@ -16,6 +16,7 @@ import { GeofencingTool } from './tools/geofencing/tool.js';
 import { LocationTool } from './tools/location/tool.js';
 import { NfcTool } from './tools/nfc/tool.js';
 import { PaymentsTool } from './tools/payments/tool.js';
+import { LintTool } from './tools/lintTool.js';
 
 const server = new McpServer({
   name: 'sfdc-mobile-web-mcp-server',
@@ -42,6 +43,7 @@ const geofencingTool = new GeofencingTool(server, annotations);
 const locationTool = new LocationTool(server, annotations);
 const nfcTool = new NfcTool(server, annotations);
 const paymentsTool = new PaymentsTool(server, annotations);
+const lintTool = new LintTool(server, annotations);
 
 appReviewTool.register();
 arSpaceCaptureTool.register();
@@ -54,6 +56,7 @@ geofencingTool.register();
 locationTool.register();
 nfcTool.register();
 paymentsTool.register();
+lintTool.register();
 
 export default server;
 

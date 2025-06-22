@@ -1,7 +1,7 @@
 import { BaseTool } from '../baseTool';
 
 export class PaymentsTool extends BaseTool {
-  protected readonly name = 'Payments Service';
+  readonly name = 'Payments Service';
   protected readonly toolId = 'sfmobile-web-payments';
   protected readonly description =
     'Provides expert grounding to implement a Payments feature in a Salesforce Lightning web component (LWC).';

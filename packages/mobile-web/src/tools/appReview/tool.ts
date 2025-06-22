@@ -1,7 +1,7 @@
 import { BaseTool } from '../baseTool';
 
 export class AppReviewTool extends BaseTool {
-  protected readonly name = 'App Review Service';
+  readonly name = 'App Review Service';
   protected readonly toolId = 'sfmobile-web-app-review';
   protected readonly description =
     'Provides expert grounding to implement a mobile app store review feature in a Salesforce Lightning web component (LWC).';

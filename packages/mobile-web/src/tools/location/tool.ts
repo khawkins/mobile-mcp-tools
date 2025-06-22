@@ -1,7 +1,7 @@
 import { BaseTool } from '../baseTool';
 
 export class LocationTool extends BaseTool {
-  protected readonly name = 'Location Service';
+  readonly name = 'Location Service';
   protected readonly toolId = 'sfmobile-web-location';
   protected readonly description =
     'Provides expert grounding to implement a Location feature in a Salesforce Lightning web component (LWC).';

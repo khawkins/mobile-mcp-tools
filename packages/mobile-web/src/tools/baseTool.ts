@@ -2,21 +2,26 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import { EmptySchema } from '../utils/util';
+import { Tool } from './Tool';
 
-export abstract class BaseTool {
-  protected abstract readonly name: string;
+export abstract class BaseTool implements Tool {
+  public abstract readonly name: string;
   protected abstract readonly description: string;
   protected abstract readonly typeDefinitionPath: string;
   protected abstract readonly toolId: string;
   protected abstract readonly serviceDescription: string;
   protected abstract readonly serviceName: string;
 
+  // Required by Tool interface
+  public readonly inputSchema = EmptySchema;
+
   // Extract repeated path as a protected member
   protected readonly resourcesPath = join(
-    process.cwd(), 
-    'packages', 
-    'mobile-web', 
-    'dist', 
+    process.cwd(),
+    'packages',
+    'mobile-web',
+    'dist',
     'resources'
   );
 
@@ -97,10 +102,9 @@ ${typeDefinitions}
   public register(): void {
     this.server.tool(
       this.toolId,
-      {
-        description: this.description,
-        annotations: this.annotations,
-      },
+      this.description,
+      EmptySchema.shape,
+      this.annotations,
       this.handleRequest.bind(this)
     );
   }

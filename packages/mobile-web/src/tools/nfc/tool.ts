@@ -1,7 +1,7 @@
 import { BaseTool } from '../baseTool';
 
 export class NfcTool extends BaseTool {
-  protected readonly name = 'NFC Service';
+  readonly name = 'NFC Service';
   protected readonly toolId = 'sfmobile-web-nfc';
   protected readonly description =
     'Provides expert grounding to implement an NFC feature in a Salesforce Lightning web component (LWC).';
