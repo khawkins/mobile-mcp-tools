@@ -13,7 +13,7 @@
       "outFiles": ["${workspaceFolder}/packages/mobile-web/dist/**/*.js"],
       "sourceMaps": true,
       "resolveSourceMapLocations": [
-        "${workspaceFolder}/packages/mobile-web/src/**",
+        "${workspaceFolder}/packages/mobile-web/**",
         "!**/node_modules/**"
       ]
     }
