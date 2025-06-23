@@ -67,7 +67,7 @@ const linterConfig: Linter.Config = {
 export class LintTool implements Tool {
   readonly name = 'Lint Tool';
   protected readonly description =
-    'Analyzes LWC components for mobile-specific Eslint issues and provides detailed recommendations for improvements.';
+    'Analyzes LWC components for mobile-specific issues and provides detailed recommendations for improvements. It can be leveraged to check if components are mobile-ready.';
   protected readonly toolId = 'sfmobile-web-lint';
   public readonly inputSchema = LintToolInputSchema;
   private readonly linter = new Linter({
