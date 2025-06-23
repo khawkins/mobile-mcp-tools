@@ -6,6 +6,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "bin": {
+    "mobile-web-mcp-server": "packages/mobile-web/dist/index.js"
+  },
   "scripts": {
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "lint": "eslint \"**/*.{ts,tsx,js,jsx}\"",

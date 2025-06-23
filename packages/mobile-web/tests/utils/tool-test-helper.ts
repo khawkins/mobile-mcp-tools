@@ -42,7 +42,9 @@ export function setupToolTest(config: ToolTestConfig) {
         });
 
         it('should read the correct type definition file', async () => {
-          const readTypeDefinitionFileSpy = vi.spyOn(tool as any, 'readTypeDefinitionFile').mockResolvedValue('');
+          const readTypeDefinitionFileSpy = vi
+            .spyOn(tool as any, 'readTypeDefinitionFile')
+            .mockResolvedValue('');
           await tool?.['handleRequest']();
           expect(readTypeDefinitionFileSpy).toHaveBeenCalled();
         });
@@ -54,7 +56,9 @@ export function setupToolTest(config: ToolTestConfig) {
           vi.spyOn(tool as any, 'readTypeDefinitionFile').mockResolvedValue(mockTypeDefinitions);
           vi.spyOn(tool as any, 'readBaseCapability').mockResolvedValue(mockBaseCapability);
           vi.spyOn(tool as any, 'readMobileCapabilities').mockResolvedValue(mockMobileCapabilities);
-          vi.spyOn(tool as any, 'createServiceGroundingText').mockReturnValue('mock grounding text');
+          vi.spyOn(tool as any, 'createServiceGroundingText').mockReturnValue(
+            'mock grounding text'
+          );
 
           const result = await tool?.['handleRequest']();
           expect(result).toEqual({

@@ -43,4 +43,3 @@ export async function readMobileCapabilities(): Promise<string> {
     'utf-8'
   );
 }
-
