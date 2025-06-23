@@ -1,13 +1,9 @@
-import {
-  registerGeofencingTool,
-  handleGeofencingRequest,
-} from '../../../src/tools/geofencing/tool.js';
+import { GeofencingTool } from '../../../src/tools/geofencing/tool.js';
 import { setupToolTest } from '../../utils/tool-test-helper.js';
 
 const { runCommonTests } = setupToolTest({
-  toolName: 'Geofencing',
-  registerTool: registerGeofencingTool,
-  handleRequest: handleGeofencingRequest,
+  toolName: 'Geofencing Service',
+  toolClass: GeofencingTool,
   typeDefinitionPath: 'geofencing/geofencingService.d.ts',
 });
 

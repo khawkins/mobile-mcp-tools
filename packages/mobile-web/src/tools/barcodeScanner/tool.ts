@@ -1,52 +1,11 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { McpToolAnnotations } from '../../utils/util.js';
-import { readTypeDefinitionFile, createServiceGroundingText } from '../../utils/util.js';
+import { BaseTool } from '../baseTool';
 
-const template = `# Barcode Scanner Service Grounding Context
-
-The following content provides grounding information for generating a Salesforce LWC that leverages barcode scanning facilities
-on mobile devices. Specifically, this context will cover the API types and methods available to leverage the barcode scanning API
-of the mobile device, within the LWC.
-
-# Barcode Scanner Service API
-\`\`\`typescript
-\${typeDefinitions}
-\`\`\``;
-
-export async function handleBarcodeScannerRequest() {
-  try {
-    const typeDefinitions = await readTypeDefinitionFile('barcodeScanner/barcodeScanner.d.ts');
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: createServiceGroundingText(template, typeDefinitions),
-        },
-      ],
-    };
-  } catch {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: 'Error: Unable to load Barcode Scanner type definitions.',
-        },
-      ],
-    };
-  }
-}
-
-export function registerBarcodeScannerTool(
-  server: McpServer,
-  annotations: McpToolAnnotations
-): void {
-  server.tool(
-    'sfmobile-web-barcode-scanner',
-    {
-      description:
-        'Provides expert grounding to implement a Barcode Scanner feature in a Salesforce Lightning web component (LWC).',
-      annotations,
-    },
-    handleBarcodeScannerRequest
-  );
+export class BarcodeScannerTool extends BaseTool {
+  protected readonly name = 'Barcode Scanner';
+  protected readonly toolId = 'sfmobile-web-barcode-scanner';
+  protected readonly description =
+    'Provides expert grounding to implement a Barcode Scanner feature in a Salesforce Lightning web component (LWC).';
+  protected readonly typeDefinitionPath = 'barcodeScanner/barcodeScanner.d.ts';
+  protected readonly serviceName = 'Barcode Scanner';
+  protected readonly serviceDescription = `The following content provides grounding information for generating a Salesforce LWC that leverages barcode scanning facilities on mobile devices. Specifically, this context will cover the API types and methods available to leverage the barcode scanning API of the mobile device, within the LWC.`;
 }

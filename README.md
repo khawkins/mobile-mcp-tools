@@ -25,7 +25,7 @@ A collection of Model Context Protocol (MCP) tools for Salesforce Mobile Web app
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-org/mobile-mcp-tools.git
+git clone https://github.com/forcedotcom/mobile-mcp-tools.git
 cd mobile-mcp-tools
 ```
 
@@ -77,13 +77,13 @@ Debugger attached.
 ![image](https://github.com/user-attachments/assets/7886de99-3a9c-46a3-9749-1c2334c17ff2)
 
 6. Click "List Tools" to see available tools
-![image](https://github.com/user-attachments/assets/dc38c37c-04ed-41e5-8af8-69978694841f)
+   ![image](https://github.com/user-attachments/assets/dc38c37c-04ed-41e5-8af8-69978694841f)
 
 7. Select a tool and click "Run Tool" to test it
-![image](https://github.com/user-attachments/assets/0a128ee3-74f3-44d0-ad27-6cf8bf3825dd)
+   ![image](https://github.com/user-attachments/assets/0a128ee3-74f3-44d0-ad27-6cf8bf3825dd)
 
 8. If you set a breakpoint, execution will pause there for debugging
-![image](https://github.com/user-attachments/assets/e77d36da-6f5f-4edf-bb47-e2aecc4e53d6)
+   ![image](https://github.com/user-attachments/assets/e77d36da-6f5f-4edf-bb47-e2aecc4e53d6)
 
 ## Project Structure
 

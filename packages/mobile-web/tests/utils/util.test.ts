@@ -1,6 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { readFile } from 'fs/promises';
-import { readTypeDefinitionFile, createServiceGroundingText } from '../../src/utils/util';
+import {
+  readTypeDefinitionFile,
+  readBaseCapability,
+  readMobileCapabilities,
+} from '../../src/utils/util';
 
 // Mock fs/promises
 vi.mock('fs/promises', () => ({
@@ -8,10 +12,6 @@ vi.mock('fs/promises', () => ({
 }));
 
 describe('Utility Functions', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   describe('readTypeDefinitionFile', () => {
     it('should read type definition file from resources directory', async () => {
       const mockContent = 'mock type definitions';
@@ -36,44 +36,47 @@ describe('Utility Functions', () => {
     });
   });
 
-  describe('createServiceGroundingText', () => {
-    it('should interpolate type definitions into template', () => {
-      const template = `# Service API
-\`\`\`typescript
-\${typeDefinitions}
-\`\`\``;
-      const typeDefinitions = 'interface Test { value: string; }';
+  describe('readBaseCapability', () => {
+    it('should read BaseCapability type definition file from resources directory', async () => {
+      const mockContent = 'interface BaseCapability { /* mock content */ }';
+      vi.mocked(readFile).mockResolvedValue(mockContent);
 
-      const result = createServiceGroundingText(template, typeDefinitions);
+      const result = await readBaseCapability();
 
-      expect(result).toBe(`# Service API
-\`\`\`typescript
-interface Test { value: string; }
-\`\`\``);
+      expect(result).toBe(mockContent);
+      expect(readFile).toHaveBeenCalledWith(
+        expect.stringContaining('resources/BaseCapability.d.ts'),
+        'utf-8'
+      );
     });
 
-    it('should handle empty type definitions', () => {
-      const template = `# Service API
-\`\`\`typescript
-\${typeDefinitions}
-\`\`\``;
-      const typeDefinitions = '';
+    it('should throw error when BaseCapability file read fails', async () => {
+      const error = new Error('File not found');
+      vi.mocked(readFile).mockRejectedValue(error);
 
-      const result = createServiceGroundingText(template, typeDefinitions);
+      await expect(readBaseCapability()).rejects.toThrow('File not found');
+    });
+  });
 
-      expect(result).toBe(`# Service API
-\`\`\`typescript
+  describe('readMobileCapabilities', () => {
+    it('should read mobileCapabilities type definition file from resources directory', async () => {
+      const mockContent = 'interface MobileCapabilities { /* mock content */ }';
+      vi.mocked(readFile).mockResolvedValue(mockContent);
 
-\`\`\``);
+      const result = await readMobileCapabilities();
+
+      expect(result).toBe(mockContent);
+      expect(readFile).toHaveBeenCalledWith(
+        expect.stringContaining('resources/mobileCapabilities.d.ts'),
+        'utf-8'
+      );
     });
 
-    it('should handle template without placeholder', () => {
-      const template = '# Service API';
-      const typeDefinitions = 'interface Test { value: string; }';
+    it('should throw error when mobileCapabilities file read fails', async () => {
+      const error = new Error('File not found');
+      vi.mocked(readFile).mockRejectedValue(error);
 
-      const result = createServiceGroundingText(template, typeDefinitions);
-
-      expect(result).toBe('# Service API');
+      await expect(readMobileCapabilities()).rejects.toThrow('File not found');
     });
   });
 });

@@ -12,7 +12,10 @@
       "console": "integratedTerminal",
       "outFiles": ["${workspaceFolder}/packages/mobile-web/dist/**/*.js"],
       "sourceMaps": true,
-      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"]
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/packages/mobile-web/src/**",
+        "!**/node_modules/**"
+      ]
     }
   ]
 }

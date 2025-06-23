@@ -1,13 +1,6 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 
-export interface McpToolAnnotations {
-  readOnlyHint: boolean;
-  destructiveHint: boolean;
-  idempotentHint: boolean;
-  openWorldHint: boolean;
-}
-
 /**
  * Reads a type definition file from the resources directory
  * @param fileName - The name of the type definition file (e.g., 'appReviewService.d.ts')
@@ -21,11 +14,23 @@ export async function readTypeDefinitionFile(fileName: string): Promise<string> 
 }
 
 /**
- * Creates a service grounding context text by interpolating type definitions into a template
- * @param template - The template string containing a placeholder for type definitions
- * @param typeDefinitions - The type definitions to be interpolated into the template
- * @returns The interpolated text with type definitions
+ * Reads the BaseCapability type definition file from the resources directory
+ * @returns The contents of the BaseCapability type definition file
  */
-export function createServiceGroundingText(template: string, typeDefinitions: string): string {
-  return template.replace('${typeDefinitions}', typeDefinitions);
+export async function readBaseCapability(): Promise<string> {
+  return readFile(
+    join(process.cwd(), 'packages', 'mobile-web', 'dist', 'resources', 'BaseCapability.d.ts'),
+    'utf-8'
+  );
+}
+
+/**
+ * Reads the mobileCapabilities type definition file from the resources directory
+ * @returns The contents of the mobileCapabilities type definition file
+ */
+export async function readMobileCapabilities(): Promise<string> {
+  return readFile(
+    join(process.cwd(), 'packages', 'mobile-web', 'dist', 'resources', 'mobileCapabilities.d.ts'),
+    'utf-8'
+  );
 }

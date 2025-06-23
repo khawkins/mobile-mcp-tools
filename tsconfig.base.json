@@ -6,7 +6,6 @@
     "moduleResolution": "nodenext",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "importHelpers": true,
     "target": "esnext",
     "module": "nodenext",
     "lib": ["ESNext", "DOM"],
