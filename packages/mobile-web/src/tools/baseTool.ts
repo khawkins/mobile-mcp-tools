@@ -59,7 +59,6 @@ ${typeDefinitions}
 
   protected async handleRequest() {
     try {
-      // Simplified calls - no parameters needed
       const typeDefinitions = await this.readTypeDefinitionFile();
       const baseCapability = await this.readBaseCapability();
       const mobileCapabilities = await this.readMobileCapabilities();
