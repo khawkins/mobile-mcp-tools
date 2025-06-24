@@ -1,10 +1,9 @@
 import { type AST, Linter } from 'eslint';
 import { parse, type Options as MeriyahOptions } from 'meriyah';
 import { Tool } from './Tool';
-import { LintToolInputSchema } from '../utils/util';
+import { LwcCodeSchema, type LwcCodeType } from '../utils/staticReview';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
 import lwcGraphAnalyzerPlugin from '@salesforce/eslint-plugin-lwc-graph-analyzer';
 import {
   AnalysisBaseIssue,
@@ -69,7 +68,7 @@ export class LintTool implements Tool {
   protected readonly description =
     'Analyzes LWC components for mobile-specific issues and provides detailed recommendations for improvements. It can be leveraged to check if components are mobile-ready.';
   protected readonly toolId = 'sfmobile-web-lint';
-  public readonly inputSchema = LintToolInputSchema;
+  public readonly inputSchema = LwcCodeSchema;
   private readonly linter = new Linter({
     configType: 'flat',
   });
@@ -91,8 +90,8 @@ export class LintTool implements Tool {
       this.description,
       this.inputSchema.shape,
       this.annotations,
-      async (params: z.infer<typeof LintToolInputSchema>) => {
-        const jscode = params.jsContent;
+      async (code: LwcCodeType) => {
+        const jscode = code.js.map(js => js.content).join('\n');
         const { messages } = this.linter.verifyAndFix(jscode, linterConfig, {
           fix: true,
         });

@@ -56,7 +56,7 @@ export const LwcCodeSchema = z.object({
   jsMetaXml: LwcFileSchema.describe('LWC component configuration .js-meta.xml file.'),
 });
 
-export type LwcCode = z.infer<typeof LwcCodeSchema>;
+export type LwcCodeType = z.infer<typeof LwcCodeSchema>;
 
 export const noWireConfigReferenceNonLocalPropertyStaticReviewConfig: AnalysisBaseIssue = {
   type: 'Wire Configuration References Non-Local Property',
