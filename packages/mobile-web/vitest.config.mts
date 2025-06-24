@@ -38,6 +38,7 @@ export default defineConfig({
         '**/types/',
         '**/index.ts',
         '**/coverage/',
+        '**/update-type-declarations.ts',
       ],
 
       // Files to include in coverage reporting
