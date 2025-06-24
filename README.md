@@ -46,7 +46,7 @@ npm install
 Build all packages:
 
 ```bash
-npm run build-all
+npm run build:all
 ```
 
 ### Testing
@@ -54,7 +54,7 @@ npm run build-all
 Run all unit tests:
 
 ```bash
-npm run test-all
+npm run test:all
 ```
 
 ### Debugging
@@ -116,7 +116,7 @@ packages/
 
 1. Create a feature branch
 2. Make your changes
-3. Run tests: `npm run test-all`
+3. Run tests: `npm run test:all`
 4. Submit a pull request
 
 ## License
