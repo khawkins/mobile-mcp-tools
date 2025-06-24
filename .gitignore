@@ -21,4 +21,5 @@ Thumbs.db
 
 
 .cursor/rules/nx-rules.mdc
+.sfdx/
 .github/instructions/nx.instructions.md

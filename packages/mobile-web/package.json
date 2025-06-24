@@ -1,18 +1,23 @@
 {
   "name": "@salesforce/mobile-web-mcp-server",
   "version": "0.0.1",
+  "files": [
+    "dist",
+    "resources"
+  ],
   "description": "Salesforce Mobile Web MCP Server",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc && cp -r resources dist/",
+    "build": "tsc ",
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "lint": "eslint \"src/**/*.ts\"",
-    "format": "prettier --write \"src/**/*.ts\""
+    "format": "prettier --write \"src/**/*.ts\"",
+    "update-resources": "tsx src/scripts/update-type-declarations.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.3"
@@ -21,6 +26,8 @@
     "@modelcontextprotocol/inspector": "^0.14.1",
     "@types/node": "^22.15.29",
     "@vitest/coverage-v8": "^3.2.3",
+    "tar": "^7.4.3",
+    "tsx": "^4.19.2",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
     "vitest": "^3.2.3"

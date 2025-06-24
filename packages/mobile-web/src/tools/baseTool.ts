@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { join, resolve } from 'path';
 
 export abstract class BaseTool {
   protected abstract readonly name: string;
@@ -12,13 +12,7 @@ export abstract class BaseTool {
   protected abstract readonly serviceName: string;
 
   // Extract repeated path as a protected member
-  protected readonly resourcesPath = join(
-    process.cwd(), 
-    'packages', 
-    'mobile-web', 
-    'dist', 
-    'resources'
-  );
+  protected readonly resourcesPath = resolve(__dirname, '..', '..', 'resources');
 
   constructor(
     protected readonly server: McpServer,
@@ -96,10 +90,8 @@ ${typeDefinitions}
   public register(): void {
     this.server.tool(
       this.toolId,
-      {
-        description: this.description,
-        annotations: this.annotations,
-      },
+      this.description,
+      this.annotations,
       this.handleRequest.bind(this)
     );
   }
