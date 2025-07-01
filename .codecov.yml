@@ -40,12 +40,21 @@ flags:
   mobile-web:
     target: 85%
     threshold: 5%
-  backend-api:
-    target: 80%
-    threshold: 5%
-  shared-utils:
-    target: 90%
-    threshold: 5%
+    # paths: specifies which directories/files to include in coverage for this flag
+    # Only coverage reports from files in packages/mobile-web/ will be counted for mobile-web flag
+    paths:
+      - "packages/mobile-web/"
+  # Add more subpackages like the example below in the future
+  # backend-api:
+  #   target: 80%
+  #   threshold: 5%
+  #   paths:
+  #     - "packages/backend-api/"
+  # shared-utils:
+  #   target: 90%
+  #   threshold: 5%
+  #   paths:
+  #     - "packages/shared-utils/"
   
   # Monorepo combined flag
   monorepo:
