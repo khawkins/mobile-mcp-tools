@@ -2,8 +2,8 @@
 
 A collection of Model Context Protocol (MCP) tools for Salesforce Mobile Web applications. These tools provide expert grounding for implementing various mobile capabilities in Salesforce Lightning Web Components (LWC).
 
-[![Codecov](https://codecov.io/gh/forcedotcom/mobile-mcp-tools/branch/main/graph/badge.svg?flag=monorepo)](https://codecov.io/gh/forcedotcom/mobile-mcp-tools?flag=monorepo)
-[![mobile-web coverage](https://codecov.io/gh/forcedotcom/mobile-mcp-tools/branch/main/graph/badge.svg?flag=mobile-web)](https://codecov.io/gh/forcedotcom/mobile-mcp-tools?flag=mobile-web)
+[![Codecov](https://codecov.io/gh/forcedotcom/mobile-mcp-tools/graph/badge.svg?flag=monorepo)](https://codecov.io/gh/forcedotcom/mobile-mcp-tools?flag=monorepo)
+[![mobile-web coverage](https://codecov.io/gh/forcedotcom/mobile-mcp-tools/graph/badge.svg?flag=mobile-web)](https://codecov.io/gh/forcedotcom/mobile-mcp-tools?flag=mobile-web)
 [![Build Status](https://github.com/forcedotcom/mobile-mcp-tools/workflows/run-tests/badge.svg)](https://github.com/forcedotcom/mobile-mcp-tools/actions)
 
 ## Features
