@@ -6,11 +6,8 @@
   "workspaces": [
     "packages/*"
   ],
-  "bin": {
-    "mobile-web-mcp-server": "packages/mobile-web/dist/index.js"
-  },
   "scripts": {
-    "prettier:format": "prettier --write \"**/src/**/*.{ts, js, md, json}\" \"**/tests/**/*.{ts, js, md, json}\"",
+    "prettier:format": "prettier --write \"**/src/**/*.{ts,js,md,json}\" \"**/tests/**/*.{ts,js,md,json}\" \"**/package.json\"",
     "prettier:verify": "prettier --list-different \"**/src/**/*.{ts, js, md, json}\"  \"**/tests/**/*.{ts, js, md, json}\"",
     "lint": "eslint \"**/*.{ts,tsx,js,jsx}\"",
     "test": "nx run-many --target=test",
