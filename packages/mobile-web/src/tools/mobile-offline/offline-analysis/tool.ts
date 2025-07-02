@@ -1,6 +1,6 @@
 import { type AST, Linter } from 'eslint';
 import { parse, type Options as MeriyahOptions } from 'meriyah';
-import { Tool } from '../../Tool';
+import { Tool } from '../../tool';
 import { LwcCodeSchema, type LwcCodeType } from '../../../schemas/lwcSchema';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
@@ -14,14 +14,15 @@ import {
   ExpertsCodeAnalysisIssuesType,
   ExpertCodeAnalysisIssuesType,
 } from '../../../schemas/analysisSchema';
-const bundleAnalyzer = lwcGraphAnalyzerPlugin.processors.bundleAnalyzer;
-const analysisExpertName = 'Mobile Web Offline Analysis';
 
-const recommendedConfig = lwcGraphAnalyzerPlugin.configs.recommended;
+const BUNDLE_ANALYZER = lwcGraphAnalyzerPlugin.processors.bundleAnalyzer;
+const ANALYSIS_EXPERT_NAME = 'Mobile Web Offline Analysis';
+const PLUGIN_NAME = '@salesforce/lwc-graph-analyzer';
+const RECOMMENDED_CONFIG = lwcGraphAnalyzerPlugin.configs.recommended;
+const RECOMMENDED_RULES = RECOMMENDED_CONFIG.rules || {};
 
-const recommendedRules = recommendedConfig.rules || {};
-
-const meriyahParser: Linter.Parser = {
+// ESLint parser configuration
+const MERIYAH_PARSER: Linter.Parser = {
   parseForESLint(code: string, options: MeriyahOptions): { ast: AST.Program } {
     const tokens: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
     const comments: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -41,124 +42,149 @@ const meriyahParser: Linter.Parser = {
   },
 };
 
-const parserOption: Linter.ParserOptions = {
+const PARSER_OPTIONS: Linter.ParserOptions = {
   next: true,
   module: true,
   loc: true,
   ranges: true,
 };
-const pluginName = '@salesforce/lwc-graph-analyzer';
 
-const linterConfig: Linter.Config = {
-  name: `config: ${pluginName}`,
+const LINTER_CONFIG: Linter.Config = {
+  name: `config: ${PLUGIN_NAME}`,
   languageOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
-    parser: meriyahParser,
-    parserOptions: parserOption,
+    parser: MERIYAH_PARSER,
+    parserOptions: PARSER_OPTIONS,
   },
-  rules: recommendedRules,
+  rules: RECOMMENDED_RULES,
   plugins: {
-    [pluginName]: lwcGraphAnalyzerPlugin,
+    [PLUGIN_NAME]: lwcGraphAnalyzerPlugin,
   },
-  processor: bundleAnalyzer,
+  processor: BUNDLE_ANALYZER,
 };
 
-export class LintTool implements Tool {
-  readonly name = 'Lint Tool';
-  protected readonly description =
+export class OfflineAnalysisTool implements Tool {
+  readonly name = 'Mobile Web Offline Analysis Tool';
+  readonly description =
     'Analyzes LWC components for mobile-specific issues and provides detailed recommendations for improvements. It can be leveraged to check if components are mobile-ready.';
-  protected readonly toolId = 'sfmobile-web-offline-analysis';
-  public readonly inputSchema = LwcCodeSchema;
-  public readonly outputSchema = ExpertsCodeAnalysisIssuesSchema;
-  private readonly linter = new Linter({
-    configType: 'flat',
-  });
+  readonly toolId = 'sfmobile-web-offline-analysis';
+  readonly inputSchema = LwcCodeSchema;
+  readonly outputSchema = ExpertsCodeAnalysisIssuesSchema;
 
-  private ruleReviewers: Record<string, CodeAnalysisBaseIssueType> = ruleConfigs.reduce(
-    (acc, ruleConfig) => {
-      acc[ruleConfig.id] = ruleConfig.config;
-      return acc;
-    },
-    {} as Record<string, CodeAnalysisBaseIssueType>
-  );
+  private readonly linter: Linter;
+  private readonly ruleReviewers: Record<string, CodeAnalysisBaseIssueType>;
 
-  constructor(
-    protected readonly server: McpServer,
-    protected readonly annotations: ToolAnnotations
-  ) {}
+  constructor() {
+    this.linter = new Linter({ configType: 'flat' });
+    this.ruleReviewers = this.initializeRuleReviewers();
+  }
 
-  public register(): void {
-    this.server.registerTool(
+  public register(server: McpServer, annotations: ToolAnnotations): void {
+    server.registerTool(
       this.toolId,
       {
         description: this.description,
         inputSchema: this.inputSchema.shape,
-        annotations: this.annotations,
+        annotations: annotations,
       },
       async (code: LwcCodeType) => {
-        const jscode = code.js.map(js => js.content).join('\n');
-        const { messages } = this.linter.verifyAndFix(jscode, linterConfig, {
-          fix: true,
-        });
-        const offlineAnalysisIssues = this.analyzeIssues(jscode, messages);
-        const userAnalysis: ExpertsCodeAnalysisIssuesType = {
-          analysisResults: [offlineAnalysisIssues],
-          orchestrationInstructions:
-            "If you have not already executed the 'sfmobile-web-offline-guidance' tool in this conversation thread: (1) Immediately call the 'sfmobile-web-offline-guidance' tool, (2) Execute all review instructions from the guidance tool's output against the user's LWC component code in the specified format, (3) Combine the review results from step 2 with this tool's analysis results, then refactor the component based on all combined review recommendations.",
-        } as ExpertsCodeAnalysisIssuesType;
-        return {
-          content: [
-            {
-              type: 'text',
-              text: this.createAnalysisMarkdown(code.name, userAnalysis),
-            },
-          ],
-        };
+        try {
+          const analysisResults = await this.analyzeCode(code);
+          return {
+            content: [
+              {
+                type: 'text',
+                text: this.createAnalysisMarkdown(code.name, analysisResults),
+              },
+            ],
+          };
+        } catch (error) {
+          console.error('Error during code analysis:', error);
+          throw new Error(
+            `Failed to analyze code: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
+        }
       }
     );
   }
 
+  private initializeRuleReviewers(): Record<string, CodeAnalysisBaseIssueType> {
+    return ruleConfigs.reduce(
+      (acc, ruleConfig) => {
+        acc[ruleConfig.id] = ruleConfig.config;
+        return acc;
+      },
+      {} as Record<string, CodeAnalysisBaseIssueType>
+    );
+  }
 
-  private createAnalysisMarkdown(componentName: string, analysisResults: ExpertsCodeAnalysisIssuesType): string {
+  private async analyzeCode(code: LwcCodeType): Promise<ExpertsCodeAnalysisIssuesType> {
+    const jsCode = code.js.map(js => js.content).join('\n');
+    const { messages } = this.linter.verifyAndFix(jsCode, LINTER_CONFIG, {
+      fix: true,
+    });
+
+    const offlineAnalysisIssues = this.analyzeIssues(jsCode, messages);
+
+    return {
+      analysisResults: [offlineAnalysisIssues],
+      orchestrationInstructions: this.getOrchestrationInstructions(),
+    };
+  }
+
+  private getOrchestrationInstructions(): string {
+    return "If you have not already executed the 'sfmobile-web-offline-guidance' tool in this conversation thread: (1) Immediately call the 'sfmobile-web-offline-guidance' tool, (2) Execute all review instructions from the guidance tool's output against the user's LWC component code in the specified format, (3) Combine the review results from step 2 with this tool's analysis results, then refactor the component based on all combined review recommendations.";
+  }
+
+  private createAnalysisMarkdown(
+    componentName: string,
+    analysisResults: ExpertsCodeAnalysisIssuesType
+  ): string {
     let markdown = `Analysis results for the LWC component ${componentName} are presented below. Please review them and provide a detailed refactoring plan for the component. \n\n`;
-    
+
     for (const analysis of analysisResults.analysisResults) {
-      // Add section title
-      markdown += `# ${analysis.expertReviewerName}\n\n`;
-      
-      if (analysis.issues.length === 0) {
-        markdown += 'No issues found.\n\n';
-      } else {
-        for (const issue of analysis.issues) {
-          // Add issue type as subsection
-          markdown += `## ${issue.type}\n\n`;
-          
-          // Add issue details
-          markdown += `**Description:** ${issue.description}\n\n`;
-          markdown += `**Intent Analysis:** ${issue.intentAnalysis}\n\n`;
-          markdown += `**Suggested Action:** ${issue.suggestedAction}\n\n`;
-          
-          // Add code location
-          markdown += `**Location:** Line ${issue.location.startLine}:${issue.location.startColumn} - Line ${issue.location.endLine}:${issue.location.endColumn}\n\n`;
-          
-          // Add code snippet
-          markdown += `**Code:**\n\`\`\`javascript\n${issue.code}\n\`\`\`\n\n`;
-          
-          // Add horizontal rule between issues
-          markdown += '---\n\n';
-        }
-      }
-     
+      markdown += this.formatAnalysisSection(analysis);
     }
-    
-    // Add orchestration instructions if present
+
     if (analysisResults.orchestrationInstructions) {
-      markdown += `${analysisResults.orchestrationInstructions}\n\n`;
-      markdown += '---\n\n';
+      markdown += `# orchestration instructions:\n\n ${analysisResults.orchestrationInstructions}\n\n`;
     }
-    
+
     return markdown.trim();
+  }
+
+  private formatAnalysisSection(analysis: ExpertCodeAnalysisIssuesType): string {
+    let section = `# ${analysis.expertReviewerName}\n\n`;
+
+    if (analysis.issues.length === 0) {
+      section += 'No issues found.\n\n';
+      return section;
+    }
+
+    for (const issue of analysis.issues) {
+      section += this.formatIssue(issue);
+    }
+
+    return section;
+  }
+
+  private formatIssue(issue: CodeAnalysisIssueType): string {
+    let issueText = `## ${issue.type}\n\n`;
+    issueText += `**Description:** ${issue.description}\n\n`;
+    issueText += `**Intent Analysis:** ${issue.intentAnalysis}\n\n`;
+    issueText += `**Suggested Action:** ${issue.suggestedAction}\n\n`;
+
+    if (issue.location) {
+      issueText += `**Location:** Line ${issue.location.startLine}:${issue.location.startColumn} - Line ${issue.location.endLine}:${issue.location.endColumn}\n\n`;
+    }
+
+    if (issue.code) {
+      issueText += `**Code:**\n\`\`\`javascript\n${issue.code}\n\`\`\`\n\n`;
+    }
+
+    issueText += '---\n\n';
+    return issueText;
   }
 
   private analyzeIssues(
@@ -166,19 +192,18 @@ export class LintTool implements Tool {
     messages: Linter.LintMessage[]
   ): ExpertCodeAnalysisIssuesType {
     const issues: CodeAnalysisIssueType[] = [];
+
     for (const violation of messages) {
       const { ruleId, line, column, endLine, endColumn } = violation;
       const ruleReviewer = this.ruleReviewers[ruleId];
+
       if (ruleReviewer) {
         const issue: CodeAnalysisIssueType = {
           type: ruleReviewer.type,
           description: ruleReviewer.description,
           intentAnalysis: ruleReviewer.intentAnalysis,
           suggestedAction: ruleReviewer.suggestedAction,
-          code: code
-            .split('\n')
-            .slice(line - 1, endLine)
-            .join('\n'),
+          code: this.extractCodeSnippet(code, line, endLine),
           location: {
             startLine: line,
             startColumn: column,
@@ -189,9 +214,17 @@ export class LintTool implements Tool {
         issues.push(issue);
       }
     }
+
     return {
-      expertReviewerName: analysisExpertName,
+      expertReviewerName: ANALYSIS_EXPERT_NAME,
       issues: issues,
     };
+  }
+
+  private extractCodeSnippet(code: string, startLine: number, endLine: number): string {
+    return code
+      .split('\n')
+      .slice(startLine - 1, endLine)
+      .join('\n');
   }
 }

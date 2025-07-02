@@ -10,26 +10,20 @@ import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { readFile } from 'fs/promises';
 import { join, resolve } from 'path';
 import { EmptySchema } from '../../schemas/lwcSchema';
-import { Tool } from '../Tool';
+import { Tool } from '../tool';
 
 export abstract class BaseTool implements Tool {
   public abstract readonly name: string;
-  protected abstract readonly description: string;
+  public abstract readonly description: string;
   protected abstract readonly typeDefinitionPath: string;
-  protected abstract readonly toolId: string;
+  public abstract readonly toolId: string;
   protected abstract readonly serviceDescription: string;
-  protected abstract readonly serviceName: string;
+  public abstract readonly serviceName: string;
 
   // Required by Tool interface
   public readonly inputSchema = EmptySchema;
-
   // Extract repeated path as a protected member
   protected readonly resourcesPath = resolve(__dirname, '..', '..', 'resources');
-
-  constructor(
-    protected readonly server: McpServer,
-    protected readonly annotations: ToolAnnotations
-  ) {}
 
   // Simplified - no parameter needed since it always uses this.typeDefinitionPath
   protected async readTypeDefinitionFile(): Promise<string> {
@@ -99,12 +93,12 @@ ${typeDefinitions}
     }
   }
 
-  public register(): void {
-    this.server.tool(
+  public register(server: McpServer, annotations: ToolAnnotations): void {
+    server.tool(
       this.toolId,
       this.description,
       EmptySchema.shape,
-      this.annotations,
+      annotations,
       this.handleRequest.bind(this)
     );
   }
