@@ -46,7 +46,6 @@ To use this MCP server with various AI assistants and code editors, you'll need 
 ### Claude Desktop
 
 1. **Locate your configuration file:**
-
    - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
    - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 

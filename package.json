@@ -7,8 +7,8 @@
     "packages/*"
   ],
   "scripts": {
-    "prettier:format": "prettier --write \"**/src/**/*.{ts, js, md}\" \"**/tests/**/*.{ts, js, md}\"",
-    "prettier:verify": "prettier --list-different \"**/src/**/*.{ts, js, md}\"  \"**/tests/**/*.{ts, js, md}\"",
+    "prettier:format": "prettier --write \"**/src/**/*.{ts, js, md, json}\" \"**/tests/**/*.{ts, js, md, json}\"",
+    "prettier:verify": "prettier --list-different \"**/src/**/*.{ts, js, md, json}\"  \"**/tests/**/*.{ts, js, md, json}\"",
     "lint": "eslint \"**/*.{ts,tsx,js,jsx}\"",
     "test": "nx run-many --target=test",
     "test:coverage": "nx run-many --target=test:coverage",
@@ -40,8 +40,12 @@
     "lint-staged": "^16.1.2",
     "nx": "^21.1.2",
     "prettier": "^3.6.2",
+    "tar": "^7.4.3",
+    "tsx": "^4.19.2",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.35.1"
+    "typescript-eslint": "^8.35.1",
+    "vite": "^6.3.5",
+    "zod": "^3.25.0"
   },
   "nx": {
     "extends": "@nx/workspace/presets/npm.json"
