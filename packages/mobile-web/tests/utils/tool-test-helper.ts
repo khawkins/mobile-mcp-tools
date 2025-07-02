@@ -33,7 +33,7 @@ export function setupToolTest(config: ToolTestConfig) {
       destructiveHint: false,
       idempotentHint: true,
       openWorldHint: false,
-    } ;
+    };
     tool = new config.toolClass();
     vi.clearAllMocks();
   });
@@ -98,7 +98,7 @@ export function setupToolTest(config: ToolTestConfig) {
           const mockTypeDefinitions = 'interface TestService { method(): void; }';
           const mockBaseCapability = 'interface BaseCapability { id: string; }';
           const mockMobileCapabilities = 'interface MobileCapabilities { version: string; }';
-          
+
           const result = (tool as any).createServiceGroundingText(
             mockTypeDefinitions,
             mockBaseCapability,
@@ -110,11 +110,11 @@ export function setupToolTest(config: ToolTestConfig) {
           expect(result).toContain('## Base Capability');
           expect(result).toContain('## Mobile Capabilities');
           expect(result).toContain(`## ${tool?.serviceName} Service API`);
-          
+
           // Check for proper markdown formatting
           expect(result).toContain('```typescript');
           expect(result).toContain('```');
-          
+
           // Check that the content is included
           expect(result).toContain(mockTypeDefinitions);
           expect(result).toContain(mockBaseCapability);

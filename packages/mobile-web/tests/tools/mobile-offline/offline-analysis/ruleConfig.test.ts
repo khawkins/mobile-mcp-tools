@@ -6,7 +6,10 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { ruleConfigs, type RuleConfig } from '../../../../src/tools/mobile-offline/offline-analysis/ruleConfig.js';
+import {
+  ruleConfigs,
+  type RuleConfig,
+} from '../../../../src/tools/mobile-offline/offline-analysis/ruleConfig.js';
 import { CodeAnalysisBaseIssueType } from '../../../../src/schemas/analysisSchema.js';
 
 describe('RuleConfig', () => {
@@ -37,17 +40,17 @@ describe('RuleConfig', () => {
     it('should have valid config structure for each rule', () => {
       ruleConfigs.forEach((ruleConfig: RuleConfig) => {
         const config = ruleConfig.config as CodeAnalysisBaseIssueType;
-        
+
         expect(config).toHaveProperty('type');
         expect(config).toHaveProperty('description');
         expect(config).toHaveProperty('intentAnalysis');
         expect(config).toHaveProperty('suggestedAction');
-        
+
         expect(typeof config.type).toBe('string');
         expect(typeof config.description).toBe('string');
         expect(typeof config.intentAnalysis).toBe('string');
         expect(typeof config.suggestedAction).toBe('string');
-        
+
         expect(config.type.length).toBeGreaterThan(0);
         expect(config.description.length).toBeGreaterThan(0);
         expect(config.intentAnalysis.length).toBeGreaterThan(0);
@@ -57,19 +60,21 @@ describe('RuleConfig', () => {
 
     it('should contain specific expected rules', () => {
       const ruleIds = ruleConfigs.map(rule => rule.id);
-      
+
       expect(ruleIds).toContain('@salesforce/lwc-graph-analyzer/no-private-wire-config-property');
-      expect(ruleIds).toContain('@salesforce/lwc-graph-analyzer/no-wire-config-references-non-local-property-reactive-value');
+      expect(ruleIds).toContain(
+        '@salesforce/lwc-graph-analyzer/no-wire-config-references-non-local-property-reactive-value'
+      );
     });
 
     it('should have meaningful descriptions for each rule', () => {
       ruleConfigs.forEach((ruleConfig: RuleConfig) => {
         const config = ruleConfig.config as CodeAnalysisBaseIssueType;
-        
+
         // Check for either 'wire' or 'Wire' in descriptions
-        expect(
-          config.description.includes('wire') || config.description.includes('Wire')
-        ).toBe(true);
+        expect(config.description.includes('wire') || config.description.includes('Wire')).toBe(
+          true
+        );
         expect(config.description.length).toBeGreaterThan(20);
       });
     });
@@ -77,7 +82,7 @@ describe('RuleConfig', () => {
     it('should have actionable suggested actions', () => {
       ruleConfigs.forEach((ruleConfig: RuleConfig) => {
         const config = ruleConfig.config as CodeAnalysisBaseIssueType;
-        
+
         // Check for either @api or @wire in suggested actions
         expect(
           config.suggestedAction.includes('@api') || config.suggestedAction.includes('@wire')
@@ -105,4 +110,4 @@ describe('RuleConfig', () => {
       expect(typeof testRuleConfig.config).toBe('object');
     });
   });
-}); 
+});
