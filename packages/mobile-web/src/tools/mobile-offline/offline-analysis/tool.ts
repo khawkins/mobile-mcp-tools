@@ -23,8 +23,8 @@ const recommendedRules = recommendedConfig.rules || {};
 
 const meriyahParser: Linter.Parser = {
   parseForESLint(code: string, options: MeriyahOptions): { ast: AST.Program } {
-    const tokens: any[] = [];
-    const comments: any[] = [];
+    const tokens: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const comments: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
     const program = parse(code, {
       ...options,
       onToken: tokens,

@@ -1,8 +1,15 @@
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
+
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { readFile } from 'fs/promises';
-import { join } from 'path';
-import { EmptySchema } from '../../utils/util';
+import { join, resolve } from 'path';
+import { EmptySchema } from '../../schemas/lwcSchema';
 import { Tool } from '../Tool';
 
 export abstract class BaseTool implements Tool {
@@ -17,13 +24,7 @@ export abstract class BaseTool implements Tool {
   public readonly inputSchema = EmptySchema;
 
   // Extract repeated path as a protected member
-  protected readonly resourcesPath = join(
-    process.cwd(),
-    'packages',
-    'mobile-web',
-    'dist',
-    'resources'
-  );
+  protected readonly resourcesPath = resolve(__dirname, '..', '..', 'resources');
 
   constructor(
     protected readonly server: McpServer,
@@ -70,7 +71,6 @@ ${typeDefinitions}
 
   protected async handleRequest() {
     try {
-      // Simplified calls - no parameters needed
       const typeDefinitions = await this.readTypeDefinitionFile();
       const baseCapability = await this.readBaseCapability();
       const mobileCapabilities = await this.readMobileCapabilities();

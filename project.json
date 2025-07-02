@@ -1,0 +1,20 @@
+{
+  // Name of the root project
+  "name": "mobile-mcp-tools",
+  // Define available targets for this project
+  "targets": {
+    // The 'test' target simply prints a message (you can customize this)
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "echo 'No tests defined for the root project.'"
+      }
+    },
+    "test:coverage": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "echo 'No tests defined for the root project.'"
+      }
+    }
+  }
+}

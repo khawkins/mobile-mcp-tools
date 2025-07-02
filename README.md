@@ -2,6 +2,10 @@
 
 A collection of Model Context Protocol (MCP) tools for Salesforce Mobile Web applications. These tools provide expert grounding for implementing various mobile capabilities in Salesforce Lightning Web Components (LWC).
 
+[![Codecov](https://codecov.io/gh/forcedotcom/mobile-mcp-tools/branch/main/graph/badge.svg?flag=monorepo)](https://codecov.io/gh/forcedotcom/mobile-mcp-tools?flag=monorepo)
+[![mobile-web coverage](https://codecov.io/gh/forcedotcom/mobile-mcp-tools/branch/main/graph/badge.svg?flag=mobile-web)](https://codecov.io/gh/forcedotcom/mobile-mcp-tools?flag=mobile-web)
+[![Build Status](https://github.com/forcedotcom/mobile-mcp-tools/workflows/run-tests/badge.svg)](https://github.com/forcedotcom/mobile-mcp-tools/actions)
+
 ## Features
 
 - **App Review**: Implement app store review functionality
@@ -42,7 +46,7 @@ npm install
 Build all packages:
 
 ```bash
-npm run build-all
+npm run build:all
 ```
 
 ### Testing
@@ -50,7 +54,7 @@ npm run build-all
 Run all unit tests:
 
 ```bash
-npm run test-all
+npm run test:all
 ```
 
 ### Debugging
@@ -112,7 +116,7 @@ packages/
 
 1. Create a feature branch
 2. Make your changes
-3. Run tests: `npm run test-all`
+3. Run tests: `npm run test:all`
 4. Submit a pull request
 
 ## License

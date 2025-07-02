@@ -1,0 +1,57 @@
+name: run-tests
+run-name: Installs project and runs tests
+on: [ push, pull_request ]
+jobs:
+  run-tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [20, 22]
+    name: Run tests on ${{ matrix.os }} with Node ${{ matrix.node }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+      - run: npm install
+      - run: npm run test:coverage
+      # Only run Xvfb cleanup on Ubuntu (Unix systems)
+      - if: matrix.os == 'ubuntu-latest'
+        run: killall Xvfb || true
+      
+      # Upload individual package coverage
+      - name: Upload mobile-web coverage
+        uses: codecov/codecov-action@v3
+        with:
+            token: ${{ secrets.CODECOV_TOKEN }}
+            files: packages/mobile-web/coverage/*.json
+            flags: mobile-web
+            name: mobile-web-coverage
+            
+      # Add more packages as you create them
+      # - name: Upload backend-api coverage
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #       token: ${{ secrets.CODECOV_TOKEN }}
+      #       files: packages/backend-api/coverage/*.json
+      #       flags: backend-api-${{ runner.os }}-node${{ matrix.node }}
+      #       name: backend-api-coverage
+      
+      # - name: Upload shared-utils coverage
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #       token: ${{ secrets.CODECOV_TOKEN }}
+      #       files: packages/shared-utils/coverage/*.json
+      #       flags: shared-utils-${{ runner.os }}-node${{ matrix.node }}
+      #       name: shared-utils-coverage
+      
+      # Upload combined coverage for overall monorepo metrics
+      - name: Upload combined monorepo coverage
+        uses: codecov/codecov-action@v3
+        with:
+            token: ${{ secrets.CODECOV_TOKEN }}
+            files: packages/*/coverage/*.json
+            flags: monorepo
+            name: monorepo-combined-coverage

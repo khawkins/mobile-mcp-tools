@@ -10,9 +10,12 @@
     "mobile-web-mcp-server": "packages/mobile-web/dist/index.js"
   },
   "scripts": {
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "prettier:format": "prettier --write \"**/src/**/*.{ts, js, md}\" \"**/tests/**/*.{ts, js, md}\"",
+    "prettier:verify": "prettier --list-different \"**/src/**/*.{ts, js, md}\"  \"**/tests/**/*.{ts, js, md}\"",
     "lint": "eslint \"**/*.{ts,tsx,js,jsx}\"",
-    "test": "echo \"No tests at the top level\" && exit 0",
+    "test": "nx run-many --target=test",
+    "test:coverage": "nx run-many --target=test:coverage",
+    "test:watch": "nx run-many --target=test:watch",
     "test:all": "nx run-many --target=test",
     "build:all": "nx run-many --target=build && chmod +x packages/mobile-web/dist/index.js",
     "mobile-web:server:start": "npm run build:all && npx -y @salesforce/mobile-web-mcp-server",

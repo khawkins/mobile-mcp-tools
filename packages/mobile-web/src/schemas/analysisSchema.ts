@@ -55,7 +55,6 @@ export const ExpertsCodeAnalysisIssuesSchema = z.object({
     ),
 });
 
-
 export type CodeAnalysisIssueType = z.infer<typeof CodeAnalysisIssueSchema>;
 export type CodeAnalysisBaseIssueType = z.infer<typeof CodeAnalysisBaseIssueSchema>;
 export type ExpertCodeAnalysisIssuesType = z.infer<typeof ExpertCodeAnalysisIssuesSchema>;

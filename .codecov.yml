@@ -1,0 +1,51 @@
+# Codecov configuration for monorepo
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 5%
+      mobile-web:
+        flags: mobile-web
+        target: 85%
+        threshold: 5%
+      monorepo:
+        flags: monorepo
+        target: 82%
+        threshold: 5%
+    patch:
+      default:
+        target: 80%
+        threshold: 5%
+
+# Coverage reports configuration
+codecov:
+  require_ci_to_pass: yes
+  notify:
+    wait_for_ci: yes
+
+# Comment configuration for PRs
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: no
+
+# Ignore certain files/directories
+ignore:
+  - "packages/*/node_modules/"
+  - "packages/*/dist/"
+  - "packages/*/coverage/"
+  - "**/*.test.ts"
+  - "**/*.spec.ts"
+  - "**/*.config.ts"
+  - "**/*.d.ts"
+  - "**/src/scripts/*.ts"
+
+# File-specific configurations
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      method: no
+      macro: no
