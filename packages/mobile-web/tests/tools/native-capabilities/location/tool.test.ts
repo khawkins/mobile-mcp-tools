@@ -5,8 +5,8 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { LocationTool } from '../../../src/tools/location/tool.js';
-import { setupToolTest } from '../../utils/tool-test-helper.js';
+import { LocationTool } from '../../../../src/tools/native-capabilities/location/tool.js';
+import { setupToolTest } from '../../../utils/tool-test-helper.js';
 
 const { runCommonTests } = setupToolTest({
   toolName: 'Location Service',

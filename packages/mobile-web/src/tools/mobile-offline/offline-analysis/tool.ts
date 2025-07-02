@@ -121,7 +121,7 @@ export class LintTool implements Tool {
 
 
   private createAnalysisMarkdown(componentName: string, analysisResults: ExpertsCodeAnalysisIssuesType): string {
-    let markdown = `Analysis results for the LWC component ${componentName}. Please review the analysis results and provide a detailed refactoring plan for the component. \n\n`;
+    let markdown = `Analysis results for the LWC component ${componentName} are presented below. Please review them and provide a detailed refactoring plan for the component. \n\n`;
     
     for (const analysis of analysisResults.analysisResults) {
       // Add section title

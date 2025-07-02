@@ -8,7 +8,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { BaseTool } from '../../src/tools/baseTool.js';
+import { BaseTool } from '../../src/tools/native-capabilities/baseTool.js';
 
 export interface ToolTestConfig {
   toolName: string;
