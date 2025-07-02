@@ -94,7 +94,6 @@ export class LintTool implements Tool {
       {
         description: this.description,
         inputSchema: this.inputSchema.shape,
-        outputSchema: this.outputSchema.shape,
         annotations: this.annotations,
       },
       async (code: LwcCodeType) => {
@@ -112,13 +111,54 @@ export class LintTool implements Tool {
           content: [
             {
               type: 'text',
-              text: `Analysis results for the LWC component ${code.name}`,
+              text: this.createAnalysisMarkdown(code.name, userAnalysis),
             },
           ],
-          structuredContent: userAnalysis,
         };
       }
     );
+  }
+
+
+  private createAnalysisMarkdown(componentName: string, analysisResults: ExpertsCodeAnalysisIssuesType): string {
+    let markdown = `Analysis results for the LWC component ${componentName}. Please review the analysis results and provide a detailed refactoring plan for the component. \n\n`;
+    
+    for (const analysis of analysisResults.analysisResults) {
+      // Add section title
+      markdown += `# ${analysis.expertReviewerName}\n\n`;
+      
+      if (analysis.issues.length === 0) {
+        markdown += 'No issues found.\n\n';
+      } else {
+        for (const issue of analysis.issues) {
+          // Add issue type as subsection
+          markdown += `## ${issue.type}\n\n`;
+          
+          // Add issue details
+          markdown += `**Description:** ${issue.description}\n\n`;
+          markdown += `**Intent Analysis:** ${issue.intentAnalysis}\n\n`;
+          markdown += `**Suggested Action:** ${issue.suggestedAction}\n\n`;
+          
+          // Add code location
+          markdown += `**Location:** Line ${issue.location.startLine}:${issue.location.startColumn} - Line ${issue.location.endLine}:${issue.location.endColumn}\n\n`;
+          
+          // Add code snippet
+          markdown += `**Code:**\n\`\`\`javascript\n${issue.code}\n\`\`\`\n\n`;
+          
+          // Add horizontal rule between issues
+          markdown += '---\n\n';
+        }
+      }
+     
+    }
+    
+    // Add orchestration instructions if present
+    if (analysisResults.orchestrationInstructions) {
+      markdown += `${analysisResults.orchestrationInstructions}\n\n`;
+      markdown += '---\n\n';
+    }
+    
+    return markdown.trim();
   }
 
   private analyzeIssues(
