@@ -1,20 +1,21 @@
 import { type AST, Linter } from 'eslint';
 import { parse, type Options as MeriyahOptions } from 'meriyah';
-import { Tool } from './Tool';
-import { LwcCodeSchema, type LwcCodeType } from '../utils/staticReview';
+import { Tool } from '../../Tool';
+import { LwcCodeSchema, type LwcCodeType } from '../../../schemas/lwcSchema';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import lwcGraphAnalyzerPlugin from '@salesforce/eslint-plugin-lwc-graph-analyzer';
-import {
-  AnalysisBaseIssue,
-  AnalysisIssue,
-  NO_PRIVATE_WIRE_CONFIG_RULE_ID,
-  NO_WIRE_CONFIG_REFERENCES_NON_LOCAL_PROPERTY_REACTIVE_VALUE_RULE_ID,
-  noPrivateWireConfigStaticReviewConfig,
-  noWireConfigReferenceNonLocalPropertyStaticReviewConfig,
-} from '../utils/staticReview';
+import { ruleConfigs } from './ruleConfig';
 
+import {
+  CodeAnalysisBaseIssueType,
+  CodeAnalysisIssueType,
+  ExpertsCodeAnalysisIssuesSchema,
+  ExpertsCodeAnalysisIssuesType,
+  ExpertCodeAnalysisIssuesType,
+} from '../../../schemas/analysisSchema';
 const bundleAnalyzer = lwcGraphAnalyzerPlugin.processors.bundleAnalyzer;
+const analysisExpertName = 'Mobile Web Offline Analysis';
 
 const recommendedConfig = lwcGraphAnalyzerPlugin.configs.recommended;
 
@@ -67,17 +68,20 @@ export class LintTool implements Tool {
   readonly name = 'Lint Tool';
   protected readonly description =
     'Analyzes LWC components for mobile-specific issues and provides detailed recommendations for improvements. It can be leveraged to check if components are mobile-ready.';
-  protected readonly toolId = 'sfmobile-web-lint';
+  protected readonly toolId = 'sfmobile-web-offline-analysis';
   public readonly inputSchema = LwcCodeSchema;
+  public readonly outputSchema = ExpertsCodeAnalysisIssuesSchema;
   private readonly linter = new Linter({
     configType: 'flat',
   });
 
-  private ruleReviewers: Record<string, AnalysisBaseIssue> = {
-    [NO_PRIVATE_WIRE_CONFIG_RULE_ID]: noPrivateWireConfigStaticReviewConfig,
-    [NO_WIRE_CONFIG_REFERENCES_NON_LOCAL_PROPERTY_REACTIVE_VALUE_RULE_ID]:
-      noWireConfigReferenceNonLocalPropertyStaticReviewConfig,
-  };
+  private ruleReviewers: Record<string, CodeAnalysisBaseIssueType> = ruleConfigs.reduce(
+    (acc, ruleConfig) => {
+      acc[ruleConfig.id] = ruleConfig.config;
+      return acc;
+    },
+    {} as Record<string, CodeAnalysisBaseIssueType>
+  );
 
   constructor(
     protected readonly server: McpServer,
@@ -85,38 +89,51 @@ export class LintTool implements Tool {
   ) {}
 
   public register(): void {
-    this.server.tool(
+    this.server.registerTool(
       this.toolId,
-      this.description,
-      this.inputSchema.shape,
-      this.annotations,
+      {
+        description: this.description,
+        inputSchema: this.inputSchema.shape,
+        outputSchema: this.outputSchema.shape,
+        annotations: this.annotations,
+      },
       async (code: LwcCodeType) => {
         const jscode = code.js.map(js => js.content).join('\n');
         const { messages } = this.linter.verifyAndFix(jscode, linterConfig, {
           fix: true,
         });
-        const issues = this.analyzeIssues(jscode, messages);
+        const offlineAnalysisIssues = this.analyzeIssues(jscode, messages);
+        const userAnalysis: ExpertsCodeAnalysisIssuesType = {
+          analysisResults: [offlineAnalysisIssues],
+          orchestrationInstructions:
+            "If you have not already executed the 'sfmobile-web-offline-guidance' tool in this conversation thread: (1) Immediately call the 'sfmobile-web-offline-guidance' tool, (2) Execute all review instructions from the guidance tool's output against the user's LWC component code in the specified format, (3) Combine the review results from step 2 with this tool's analysis results, then refactor the component based on all combined review recommendations.",
+        } as ExpertsCodeAnalysisIssuesType;
         return {
           content: [
             {
               type: 'text',
-              text: this.reviewInMarkdown(issues),
+              text: `Analysis results for the LWC component ${code.name}`,
             },
           ],
+          structuredContent: userAnalysis,
         };
       }
     );
   }
 
-  private analyzeIssues(code: string, messages: Linter.LintMessage[]): AnalysisIssue[] {
-    const issues: AnalysisIssue[] = [];
+  private analyzeIssues(
+    code: string,
+    messages: Linter.LintMessage[]
+  ): ExpertCodeAnalysisIssuesType {
+    const issues: CodeAnalysisIssueType[] = [];
     for (const violation of messages) {
       const { ruleId, line, column, endLine, endColumn } = violation;
       const ruleReviewer = this.ruleReviewers[ruleId];
       if (ruleReviewer) {
-        const issue: AnalysisIssue = {
+        const issue: CodeAnalysisIssueType = {
           type: ruleReviewer.type,
           description: ruleReviewer.description,
+          intentAnalysis: ruleReviewer.intentAnalysis,
           suggestedAction: ruleReviewer.suggestedAction,
           code: code
             .split('\n')
@@ -132,19 +149,9 @@ export class LintTool implements Tool {
         issues.push(issue);
       }
     }
-    return issues;
-  }
-
-  private reviewInMarkdown(issues: AnalysisIssue[]): string {
-    const review = issues
-      .map(
-        issue =>
-          // `## ${issue.type} \n\n${issue.description} \n\n${issue.suggestedAction} \n\n${
-          //   issue.code ? `\`\`\`javascript\n${issue.code}\n\`\`\`` : ''
-          // } \n\n ${issue.location ? JSON.stringify(issue.location, null, 2) : ''}`
-          `## ${issue.type} \n\n ${JSON.stringify(issue, null, 2)}`
-      )
-      .join('\n');
-    return `# Linting Results \n\n ${review}`;
+    return {
+      expertReviewerName: analysisExpertName,
+      issues: issues,
+    };
   }
 }

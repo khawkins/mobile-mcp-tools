@@ -5,18 +5,18 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { version } from '../package.json';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 
-import { AppReviewTool } from './tools/appReview/tool.js';
-import { ArSpaceCaptureTool } from './tools/arSpaceCapture/tool.js';
-import { BarcodeScannerTool } from './tools/barcodeScanner/tool.js';
-import { BiometricsTool } from './tools/biometrics/tool.js';
-import { CalendarTool } from './tools/calendar/tool.js';
-import { ContactsTool } from './tools/contacts/tool.js';
-import { DocumentScannerTool } from './tools/documentScanner/tool.js';
-import { GeofencingTool } from './tools/geofencing/tool.js';
-import { LocationTool } from './tools/location/tool.js';
-import { NfcTool } from './tools/nfc/tool.js';
-import { PaymentsTool } from './tools/payments/tool.js';
-import { LintTool } from './tools/lintTool.js';
+import { AppReviewTool } from './tools/native-capabilities/appReview/tool.js';
+import { ArSpaceCaptureTool } from './tools/native-capabilities/arSpaceCapture/tool.js';
+import { BarcodeScannerTool } from './tools/native-capabilities/barcodeScanner/tool.js';
+import { BiometricsTool } from './tools/native-capabilities/biometrics/tool.js';
+import { CalendarTool } from './tools/native-capabilities/calendar/tool.js';
+import { ContactsTool } from './tools/native-capabilities/contacts/tool.js';
+import { DocumentScannerTool } from './tools/native-capabilities/documentScanner/tool.js';
+import { GeofencingTool } from './tools/native-capabilities/geofencing/tool.js';
+import { LocationTool } from './tools/native-capabilities/location/tool.js';
+import { NfcTool } from './tools/native-capabilities/nfc/tool.js';
+import { PaymentsTool } from './tools/native-capabilities/payments/tool.js';
+import { LintTool } from './tools/mobile-offline/offline-analysis/tool.js';
 
 const server = new McpServer({
   name: 'sfdc-mobile-web-mcp-server',

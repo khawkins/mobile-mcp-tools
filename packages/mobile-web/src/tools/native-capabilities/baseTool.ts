@@ -2,8 +2,8 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { EmptySchema } from '../utils/util';
-import { Tool } from './Tool';
+import { EmptySchema } from '../../utils/util';
+import { Tool } from '../Tool';
 
 export abstract class BaseTool implements Tool {
   public abstract readonly name: string;
