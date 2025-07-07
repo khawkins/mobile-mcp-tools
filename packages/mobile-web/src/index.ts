@@ -52,6 +52,7 @@ const tools = [
   new PaymentsTool(),
   new OfflineAnalysisTool(),
 ];
+
 // Register all tools
 tools.forEach(tool => tool.register(server, annotations));
 
