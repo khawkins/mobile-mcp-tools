@@ -23,7 +23,7 @@ export abstract class BaseTool implements Tool {
   // Required by Tool interface
   public readonly inputSchema = EmptySchema;
   // Extract repeated path as a protected member
-  protected readonly resourcesPath = resolve(__dirname, '..', '..', 'resources');
+  protected readonly resourcesPath = resolve(__dirname, '..', '..', '..','resources');
 
   // Simplified - no parameter needed since it always uses this.typeDefinitionPath
   protected async readTypeDefinitionFile(): Promise<string> {
