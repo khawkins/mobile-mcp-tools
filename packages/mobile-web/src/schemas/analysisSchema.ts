@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
 import { z } from 'zod';
 
 const ExpertReviewerNameSchema = z
@@ -21,10 +27,10 @@ export const CodeAnalysisIssueSchema = CodeAnalysisBaseIssueSchema.extend({
   code: z.string().optional().describe('What is the code snippet with the issue?'),
   location: z
     .object({
-      startLine: z.number(),
-      endLine: z.number().optional(),
-      startColumn: z.number().optional(),
-      endColumn: z.number().optional(),
+      startLine: z.number().gte(0),
+      endLine: z.number().gte(0).optional(),
+      startColumn: z.number().gte(0).optional(),
+      endColumn: z.number().gte(0).optional(),
     })
     .describe('Provide the exact line number(s) and column number(s) where the issue occurs'),
 });

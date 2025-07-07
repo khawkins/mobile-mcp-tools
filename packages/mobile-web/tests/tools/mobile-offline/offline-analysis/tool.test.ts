@@ -346,7 +346,7 @@ describe('OfflineAnalysisTool', () => {
       expect(result.content).toBeDefined();
     });
 
-    it('should handle code analysis errors and throw proper error message', async () => {
+    it('should handle code analysis errors and return the error as text', async () => {
       const registerToolSpy = vi
         .spyOn(server, 'registerTool')
         .mockImplementation((_id, _config, handler) => {
@@ -370,8 +370,6 @@ describe('OfflineAnalysisTool', () => {
         code: LwcCodeType,
         extra
       ) => Promise<any>;
-
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Mock the analyzeCode method to throw an error
       vi.spyOn(tool as any, 'analyzeCode').mockRejectedValue(new Error('Analysis failed'));
@@ -389,68 +387,17 @@ describe('OfflineAnalysisTool', () => {
       };
 
       // This should throw an error with the proper error message format
-      await expect(
-        handler(testCode, {
-          server: server,
-          request: {
-            method: 'POST',
-            url: '/api/v1/offline-analysis',
-          },
-        })
-      ).rejects.toThrow('Failed to analyze code: Analysis failed');
-
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-
-    it('should handle unknown errors during analysis', async () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema as any,
-            outputSchema: _config.outputSchema as any,
-            annotations: _config.annotations as any,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
-
-      tool.register(server, annotations);
-      const handler = registerToolSpy.mock.calls[0][2] as (
-        code: LwcCodeType,
-        extra
-      ) => Promise<any>;
-
-      vi.spyOn(tool as any, 'analyzeCode').mockRejectedValue(new Error('Unknown error'));
-
-      const testCode: LwcCodeType = {
-        name: 'TestComponent',
-        namespace: 'c',
-        jsMetaXml: {
-          path: 'test.js-meta.xml',
-          content: '',
+      const result = await handler(testCode, {
+        server: server,
+        request: {
+          method: 'POST',
+          url: '/api/v1/offline-analysis',
         },
-        js: [{ path: 'test.js', content: 'export default class TestComponent {}' }],
-        html: [{ path: 'test.html', content: '<template></template>' }],
-        css: [{ path: 'test.css', content: '' }],
-      };
-
-      // This should handle the non-Error object and throw with 'Unknown error'
-      await expect(
-        handler(testCode, {
-          server: server,
-          request: {
-            method: 'POST',
-            url: '/api/v1/offline-analysis',
-          },
-        })
-      ).rejects.toThrow('Failed to analyze code: Unknown error');
+      });
+      expect(result).toBeDefined();
+      expect(result.isError).toBe(true);
+      expect(result.content).toBeDefined();
+      expect(result.content[0].text).toContain('Failed to analyze code: Analysis failed');
     });
   });
 

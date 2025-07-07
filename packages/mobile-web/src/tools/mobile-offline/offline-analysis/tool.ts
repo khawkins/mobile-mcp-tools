@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
 import { type AST, Linter } from 'eslint';
 import { parse, type Options as MeriyahOptions } from 'meriyah';
 import { Tool } from '../../tool';
@@ -91,6 +97,7 @@ export class OfflineAnalysisTool implements Tool {
       async (code: LwcCodeType) => {
         try {
           const analysisResults = await this.analyzeCode(code);
+
           return {
             content: [
               {
@@ -100,10 +107,15 @@ export class OfflineAnalysisTool implements Tool {
             ],
           };
         } catch (error) {
-          console.error('Error during code analysis:', error);
-          throw new Error(
-            `Failed to analyze code: ${error instanceof Error ? error.message : 'Unknown error'}`
-          );
+          return {
+            isError: true,
+            content: [
+              {
+                type: 'text',
+                text: `Failed to analyze code: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              },
+            ],
+          };
         }
       }
     );
@@ -141,50 +153,59 @@ export class OfflineAnalysisTool implements Tool {
     componentName: string,
     analysisResults: ExpertsCodeAnalysisIssuesType
   ): string {
-    let markdown = `Analysis results for the LWC component ${componentName} are presented below. Please review them and provide a detailed refactoring plan for the component. \n\n`;
+    const markdowns: string[] = [];
+    markdowns.push(
+      `Analysis results for the LWC component ${componentName} are presented below. Please review them and provide a detailed refactoring plan for the component. `
+    );
 
     for (const analysis of analysisResults.analysisResults) {
-      markdown += this.formatAnalysisSection(analysis);
+      markdowns.push(this.formatAnalysisSection(analysis));
     }
 
     if (analysisResults.orchestrationInstructions) {
-      markdown += `# orchestration instructions:\n\n ${analysisResults.orchestrationInstructions}\n\n`;
+      markdowns.push(
+        `# orchestration instructions:\n\n ${analysisResults.orchestrationInstructions}`
+      );
     }
 
-    return markdown.trim();
+    return markdowns.join('\n\n');
   }
 
   private formatAnalysisSection(analysis: ExpertCodeAnalysisIssuesType): string {
-    let section = `# ${analysis.expertReviewerName}\n\n`;
+    const sections: string[] = [];
+    sections.push(`# ${analysis.expertReviewerName}`);
 
     if (analysis.issues.length === 0) {
-      section += 'No issues found.\n\n';
-      return section;
+      sections.push('No issues found.');
+      return sections.join('\n\n');
     }
 
     for (const issue of analysis.issues) {
-      section += this.formatIssue(issue);
+      sections.push(this.formatIssue(issue));
     }
 
-    return section;
+    return sections.join('\n\n');
   }
 
   private formatIssue(issue: CodeAnalysisIssueType): string {
-    let issueText = `## ${issue.type}\n\n`;
-    issueText += `**Description:** ${issue.description}\n\n`;
-    issueText += `**Intent Analysis:** ${issue.intentAnalysis}\n\n`;
-    issueText += `**Suggested Action:** ${issue.suggestedAction}\n\n`;
+    const issueText: string[] = [];
+    issueText.push(`## ${issue.type}`);
+    issueText.push(`**Description:** ${issue.description}`);
+    issueText.push(`**Intent Analysis:** ${issue.intentAnalysis}`);
+    issueText.push(`**Suggested Action:** ${issue.suggestedAction}`);
 
     if (issue.location) {
-      issueText += `**Location:** Line ${issue.location.startLine}:${issue.location.startColumn} - Line ${issue.location.endLine}:${issue.location.endColumn}\n\n`;
+      issueText.push(
+        `**Location:** Line ${issue.location.startLine}:${issue.location.startColumn} - Line ${issue.location.endLine}:${issue.location.endColumn}`
+      );
     }
 
     if (issue.code) {
-      issueText += `**Code:**\n\`\`\`javascript\n${issue.code}\n\`\`\`\n\n`;
+      issueText.push(`**Code:**\n\`\`\`javascript\n${issue.code}\n\`\`\``);
     }
 
-    issueText += '---\n\n';
-    return issueText;
+    issueText.push('---');
+    return issueText.join('\n\n');
   }
 
   private analyzeIssues(
