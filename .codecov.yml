@@ -67,5 +67,3 @@ parsers:
       loop: yes
       method: no
       macro: no
-
-      macro: no
