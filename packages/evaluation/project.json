@@ -1,5 +1,5 @@
 {
-  "name": "@salesforce/mobile-mpc-tools-evaluation",
+  "name": "@salesforce/mobile-mcp-tools-evaluation",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/evaluation/src",
   "projectType": "library",
