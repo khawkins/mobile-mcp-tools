@@ -4,14 +4,13 @@
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
-import { type AST, Linter } from 'eslint';
-import { parse, type Options as MeriyahOptions } from 'meriyah';
-import { Tool } from '../../tool';
-import { LwcCodeSchema, type LwcCodeType } from '../../../schemas/lwcSchema';
+import { Linter } from 'eslint';
+import { Tool } from '../../tool.js';
+import { LwcCodeSchema, type LwcCodeType } from '../../../schemas/lwcSchema.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import lwcGraphAnalyzerPlugin from '@salesforce/eslint-plugin-lwc-graph-analyzer';
-import { ruleConfigs } from './ruleConfig';
+import { ruleConfigs } from './ruleConfig.js';
 
 import {
   CodeAnalysisBaseIssueType,
@@ -19,55 +18,18 @@ import {
   ExpertsCodeAnalysisIssuesSchema,
   ExpertsCodeAnalysisIssuesType,
   ExpertCodeAnalysisIssuesType,
-} from '../../../schemas/analysisSchema';
+} from '../../../schemas/analysisSchema.js';
 
-const BUNDLE_ANALYZER = lwcGraphAnalyzerPlugin.processors.bundleAnalyzer;
 const ANALYSIS_EXPERT_NAME = 'Mobile Web Offline Analysis';
 const PLUGIN_NAME = '@salesforce/lwc-graph-analyzer';
 const RECOMMENDED_CONFIG = lwcGraphAnalyzerPlugin.configs.recommended;
-const RECOMMENDED_RULES = RECOMMENDED_CONFIG.rules || {};
-
-// ESLint parser configuration
-const MERIYAH_PARSER: Linter.Parser = {
-  parseForESLint(code: string, options: MeriyahOptions): { ast: AST.Program } {
-    const tokens: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
-    const comments: any[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
-    const program = parse(code, {
-      ...options,
-      onToken: tokens,
-      onComment: comments,
-    }) as NonNullable<AST.Program>;
-
-    const ast: AST.Program = {
-      ...program,
-      tokens,
-      comments,
-    };
-
-    return { ast };
-  },
-};
-
-const PARSER_OPTIONS: Linter.ParserOptions = {
-  next: true,
-  module: true,
-  loc: true,
-  ranges: true,
-};
 
 const LINTER_CONFIG: Linter.Config = {
   name: `config: ${PLUGIN_NAME}`,
-  languageOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    parser: MERIYAH_PARSER,
-    parserOptions: PARSER_OPTIONS,
-  },
-  rules: RECOMMENDED_RULES,
   plugins: {
     [PLUGIN_NAME]: lwcGraphAnalyzerPlugin,
   },
-  processor: BUNDLE_ANALYZER,
+  ...RECOMMENDED_CONFIG,
 };
 
 export class OfflineAnalysisTool implements Tool {

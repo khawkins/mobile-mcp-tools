@@ -8,9 +8,10 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { readFile } from 'fs/promises';
-import { join, resolve } from 'path';
-import { EmptySchema } from '../../schemas/lwcSchema';
-import { Tool } from '../tool';
+import { join, resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { EmptySchema } from '../../schemas/lwcSchema.js';
+import { Tool } from '../tool.js';
 
 export abstract class BaseTool implements Tool {
   public abstract readonly name: string;
@@ -23,7 +24,7 @@ export abstract class BaseTool implements Tool {
   // Required by Tool interface
   public readonly inputSchema = EmptySchema;
   // Extract repeated path as a protected member
-  protected readonly resourcesPath = resolve(__dirname, '..', '..', '..', 'resources');
+  protected readonly resourcesPath = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'resources');
 
   // Simplified - no parameter needed since it always uses this.typeDefinitionPath
   protected async readTypeDefinitionFile(): Promise<string> {

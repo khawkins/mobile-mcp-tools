@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { BaseTool } from '../baseTool';
+import { BaseTool } from '../baseTool.js';
 
 export class CalendarTool extends BaseTool {
   readonly name = 'Calendar Service';

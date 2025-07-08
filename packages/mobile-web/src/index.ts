@@ -9,7 +9,8 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { version } from '../package.json';
+import packageJson from '../package.json' with { type: 'json' };
+const version = packageJson.version;
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 
 import { AppReviewTool } from './tools/native-capabilities/appReview/tool.js';

@@ -6,11 +6,8 @@
  */
 import z from 'zod';
 
-import { zodToJsonSchema } from 'zod-to-json-schema';
-
 export const EmptySchema = z.object({});
 
-export const EmptyJsonSchema = zodToJsonSchema(EmptySchema);
 const LwcFileSchema = z.object({
   path: z.string().describe('path to component file relative to LWC component bundle root'),
   content: z.string().describe('content of the file'),
