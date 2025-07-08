@@ -109,7 +109,7 @@ export class OfflineAnalysisTool implements Tool {
     };
   }
   private getOrchestrationInstructions(): string {
-    return "If you have not already executed the 'sfmobile-web-offline-guidance' tool in this conversation thread: (1) Immediately call the 'sfmobile-web-offline-guidance' tool, (2) Execute all review instructions from the guidance tool's output against the user's LWC component code in the specified format, (3) Combine the review results from step 2 with this tool's analysis results, then refactor the component based on all combined review recommendations.";
+    return ExpertsCodeAnalysisIssuesSchema.shape.orchestrationInstructions.parse(undefined);
   }
 
   private analyzeIssues(
