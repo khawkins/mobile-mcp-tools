@@ -54,6 +54,7 @@ export class OfflineAnalysisTool implements Tool {
       {
         description: this.description,
         inputSchema: this.inputSchema.shape,
+        outputSchema: this.outputSchema.shape,
         annotations: annotations,
       },
       async (code: LwcCodeType) => {
@@ -64,9 +65,10 @@ export class OfflineAnalysisTool implements Tool {
             content: [
               {
                 type: 'text',
-                text: this.createAnalysisMarkdown(code.name, analysisResults),
+                text: JSON.stringify(analysisResults),
               },
             ],
+            structuredContent: analysisResults,
           };
         } catch (error) {
           return {
@@ -106,68 +108,8 @@ export class OfflineAnalysisTool implements Tool {
       orchestrationInstructions: this.getOrchestrationInstructions(),
     };
   }
-
   private getOrchestrationInstructions(): string {
     return "If you have not already executed the 'sfmobile-web-offline-guidance' tool in this conversation thread: (1) Immediately call the 'sfmobile-web-offline-guidance' tool, (2) Execute all review instructions from the guidance tool's output against the user's LWC component code in the specified format, (3) Combine the review results from step 2 with this tool's analysis results, then refactor the component based on all combined review recommendations.";
-  }
-
-  private createAnalysisMarkdown(
-    componentName: string,
-    analysisResults: ExpertsCodeAnalysisIssuesType
-  ): string {
-    const markdowns: string[] = [];
-    markdowns.push(
-      `Analysis results for the LWC component ${componentName} are presented below. Please review them and provide a detailed refactoring plan for the component. `
-    );
-
-    for (const analysis of analysisResults.analysisResults) {
-      markdowns.push(this.formatAnalysisSection(analysis));
-    }
-
-    if (analysisResults.orchestrationInstructions) {
-      markdowns.push(
-        `# orchestration instructions:\n\n ${analysisResults.orchestrationInstructions}`
-      );
-    }
-
-    return markdowns.join('\n\n');
-  }
-
-  private formatAnalysisSection(analysis: ExpertCodeAnalysisIssuesType): string {
-    const sections: string[] = [];
-    sections.push(`# ${analysis.expertReviewerName}`);
-
-    if (analysis.issues.length === 0) {
-      sections.push('No issues found.');
-      return sections.join('\n\n');
-    }
-
-    for (const issue of analysis.issues) {
-      sections.push(this.formatIssue(issue));
-    }
-
-    return sections.join('\n\n');
-  }
-
-  private formatIssue(issue: CodeAnalysisIssueType): string {
-    const issueText: string[] = [];
-    issueText.push(`## ${issue.type}`);
-    issueText.push(`**Description:** ${issue.description}`);
-    issueText.push(`**Intent Analysis:** ${issue.intentAnalysis}`);
-    issueText.push(`**Suggested Action:** ${issue.suggestedAction}`);
-
-    if (issue.location) {
-      issueText.push(
-        `**Location:** Line ${issue.location.startLine}:${issue.location.startColumn} - Line ${issue.location.endLine}:${issue.location.endColumn}`
-      );
-    }
-
-    if (issue.code) {
-      issueText.push(`**Code:**\n\`\`\`javascript\n${issue.code}\n\`\`\``);
-    }
-
-    issueText.push('---');
-    return issueText.join('\n\n');
   }
 
   private analyzeIssues(

@@ -243,7 +243,7 @@ describe('OfflineAnalysisTool', () => {
           url: '/api/v1/offline-analysis',
         },
       }).then((result: any) => {
-        expect(result.content[0].text).toContain('orchestration instructions');
+        expect(result.content[0].text).toContain('orchestrationInstructions');
         expect(result.content[0].text).toContain('sfmobile-web-offline-guidance');
       });
     });
