@@ -203,36 +203,7 @@ The assistant should use the biometrics tool to provide you with detailed implem
 
 ## Documentation
 
-This project maintains comprehensive documentation to help developers understand and implement mobile capabilities in Salesforce Lightning Web Components.
-
-### Documentation Structure
-
-The documentation is organized in the `/docs` directory:
-
-- **`/docs/`** - Project documentation including:
-  - [Project Overview](./docs/1_project_overview.md) - High-level project goals and architecture
-  - [Salesforce Mobile Web MCP Server](./docs/2_salesforce-mobile-web-mcp-server.md) - Server implementation details
-  - [Mobile Native Capabilities](./docs/3_mobile_native_capabilities.md) - Available mobile features
-  - [Mobile Offline](./docs/4_mobile_offline.md) - Offline functionality guidance
-  - [README](./docs/README.md) - Documentation index and navigation
-
-### Getting Started with Documentation
-
-1. **Start with the [Project Overview](./docs/1_project_overview.md)** to understand the project's purpose and architecture
-2. **Review [Mobile Native Capabilities](./docs/3_mobile_native_capabilities.md)** to see what features are available
-3. **Check the [Salesforce Mobile Web MCP Server](./docs/2_salesforce-mobile-web-mcp-server.md)** for implementation details
-4. **Explore [Mobile Offline](./docs/4_mobile_offline.md)** for offline functionality guidance
-
-### Contributing to Documentation
-
-When adding new features or making schema changes:
-
-1. Review existing documentation patterns in `/docs/`
-2. Update relevant documentation sections to reflect your changes
-3. Add new documentation files following the established structure
-4. Ensure all code examples and type definitions are accurate
-
-For more information about documentation standards and contribution guidelines, see the [Contributing](#contributing) section.
+For comprehensive project documentation, including setup guides, API references, and implementation details, please see the [Documentation](./docs/README.md) section.
 
 ## Development
 
