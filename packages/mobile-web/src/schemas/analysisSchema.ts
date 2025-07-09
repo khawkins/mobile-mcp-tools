@@ -61,7 +61,43 @@ export const ExpertsCodeAnalysisIssuesSchema = z.object({
     ),
 });
 
+// Review Instructions Schema for Agentic Analysis
+export const ExpertReviewInstructionsSchema = z.object({
+  expertReviewerName: ExpertReviewerNameSchema,
+  violationCategory: z
+    .string()
+    .describe('The specific violation category this expert specializes in'),
+  detectionGuidance: z.string().describe('How to detect this type of violation in code'),
+  analysisInstructions: z
+    .string()
+    .describe('Step-by-step instructions for analyzing this violation type'),
+  expectedResponseFormat: z
+    .string()
+    .describe('The exact format the expert should use when reporting findings'),
+});
+
+export const ExpertsReviewInstructionsSchema = z.object({
+  expertInstructions: z
+    .array(ExpertReviewInstructionsSchema)
+    .min(1)
+    .describe('Array of expert review instructions for different violation categories'),
+  orchestrationGuidance: z
+    .string()
+    .default(
+      'Execute each expert instruction against the provided LWC component code. For each expert, follow their specific detection guidance and analysis instructions. Return results in the ExpertCodeAnalysisIssuesSchema format, with one ExpertCodeAnalysisIssuesType per expert reviewer.'
+    )
+    .describe('Instructions for coordinating the expert review process'),
+  expectedResponseFormat: z
+    .string()
+    .default(
+      'Return results using ExpertsCodeAnalysisIssuesSchema structure with analysisResults array containing ExpertCodeAnalysisIssuesType objects from each expert reviewer.'
+    )
+    .describe('Complete schema structure that LLM responses must follow'),
+});
+
 export type CodeAnalysisIssueType = z.infer<typeof CodeAnalysisIssueSchema>;
 export type CodeAnalysisBaseIssueType = z.infer<typeof CodeAnalysisBaseIssueSchema>;
 export type ExpertCodeAnalysisIssuesType = z.infer<typeof ExpertCodeAnalysisIssuesSchema>;
 export type ExpertsCodeAnalysisIssuesType = z.infer<typeof ExpertsCodeAnalysisIssuesSchema>;
+export type ExpertReviewInstructionsType = z.infer<typeof ExpertReviewInstructionsSchema>;
+export type ExpertsReviewInstructionsType = z.infer<typeof ExpertsReviewInstructionsSchema>;
