@@ -20,7 +20,7 @@ const EMPTY_INPUT_SCHEMA = z.object({}).describe('No input required');
 export class OfflineGuidanceTool implements Tool {
   readonly name = 'Mobile Web Offline Guidance Tool';
   readonly description =
-    'Provides expert review instructions for agentic offline violation analysis. Returns structured guidance for intelligent pattern recognition and contextual analysis of LWC components for offline compatibility issues.';
+    'Delivers structured expert review instructions for detecting and remediating discrete offline violations in Lightning web components that require agentic analysis and contextual pattern recognition.';
   readonly toolId = 'sfmobile-web-offline-guidance';
   readonly inputSchema = EMPTY_INPUT_SCHEMA;
   readonly outputSchema = ExpertsReviewInstructionsSchema;
@@ -63,86 +63,76 @@ export class OfflineGuidanceTool implements Tool {
   }
 
   private getExpertReviewInstructions(): ExpertsReviewInstructionsType {
-    const expertInstructions: ExpertReviewInstructionsType[] = [
+    const reviewInstructions: ExpertReviewInstructionsType[] = [
       this.getConditionalRenderingExpert(),
       this.getGraphQLWireExpert(),
     ];
 
     return {
-      expertInstructions,
-      orchestrationGuidance:
-        ExpertsReviewInstructionsSchema.shape.orchestrationGuidance.parse(undefined),
-      expectedResponseFormat:
-        ExpertsReviewInstructionsSchema.shape.expectedResponseFormat.parse(undefined),
+      reviewInstructions,
+      orchestrationInstructions:
+        ExpertsReviewInstructionsSchema.shape.orchestrationInstructions.parse(undefined),
     };
   }
 
   private getConditionalRenderingExpert(): ExpertReviewInstructionsType {
     return {
       expertReviewerName: 'Conditional Rendering Compatibility Expert',
-      violationCategory: 'Unsupported Conditional Rendering',
-      detectionGuidance: dedent`
-        Scan HTML template files (.html) for modern conditional rendering directives:
-        - Look for lwc:if, lwc:elseif, and lwc:else attributes
-        - These directives are not supported by the Komaci offline static analysis engine
-        - Note the element types and conditions being used
-        - Check for complex conditional logic that might need refactoring
+      supportedFileTypes: ['HTML'],
+      grounding: dedent`
+        The Komaci offline static analysis engine used by Salesforce Mobile App Plus and Field Service Mobile App 
+        does not support modern conditional rendering directives (lwc:if, lwc:elseif, lwc:else) that were introduced 
+        in newer versions of LWC. These directives must be converted to legacy conditional directives (if:true, if:false) 
+        to ensure compatibility with offline data priming.
       `,
-      analysisInstructions: dedent`
-        For each modern conditional directive found:
-        1. Identify the condition expression used with lwc:if or lwc:elseif
-        2. Analyze the element structure and any lwc:else usage
-        3. Determine if conversion to legacy if:true/if:false is straightforward
-        4. Check for complex conditional chains that might need template restructuring
-        5. Validate that the condition expressions are compatible with legacy syntax
-        6. Report the exact line numbers and provide specific conversion guidance
+      request: dedent`
+        Review the HTML template files for any usage of modern conditional rendering directives:
+        
+        1. Scan for lwc:if, lwc:elseif, and lwc:else attributes on any elements
+        2. For each occurrence, analyze the conditional logic structure
+        3. Determine the appropriate conversion strategy to if:true/if:false syntax
+        4. Consider nested conditional logic and complex boolean expressions
+        5. Validate that the conversion maintains the original functionality
+        6. Report each violation with specific conversion guidance
+        
+        Focus on identifying patterns that use these modern directives and provide actionable 
+        refactoring steps to convert them to legacy directive syntax.
       `,
-      expectedResponseFormat: dedent`
-        Return findings in ExpertCodeAnalysisIssuesType format with:
-        - expertReviewerName: "Conditional Rendering Compatibility Expert"
-        - issues: Array of CodeAnalysisIssueType objects with:
-          * type: "Unsupported Conditional Rendering"
-          * description: Explain why lwc:if/lwc:elseif/lwc:else are not supported offline
-          * intentAnalysis: What the developer was trying to achieve with the conditional logic
-          * suggestedAction: Specific instructions for converting to if:true/if:false syntax
-          * code: The problematic template code snippet
-          * location: Exact line and column numbers of the violation
-      `,
+      expectedResponseFormat: {
+        expertReviewerName: 'Conditional Rendering Compatibility Expert',
+        issues: [],
+      },
     };
   }
 
   private getGraphQLWireExpert(): ExpertReviewInstructionsType {
     return {
       expertReviewerName: 'GraphQL Wire Configuration Expert',
-      violationCategory: 'Inline GraphQL Queries in @wire Adapters',
-      detectionGuidance: dedent`
-        Scan JavaScript files (.js) for @wire decorators with inline GraphQL queries:
-        - Look for @wire decorators using GraphQL wire adapters
-        - Identify literal GraphQL query strings within @wire adapter configurations
-        - Check for template literals or string literals containing GraphQL syntax
-        - Note wire adapters that might benefit from query extraction
+      supportedFileTypes: ['JS'],
+      grounding: dedent`
+        The Komaci offline static analysis engine requires GraphQL queries to be extracted from wire adapter 
+        configurations into separate getter methods for proper offline data priming. Inline GraphQL query strings 
+        within @wire adapter calls prevent the static analysis engine from properly understanding and optimizing 
+        data dependencies for offline scenarios.
       `,
-      analysisInstructions: dedent`
-        For each @wire decorator with inline GraphQL queries:
-        1. Identify the wire adapter being used (e.g., @wire(graphql, { query: '...' }))
-        2. Extract the inline GraphQL query string
-        3. Analyze the query complexity and reusability potential
-        4. Determine appropriate getter method name for the extracted query
-        5. Check for any query variables or dynamic elements
+      request: dedent`
+        Review the JavaScript files for @wire decorators with inline GraphQL queries:
+        
+        1. Identify @wire decorators that use GraphQL wire adapters
+        2. Look for literal GraphQL query strings within the wire configuration objects
+        3. Check for template literals or string literals containing GraphQL syntax
+        4. Analyze the complexity and reusability of the inline queries
+        5. Determine appropriate getter method names for extracted queries
         6. Validate that extraction won't break existing functionality
-        7. Report exact locations and provide refactoring guidance
+        7. Report each violation with specific refactoring guidance
+        
+        Focus on identifying patterns where GraphQL queries are embedded directly in wire 
+        configurations and provide actionable steps to extract them to separate getter methods.
       `,
-      expectedResponseFormat: dedent`
-        Return findings in ExpertCodeAnalysisIssuesType format with:
-        - expertReviewerName: "GraphQL Wire Configuration Expert"
-        - issues: Array of CodeAnalysisIssueType objects with:
-          * type: "Inline GraphQL Queries in @wire Adapters"
-          * description: Explain why inline GraphQL queries should be extracted from @wire configurations
-          * intentAnalysis: What the developer was trying to achieve with the inline query
-          * suggestedAction: Specific instructions for extracting query to a separate getter method
-          * code: The problematic @wire decorator code snippet
-          * location: Exact line and column numbers of the violation
-      `,
+      expectedResponseFormat: {
+        expertReviewerName: 'GraphQL Wire Configuration Expert',
+        issues: [],
+      },
     };
   }
 }

@@ -31,16 +31,15 @@ describe('OfflineGuidanceTool', () => {
     it('should have correct tool properties', () => {
       expect(tool.name).toBe('Mobile Web Offline Guidance Tool');
       expect(tool.description).toContain('expert review instructions');
-      expect(tool.description).toContain('agentic offline violation analysis');
+      expect(tool.description).toContain('agentic analysis and contextual pattern recognition');
       expect(tool.toolId).toBe('sfmobile-web-offline-guidance');
       expect(tool.inputSchema).toBeDefined();
       expect(tool.outputSchema).toBeDefined();
     });
 
     it('should have a meaningful description', () => {
-      expect(tool.description).toContain('intelligent pattern recognition');
-      expect(tool.description).toContain('contextual analysis');
-      expect(tool.description).toContain('offline compatibility');
+      expect(tool.description).toContain('discrete offline violations');
+      expect(tool.description).toContain('Lightning web components');
     });
 
     it('should require no input', () => {
@@ -147,7 +146,7 @@ describe('OfflineGuidanceTool', () => {
       expect(result.structuredContent).toBeDefined();
     });
 
-    it('should return structured content with expert instructions', async () => {
+    it('should return structured content with review instructions', async () => {
       const registerToolSpy = vi
         .spyOn(server, 'registerTool')
         .mockImplementation((_id, _config, handler) => {
@@ -172,11 +171,11 @@ describe('OfflineGuidanceTool', () => {
       const result = await handler({});
 
       expect(result.structuredContent).toBeDefined();
-      expect(result.structuredContent).toHaveProperty('expertInstructions');
-      expect(result.structuredContent).toHaveProperty('orchestrationGuidance');
-      expect(result.structuredContent).toHaveProperty('expectedResponseFormat');
-      expect(Array.isArray(result.structuredContent.expertInstructions)).toBe(true);
-      expect(result.structuredContent.expertInstructions.length).toBeGreaterThan(0);
+      expect(result.structuredContent).toHaveProperty('reviewInstructions');
+      expect(result.structuredContent).toHaveProperty('orchestrationInstructions');
+      expect(Array.isArray(result.structuredContent.reviewInstructions)).toBe(true);
+      expect(result.structuredContent.reviewInstructions.length).toBeGreaterThan(0);
+      expect(typeof result.structuredContent.orchestrationInstructions).toBe('string');
     });
 
     it('should include conditional rendering expert instructions', async () => {
@@ -203,19 +202,23 @@ describe('OfflineGuidanceTool', () => {
       const handler = registerToolSpy.mock.calls[0][2] as (input: {}) => Promise<any>;
       const result = await handler({});
 
-      const expertInstructions = result.structuredContent.expertInstructions;
-      const conditionalRenderingExpert = expertInstructions.find(
+      const reviewInstructions = result.structuredContent.reviewInstructions;
+      const conditionalRenderingExpert = reviewInstructions.find(
         (expert: any) => expert.expertReviewerName === 'Conditional Rendering Compatibility Expert'
       );
 
       expect(conditionalRenderingExpert).toBeDefined();
-      expect(conditionalRenderingExpert.violationCategory).toBe(
-        'Unsupported Conditional Rendering'
+      expect(conditionalRenderingExpert.supportedFileTypes).toEqual(['HTML']);
+      expect(conditionalRenderingExpert.grounding).toContain(
+        'Komaci offline static analysis engine'
       );
-      expect(conditionalRenderingExpert.detectionGuidance).toContain('lwc:if');
-      expect(conditionalRenderingExpert.detectionGuidance).toContain('lwc:elseif');
-      expect(conditionalRenderingExpert.detectionGuidance).toContain('lwc:else');
-      expect(conditionalRenderingExpert.analysisInstructions).toContain('if:true/if:false');
+      expect(conditionalRenderingExpert.grounding).toContain('lwc:if, lwc:elseif, lwc:else');
+      expect(conditionalRenderingExpert.request).toContain('lwc:if, lwc:elseif, and lwc:else');
+      expect(conditionalRenderingExpert.request).toContain('if:true/if:false');
+      expect(conditionalRenderingExpert.expectedResponseFormat).toEqual({
+        expertReviewerName: 'Conditional Rendering Compatibility Expert',
+        issues: [],
+      });
     });
 
     it('should include GraphQL wire expert instructions', async () => {
@@ -242,16 +245,51 @@ describe('OfflineGuidanceTool', () => {
       const handler = registerToolSpy.mock.calls[0][2] as (input: {}) => Promise<any>;
       const result = await handler({});
 
-      const expertInstructions = result.structuredContent.expertInstructions;
-      const graphqlWireExpert = expertInstructions.find(
+      const reviewInstructions = result.structuredContent.reviewInstructions;
+      const graphqlWireExpert = reviewInstructions.find(
         (expert: any) => expert.expertReviewerName === 'GraphQL Wire Configuration Expert'
       );
 
       expect(graphqlWireExpert).toBeDefined();
-      expect(graphqlWireExpert.violationCategory).toBe('Inline GraphQL Queries in @wire Adapters');
-      expect(graphqlWireExpert.detectionGuidance).toContain('@wire');
-      expect(graphqlWireExpert.detectionGuidance).toContain('GraphQL');
-      expect(graphqlWireExpert.analysisInstructions).toContain('getter method');
+      expect(graphqlWireExpert.supportedFileTypes).toEqual(['JS']);
+      expect(graphqlWireExpert.grounding).toContain('Komaci offline static analysis engine');
+      expect(graphqlWireExpert.grounding).toContain('GraphQL queries');
+      expect(graphqlWireExpert.request).toContain('@wire decorators');
+      expect(graphqlWireExpert.request).toContain('getter methods');
+      expect(graphqlWireExpert.expectedResponseFormat).toEqual({
+        expertReviewerName: 'GraphQL Wire Configuration Expert',
+        issues: [],
+      });
+    });
+
+    it('should include proper orchestration instructions', async () => {
+      const registerToolSpy = vi
+        .spyOn(server, 'registerTool')
+        .mockImplementation((_id, _config, handler) => {
+          return {
+            callback: handler,
+            enabled: true,
+            enable: vi.fn(),
+            disable: vi.fn(),
+            name: _id,
+            description: '',
+            inputSchema: _config.inputSchema as any,
+            outputSchema: _config.outputSchema as any,
+            annotations: _config.annotations as any,
+            update: vi.fn(),
+            remove: vi.fn(),
+          };
+        });
+
+      tool.register(server, annotations);
+
+      const handler = registerToolSpy.mock.calls[0][2] as (input: {}) => Promise<any>;
+      const result = await handler({});
+
+      const orchestrationInstructions = result.structuredContent.orchestrationInstructions;
+      expect(orchestrationInstructions).toContain('sfmobile-web-offline-analysis');
+      expect(orchestrationInstructions).toContain('Execute all review instructions');
+      expect(orchestrationInstructions).toContain('Combine your review results');
     });
   });
 
