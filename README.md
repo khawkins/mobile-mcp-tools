@@ -209,31 +209,25 @@ This project maintains comprehensive documentation to help developers understand
 
 The documentation is organized in the `/docs` directory:
 
-- **`/docs/current/`** - Current project documentation including:
-  - [Project Overview](./docs/current/1_project_overview.md) - High-level project goals and architecture
-  - [Salesforce Mobile Web MCP Server](./docs/current/2_salesforce-mobile-web-mcp-server.md) - Server implementation details
-  - [Mobile Native Capabilities](./docs/current/3_mobile_native_capabilities.md) - Available mobile features
-  - [Mobile Offline](./docs/current/4_mobile_offline.md) - Offline functionality guidance
-  - [README](./docs/current/README.md) - Documentation index and navigation
-
-- **`/docs/archived/`** - Historical documentation and project proposals
-- **`/docs/resources/`** - Supporting resources including:
-  - Type definitions and schemas
-  - Development guidelines
-  - Reference materials
+- **`/docs/`** - Project documentation including:
+  - [Project Overview](./docs/1_project_overview.md) - High-level project goals and architecture
+  - [Salesforce Mobile Web MCP Server](./docs/2_salesforce-mobile-web-mcp-server.md) - Server implementation details
+  - [Mobile Native Capabilities](./docs/3_mobile_native_capabilities.md) - Available mobile features
+  - [Mobile Offline](./docs/4_mobile_offline.md) - Offline functionality guidance
+  - [README](./docs/README.md) - Documentation index and navigation
 
 ### Getting Started with Documentation
 
-1. **Start with the [Project Overview](./docs/current/1_project_overview.md)** to understand the project's purpose and architecture
-2. **Review [Mobile Native Capabilities](./docs/current/3_mobile_native_capabilities.md)** to see what features are available
-3. **Check the [Salesforce Mobile Web MCP Server](./docs/current/2_salesforce-mobile-web-mcp-server.md)** for implementation details
-4. **Explore [Mobile Offline](./docs/current/4_mobile_offline.md)** for offline functionality guidance
+1. **Start with the [Project Overview](./docs/1_project_overview.md)** to understand the project's purpose and architecture
+2. **Review [Mobile Native Capabilities](./docs/3_mobile_native_capabilities.md)** to see what features are available
+3. **Check the [Salesforce Mobile Web MCP Server](./docs/2_salesforce-mobile-web-mcp-server.md)** for implementation details
+4. **Explore [Mobile Offline](./docs/4_mobile_offline.md)** for offline functionality guidance
 
 ### Contributing to Documentation
 
 When adding new features or making schema changes:
 
-1. Review existing documentation patterns in `/docs/current/`
+1. Review existing documentation patterns in `/docs/`
 2. Update relevant documentation sections to reflect your changes
 3. Add new documentation files following the established structure
 4. Ensure all code examples and type definitions are accurate

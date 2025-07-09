@@ -20,29 +20,27 @@ When adding new features or making schema changes, you must:
 
 The project maintains documentation under `/docs/` with the following structure:
 
-- `/docs/current/` - Current project documentation
-- `/docs/archived/` - Historical documentation
-- `/docs/resources/` - Supporting resources and schemas
+- `/docs/` - Project documentation including guides, API references, and examples
 
 ## Feature Development Guidelines
 
 ### Before Adding New Features:
 
-1. Check if documentation exists in `/docs/current/` for similar features
-2. Review any relevant schemas in `/docs/resources/`
-3. Understand the overall project structure from `/docs/current/README.md`
+1. Check if documentation exists in `/docs/` for similar features
+2. Review any relevant schemas and type definitions in the codebase
+3. Understand the overall project structure from `/docs/README.md`
 
 ### When Adding New Features:
 
 1. If the feature has no existing documentation, **prompt the user**:
-   "I notice this new feature doesn't have documentation in `/docs/current/`. Would you like me to create documentation for this feature to maintain consistency with the project's documentation standards?"
+   "I notice this new feature doesn't have documentation in `/docs/`. Would you like me to create documentation for this feature to maintain consistency with the project's documentation standards?"
 
 2. If documentation exists for similar features, follow those patterns and update relevant sections
 
 ### Schema Changes:
 
-1. Always check `/docs/resources/` for existing schemas before making changes
-2. Update any relevant documentation in `/docs/current/` when schemas change
+1. Always check for existing schemas and type definitions in the codebase before making changes
+2. Update any relevant documentation in `/docs/` when schemas change
 3. Ensure schema changes are reflected in any related documentation
 
 ## Documentation Standards
