@@ -23,22 +23,14 @@ export const CodeAnalysisBaseIssueSchema = z.object({
     ),
 });
 
-export const CodeAnalysisIssueSchema = z.object({
-  type: z.string().describe('Categorize the issue'),
+export const CodeAnalysisIssueSchema = CodeAnalysisBaseIssueSchema.extend({
   code: z.string().optional().describe('What is the code snippet with the issue?'),
-  description: z.string().describe('Why this is an issue?'),
-  intentAnalysis: z.string().describe('What is the likely intent of the developer?'),
-  suggestedAction: z
-    .string()
-    .describe(
-      'How a developer should address the issue? Be as detailed as possible without adding code snippets.'
-    ),
   location: z
     .object({
-      startLine: z.number(),
-      endLine: z.number().optional(),
-      startColumn: z.number().optional(),
-      endColumn: z.number().optional(),
+      startLine: z.number().gte(0),
+      endLine: z.number().gte(0).optional(),
+      startColumn: z.number().gte(0).optional(),
+      endColumn: z.number().gte(0).optional(),
     })
     .describe('Provide the exact line number(s) and column number(s) where the issue occurs'),
 });
@@ -70,7 +62,7 @@ export const ExpertsCodeAnalysisIssuesSchema = z.object({
 });
 
 // Review Instructions Schema for Agentic Analysis
-export const ExpertReviewInstructionsSchema = z.object({
+const ExpertReviewInstructionsSchema = z.object({
   expertReviewerName: ExpertReviewerNameSchema,
   supportedFileTypes: z
     .array(z.enum(['JS', 'HTML', 'CSS']))
