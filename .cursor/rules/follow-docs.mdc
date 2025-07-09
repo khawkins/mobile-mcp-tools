@@ -35,13 +35,16 @@ The project maintains documentation under `/docs/` with the following structure:
 1. If the feature has no existing documentation, **prompt the user**:
    "I notice this new feature doesn't have documentation in `/docs/`. Would you like me to create documentation for this feature to maintain consistency with the project's documentation standards?"
 
-2. If documentation exists for similar features, follow those patterns and update relevant sections
+2. If there are relevant sections within the existing documentation for these new features:
+    1. Follow the existing documented patterns
+    2. Update the relevant documentation sections to account for the new features
+    3. Reconsider *all* of the documentation under `docs/` holistically, to ensure that the new features can be properly represented in the design ecosystem of the project, and don't countermand existing requirements or constraints
 
 ### Schema Changes:
 
 1. Always check for existing schemas and type definitions in the codebase before making changes
 2. Update any relevant documentation in `/docs/` when schemas change
-3. Ensure schema changes are reflected in any related documentation
+3. If newly proposed schemas legitimately need to be introduced, as opposed to incorporated into existing schemas, ensure the new schema additions are reflected in any related documentation sections in `docs/`
 
 ## Documentation Standards
 
@@ -49,3 +52,4 @@ The project maintains documentation under `/docs/` with the following structure:
 - Use consistent formatting and structure
 - Reference the main project documentation when implementing features
 - Maintain clear examples and usage patterns
+- **Always** consider the holistic documentation structure and content, when making doc updates. All of the doc content in `docs/` should be consistently organized and assessed for overall readability, relative to the rest of their corpus of content.
