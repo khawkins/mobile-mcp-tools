@@ -201,6 +201,10 @@ You can test that the server is working by asking your AI assistant to:
 
 The assistant should use the biometrics tool to provide you with detailed implementation guidance including type definitions and code examples.
 
+## Documentation
+
+For comprehensive project documentation, including setup guides, API references, and implementation details, please see the [Documentation](./docs/README.md) section.
+
 ## Development
 
 ### Build
