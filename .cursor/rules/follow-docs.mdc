@@ -1,0 +1,55 @@
+---
+description: Documentation adherence for feature development and schema changes
+globs:
+  - '**/*.ts'
+  - '**/*.js'
+  - '**/*.json'
+  - '**/*.md'
+alwaysApply: true
+---
+
+## Documentation Requirements
+
+When adding new features or making schema changes, you must:
+
+1. **Review existing documentation** in `./docs` to understand the current structure and standards
+2. **Follow established patterns** from existing documentation when implementing new features
+3. **Reference relevant documentation** sections when making changes to ensure consistency
+
+## Documentation Structure
+
+The project maintains documentation under `./docs/` with the following structure:
+
+- `./docs/` - Project documentation including guides, API references, and examples
+
+## Feature Development Guidelines
+
+### Before Adding New Features:
+
+1. Check if documentation exists in `./docs/` for similar features
+2. Review any relevant schemas and type definitions in the codebase
+3. Understand the overall project structure from `./docs/README.md`
+
+### When Adding New Features:
+
+1. If the feature has no existing documentation, **prompt the user**:
+   "I notice this new feature doesn't have documentation in `./docs/`. Would you like me to create documentation for this feature to maintain consistency with the project's documentation standards?"
+
+2. If there are relevant sections within the existing documentation for these new features:
+   1. Follow the existing documented patterns
+   2. Update the relevant documentation sections to account for the new features
+   3. Reconsider _all_ of the documentation under `docs/` holistically, to ensure that the new features can be properly represented in the design ecosystem of the project, and don't countermand existing requirements or constraints
+
+### Schema Changes:
+
+1. Always check for existing schemas and type definitions in the codebase before making changes
+2. Update any relevant documentation in `/docs/` when schemas change
+3. If newly proposed schemas legitimately need to be introduced, as opposed to incorporated into existing schemas, ensure the new schema additions are reflected in any related documentation sections in `./docs/`
+
+## Documentation Standards
+
+- Keep documentation up-to-date with code changes
+- Use consistent formatting and structure
+- Reference the main project documentation (see `./README.md` and `./docs/README.md`) when implementing features
+- Maintain clear examples and usage patterns
+- **Always** consider the holistic documentation structure and content, when making doc updates. All of the doc content in `docs/` should be consistently organized and assessed for overall readability, relative to the rest of their corpus of content.
