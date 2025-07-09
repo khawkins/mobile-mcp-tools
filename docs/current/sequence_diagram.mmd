@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant User
+    participant MCPHost
+    participant MCPClient
+    participant MCPTool
+    participant LLM
+
+    User->>MCPHost: Creates prompt for mobile LWC development
+    MCPHost->>MCPHost: Examines prompt for mobile context needs
+    MCPHost->>MCPClient: Forwards user prompt
+    MCPClient->>MCPTool: Sends prompt to appropriate mobile tool
+    MCPTool-->>MCPClient: Returns grounding context (API declarations, patterns, or analysis)
+    MCPClient-->>MCPHost: Returns domain-specific grounding context
+    MCPHost->>MCPHost: Combines original prompt with grounding context
+    MCPHost->>LLM: Sends fully grounded prompt
+    LLM-->>MCPHost: Returns enhanced component content
+    MCPHost-->>User: Presents completed mobile-optimized component
