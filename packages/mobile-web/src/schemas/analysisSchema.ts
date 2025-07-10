@@ -61,6 +61,16 @@ export const ExpertsCodeAnalysisIssuesSchema = z.object({
     ),
 });
 
+// Schema for expected response format that separates schema from input values
+const ExpectedResponseFormatSchema = z.object({
+  schema: z.record(z.any()).describe('The JSON schema definition for the expected response format'),
+  inputValues: z
+    .object({
+      expertReviewerName: ExpertReviewerNameSchema,
+    })
+    .describe('Specific values that should be used as inputs when constructing the response'),
+});
+
 // Review Instructions Schema for Agentic Analysis
 const ExpertReviewInstructionsSchema = z.object({
   expertReviewerName: ExpertReviewerNameSchema,
@@ -72,8 +82,8 @@ const ExpertReviewInstructionsSchema = z.object({
     ),
   grounding: z.string().describe('The grounding context that will apply to this expert review.'),
   request: z.string().describe('The formal review request instructions for the expert review.'),
-  expectedResponseFormat: ExpertCodeAnalysisIssuesSchema.describe(
-    "The required schema format for the LLM's review response."
+  expectedResponseFormat: ExpectedResponseFormatSchema.describe(
+    "The required schema format and input values for the LLM's review response."
   ),
 });
 
@@ -98,5 +108,6 @@ export type CodeAnalysisIssueType = z.infer<typeof CodeAnalysisIssueSchema>;
 export type CodeAnalysisBaseIssueType = z.infer<typeof CodeAnalysisBaseIssueSchema>;
 export type ExpertCodeAnalysisIssuesType = z.infer<typeof ExpertCodeAnalysisIssuesSchema>;
 export type ExpertsCodeAnalysisIssuesType = z.infer<typeof ExpertsCodeAnalysisIssuesSchema>;
+export type ExpectedResponseFormatType = z.infer<typeof ExpectedResponseFormatSchema>;
 export type ExpertReviewInstructionsType = z.infer<typeof ExpertReviewInstructionsSchema>;
 export type ExpertsReviewInstructionsType = z.infer<typeof ExpertsReviewInstructionsSchema>;
