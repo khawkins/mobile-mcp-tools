@@ -30,15 +30,15 @@ describe('OfflineGuidanceTool', () => {
   describe('Tool Properties', () => {
     it('should have correct tool properties', () => {
       expect(tool.name).toBe('Mobile Web Offline Guidance Tool');
-      expect(tool.description).toContain('expert review instructions');
-      expect(tool.description).toContain('agentic analysis and contextual pattern recognition');
+      expect(tool.description).toContain('structured review instructions');
+      expect(tool.description).toContain('Mobile Offline code violations');
       expect(tool.toolId).toBe('sfmobile-web-offline-guidance');
       expect(tool.inputSchema).toBeDefined();
       expect(tool.outputSchema).toBeDefined();
     });
 
     it('should have a meaningful description', () => {
-      expect(tool.description).toContain('discrete offline violations');
+      expect(tool.description).toContain('Mobile Offline code violations');
       expect(tool.description).toContain('Lightning web components');
     });
 
