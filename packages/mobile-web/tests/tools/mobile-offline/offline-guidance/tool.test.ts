@@ -9,6 +9,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { OfflineGuidanceTool } from '../../../../src/tools/mobile-offline/offline-guidance/tool.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
+import { ExpertCodeAnalysisIssuesSchema } from '../../../../src/schemas/analysisSchema.js';
 
 describe('OfflineGuidanceTool', () => {
   let tool: OfflineGuidanceTool;
@@ -215,9 +216,13 @@ describe('OfflineGuidanceTool', () => {
       expect(conditionalRenderingExpert.grounding).toContain('lwc:if, lwc:elseif, lwc:else');
       expect(conditionalRenderingExpert.request).toContain('lwc:if, lwc:elseif, and lwc:else');
       expect(conditionalRenderingExpert.request).toContain('if:true/if:false');
-      expect(conditionalRenderingExpert.expectedResponseFormat).toEqual({
+      expect(conditionalRenderingExpert.expectedResponseFormat).toHaveProperty('schema');
+      expect(conditionalRenderingExpert.expectedResponseFormat).toHaveProperty('inputValues');
+      expect(conditionalRenderingExpert.expectedResponseFormat.schema).toEqual(
+        ExpertCodeAnalysisIssuesSchema.shape
+      );
+      expect(conditionalRenderingExpert.expectedResponseFormat.inputValues).toEqual({
         expertReviewerName: 'Conditional Rendering Compatibility Expert',
-        issues: [],
       });
     });
 
@@ -256,9 +261,13 @@ describe('OfflineGuidanceTool', () => {
       expect(graphqlWireExpert.grounding).toContain('GraphQL queries');
       expect(graphqlWireExpert.request).toContain('@wire decorators');
       expect(graphqlWireExpert.request).toContain('getter methods');
-      expect(graphqlWireExpert.expectedResponseFormat).toEqual({
+      expect(graphqlWireExpert.expectedResponseFormat).toHaveProperty('schema');
+      expect(graphqlWireExpert.expectedResponseFormat).toHaveProperty('inputValues');
+      expect(graphqlWireExpert.expectedResponseFormat.schema).toEqual(
+        ExpertCodeAnalysisIssuesSchema.shape
+      );
+      expect(graphqlWireExpert.expectedResponseFormat.inputValues).toEqual({
         expertReviewerName: 'GraphQL Wire Configuration Expert',
-        issues: [],
       });
     });
 
@@ -290,6 +299,49 @@ describe('OfflineGuidanceTool', () => {
       expect(orchestrationInstructions).toContain('sfmobile-web-offline-analysis');
       expect(orchestrationInstructions).toContain('Execute all review instructions');
       expect(orchestrationInstructions).toContain('Combine your review results');
+    });
+
+    it('should provide valid expectedResponseFormat schema structure', async () => {
+      const registerToolSpy = vi
+        .spyOn(server, 'registerTool')
+        .mockImplementation((_id, _config, handler) => {
+          return {
+            callback: handler,
+            enabled: true,
+            enable: vi.fn(),
+            disable: vi.fn(),
+            name: _id,
+            description: '',
+            inputSchema: _config.inputSchema as any,
+            outputSchema: _config.outputSchema as any,
+            annotations: _config.annotations as any,
+            update: vi.fn(),
+            remove: vi.fn(),
+          };
+        });
+
+      tool.register(server, annotations);
+
+      const handler = registerToolSpy.mock.calls[0][2] as (input: {}) => Promise<any>;
+      const result = await handler({});
+
+      const reviewInstructions = result.structuredContent.reviewInstructions;
+
+      // Verify all experts have the new expectedResponseFormat structure
+      reviewInstructions.forEach((expert: any) => {
+        expect(expert.expectedResponseFormat).toHaveProperty('schema');
+        expect(expert.expectedResponseFormat).toHaveProperty('inputValues');
+
+        // Verify schema contains the correct structure
+        expect(expert.expectedResponseFormat.schema).toEqual(ExpertCodeAnalysisIssuesSchema.shape);
+
+        // Verify inputValues contains expertReviewerName
+        expect(expert.expectedResponseFormat.inputValues).toHaveProperty('expertReviewerName');
+        expect(typeof expert.expectedResponseFormat.inputValues.expertReviewerName).toBe('string');
+        expect(expert.expectedResponseFormat.inputValues.expertReviewerName).toBe(
+          expert.expertReviewerName
+        );
+      });
     });
   });
 
