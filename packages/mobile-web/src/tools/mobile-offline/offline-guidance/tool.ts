@@ -20,7 +20,7 @@ const EMPTY_INPUT_SCHEMA = z.object({}).describe('No input required');
 export class OfflineGuidanceTool implements Tool {
   readonly name = 'Mobile Web Offline Guidance Tool';
   readonly description =
-    'Delivers structured expert review instructions for detecting and remediating discrete offline violations in Lightning web components that require agentic analysis and contextual pattern recognition.';
+    'Provides structured review instructions to detect and remediate Mobile Offline code violations in Lightning web components (LWCs) for Salesforce Mobile Apps.';
   readonly toolId = 'sfmobile-web-offline-guidance';
   readonly inputSchema = EMPTY_INPUT_SCHEMA;
   readonly outputSchema = ExpertsReviewInstructionsSchema;
