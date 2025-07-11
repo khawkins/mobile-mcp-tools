@@ -66,7 +66,7 @@ export class OfflineGuidanceTool implements Tool {
   private getExpertReviewInstructions(): ExpertsReviewInstructionsType {
     const reviewInstructions: ExpertReviewInstructionsType[] = [
       this.getConditionalRenderingExpert(),
-      this.getGraphQLWireExpert(),
+      this.getGraphqlWireExpert(),
     ];
 
     return {
@@ -109,7 +109,7 @@ export class OfflineGuidanceTool implements Tool {
     };
   }
 
-  private getGraphQLWireExpert(): ExpertReviewInstructionsType {
+  private getGraphqlWireExpert(): ExpertReviewInstructionsType {
     const expertReviewerName = 'GraphQL Wire Configuration Expert';
     return {
       expertReviewerName,
