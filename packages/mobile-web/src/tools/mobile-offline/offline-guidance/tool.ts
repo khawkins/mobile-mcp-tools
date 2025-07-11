@@ -12,6 +12,7 @@ import {
   ExpertsReviewInstructionsSchema,
   ExpertsReviewInstructionsType,
   ExpertReviewInstructionsType,
+  ExpertCodeAnalysisIssuesSchema,
 } from '../../../schemas/analysisSchema.js';
 import dedent from 'dedent';
 
@@ -76,8 +77,9 @@ export class OfflineGuidanceTool implements Tool {
   }
 
   private getConditionalRenderingExpert(): ExpertReviewInstructionsType {
+    const expertReviewerName = 'Conditional Rendering Compatibility Expert';
     return {
-      expertReviewerName: 'Conditional Rendering Compatibility Expert',
+      expertReviewerName,
       supportedFileTypes: ['HTML'],
       grounding: dedent`
         The Komaci offline static analysis engine used by Salesforce Mobile App Plus and Field Service Mobile App 
@@ -99,15 +101,18 @@ export class OfflineGuidanceTool implements Tool {
         refactoring steps to convert them to legacy directive syntax.
       `,
       expectedResponseFormat: {
-        expertReviewerName: 'Conditional Rendering Compatibility Expert',
-        issues: [],
+        schema: ExpertCodeAnalysisIssuesSchema.shape,
+        inputValues: {
+          expertReviewerName,
+        },
       },
     };
   }
 
   private getGraphQLWireExpert(): ExpertReviewInstructionsType {
+    const expertReviewerName = 'GraphQL Wire Configuration Expert';
     return {
-      expertReviewerName: 'GraphQL Wire Configuration Expert',
+      expertReviewerName,
       supportedFileTypes: ['JS'],
       grounding: dedent`
         The Komaci offline static analysis engine requires GraphQL queries to be extracted from wire adapter 
@@ -130,8 +135,10 @@ export class OfflineGuidanceTool implements Tool {
         configurations and provide actionable steps to extract them to separate getter methods.
       `,
       expectedResponseFormat: {
-        expertReviewerName: 'GraphQL Wire Configuration Expert',
-        issues: [],
+        schema: ExpertCodeAnalysisIssuesSchema.shape,
+        inputValues: {
+          expertReviewerName,
+        },
       },
     };
   }

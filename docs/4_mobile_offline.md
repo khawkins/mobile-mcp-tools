@@ -40,14 +40,14 @@ When called, the tool returns structured expert review instructions (`ExpertsRev
 
 - **Expert Instructions Array:** Each expert instructor provides specialized review guidance for their violation category
 - **Orchestration Guidance:** Built-in instructions for MCP client workflow coordination
-- **Expected Response Format:** Complete schema structure (`ExpertCodeAnalysisIssuesSchema`) that LLM responses must follow
+- **Expected Response Format:** Complete schema structure and input values that LLM responses must follow, providing both the JSON schema definition and specific values to use when constructing responses
 
 **Key Capabilities:**
 
 - **No Input Required:** Provides comprehensive expert review instructions without requiring component code
 - **Violation-Specific Expertise:** Each expert instructor delivers targeted guidance for specific offline compatibility issues
 - **Agentic Analysis Focus:** Handles violation categories requiring intelligent pattern recognition rather than simple rule-based detection
-- **Format Consistency:** All expert instructions specify the same response format for unified result processing
+- **Format Consistency:** All expert instructions specify the same response format structure and input values for unified result processing
 
 **Supported Violation Categories:**
 
@@ -176,6 +176,23 @@ export const ExpertCodeAnalysisIssuesSchema = z.object({
 });
 ```
 
+### Expected Response Format Schema
+
+```typescript
+const ExpectedResponseFormatSchema = z.object({
+  schema: z
+    .record(z.any())
+    .describe("The JSON schema definition for the expected response format"),
+  inputValues: z
+    .object({
+      expertReviewerName: ExpertReviewerNameSchema,
+    })
+    .describe(
+      "Specific values that should be used as inputs when constructing the response"
+    ),
+});
+```
+
 ## Input Schemas
 
 ### LWC Component Bundle Schema
@@ -219,8 +236,8 @@ const ExpertReviewInstructionsSchema = z.object({
   request: z
     .string()
     .describe("The formal review request instructions for the expert review."),
-  expectedResponseFormat: ExpertCodeAnalysisIssuesSchema.describe(
-    "The required schema format for the LLM's review response."
+  expectedResponseFormat: ExpectedResponseFormatSchema.describe(
+    "The required schema format and input values for the LLM's review response."
   ),
 });
 ```
@@ -277,6 +294,8 @@ export const ExpertsCodeAnalysisIssuesSchema = z.object({
 
 **Expert Architecture:** Each tool internally organizes multiple expert analyzers (instructors for guidance, reviewers for analysis) through consistent schema structures.
 
+**Schema-Value Separation:** The `ExpectedResponseFormatSchema` cleanly separates JSON schema definitions from input values, ensuring that MCP clients receive schema structures while maintaining clear guidance on specific values to use when constructing responses within those schemas.
+
 ---
 
 # Technical Implementation
@@ -321,7 +340,7 @@ The MCP server package includes:
 - Multi-expert architecture with specialized instructors for different violation categories
 - Structured review instructions optimized for LLM consumption and execution
 - Built-in orchestration guidance for comprehensive workflow coordination
-- Consistent response format specifications (`ExpertCodeAnalysisIssuesSchema`) across all expert instructions
+- Consistent response format specifications (`ExpectedResponseFormatSchema`) across all expert instructions, providing both schema structure and input values
 
 **Supported Violation Categories:**
 
@@ -347,7 +366,7 @@ The tool returns data conforming to `ExpertsReviewInstructionsSchema` (see [Zod 
 
 - **reviewInstructions** - Array of expert review instruction sets for different offline violation categories, each following the `ExpertReviewInstructionsSchema` structure
 - **orchestrationInstructions** - Explicit guidance for MCP client on tool orchestration workflow
-- **expectedResponseFormat** - Complete schema structure that LLM responses must follow (`ExpertCodeAnalysisIssuesSchema`)
+- **expectedResponseFormat** - Complete schema structure and input values that LLM responses must follow, containing both the JSON schema definition (via `ExpertCodeAnalysisIssuesSchema.shape`) and specific values to use when constructing responses
 
 ### Automated Orchestration
 
