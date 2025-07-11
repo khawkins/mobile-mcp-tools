@@ -12,7 +12,6 @@ import {
   ExpertsReviewInstructionsSchema,
   ExpertsReviewInstructionsType,
   ExpertReviewInstructionsType,
-  ExpertCodeAnalysisIssuesSchema,
 } from '../../../schemas/analysisSchema.js';
 import dedent from 'dedent';
 
@@ -101,7 +100,56 @@ export class OfflineGuidanceTool implements Tool {
         refactoring steps to convert them to legacy directive syntax.
       `,
       expectedResponseFormat: {
-        schema: ExpertCodeAnalysisIssuesSchema.shape,
+        schema: {
+          type: 'object',
+          properties: {
+            expertReviewerName: {
+              type: 'string',
+              description:
+                'The title-cased name of the reviewer providing the review instructions, representing a brief description of the functional area meant to be reviewed.',
+            },
+            issues: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  type: { type: 'string', description: 'Categorize the issue' },
+                  description: { type: 'string', description: 'Why this is an issue?' },
+                  intentAnalysis: {
+                    type: 'string',
+                    description: 'What is the likely intent of the developer?',
+                  },
+                  suggestedAction: {
+                    type: 'string',
+                    description:
+                      'How a developer should address the issue? Be as detailed as possible without adding code snippets.',
+                  },
+                  code: { type: 'string', description: 'What is the code snippet with the issue?' },
+                  location: {
+                    type: 'object',
+                    properties: {
+                      startLine: { type: 'number', minimum: 0 },
+                      endLine: { type: 'number', minimum: 0 },
+                      startColumn: { type: 'number', minimum: 0 },
+                      endColumn: { type: 'number', minimum: 0 },
+                    },
+                    required: ['startLine'],
+                    additionalProperties: false,
+                    description:
+                      'Provide the exact line number(s) and column number(s) where the issue occurs',
+                  },
+                },
+                required: ['type', 'description', 'intentAnalysis', 'suggestedAction'],
+                additionalProperties: false,
+              },
+              description:
+                'Specific issues found during the analysis. Should be empty if no issues were found.',
+            },
+          },
+          required: ['expertReviewerName', 'issues'],
+          additionalProperties: false,
+          $schema: 'http://json-schema.org/draft-07/schema#',
+        },
         inputValues: {
           expertReviewerName,
         },
@@ -135,7 +183,56 @@ export class OfflineGuidanceTool implements Tool {
         configurations and provide actionable steps to extract them to separate getter methods.
       `,
       expectedResponseFormat: {
-        schema: ExpertCodeAnalysisIssuesSchema.shape,
+        schema: {
+          type: 'object',
+          properties: {
+            expertReviewerName: {
+              type: 'string',
+              description:
+                'The title-cased name of the reviewer providing the review instructions, representing a brief description of the functional area meant to be reviewed.',
+            },
+            issues: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  type: { type: 'string', description: 'Categorize the issue' },
+                  description: { type: 'string', description: 'Why this is an issue?' },
+                  intentAnalysis: {
+                    type: 'string',
+                    description: 'What is the likely intent of the developer?',
+                  },
+                  suggestedAction: {
+                    type: 'string',
+                    description:
+                      'How a developer should address the issue? Be as detailed as possible without adding code snippets.',
+                  },
+                  code: { type: 'string', description: 'What is the code snippet with the issue?' },
+                  location: {
+                    type: 'object',
+                    properties: {
+                      startLine: { type: 'number', minimum: 0 },
+                      endLine: { type: 'number', minimum: 0 },
+                      startColumn: { type: 'number', minimum: 0 },
+                      endColumn: { type: 'number', minimum: 0 },
+                    },
+                    required: ['startLine'],
+                    additionalProperties: false,
+                    description:
+                      'Provide the exact line number(s) and column number(s) where the issue occurs',
+                  },
+                },
+                required: ['type', 'description', 'intentAnalysis', 'suggestedAction'],
+                additionalProperties: false,
+              },
+              description:
+                'Specific issues found during the analysis. Should be empty if no issues were found.',
+            },
+          },
+          required: ['expertReviewerName', 'issues'],
+          additionalProperties: false,
+          $schema: 'http://json-schema.org/draft-07/schema#',
+        },
         inputValues: {
           expertReviewerName,
         },
