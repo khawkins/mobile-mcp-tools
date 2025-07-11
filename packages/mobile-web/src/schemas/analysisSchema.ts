@@ -61,7 +61,53 @@ export const ExpertsCodeAnalysisIssuesSchema = z.object({
     ),
 });
 
+// Schema for expected response format that separates schema from input values
+const ExpectedResponseFormatSchema = z.object({
+  schema: z.record(z.any()).describe('The JSON schema definition for the expected response format'),
+  inputValues: z
+    .object({
+      expertReviewerName: ExpertReviewerNameSchema,
+    })
+    .describe('Specific values that should be used as inputs when constructing the response'),
+});
+
+// Review Instructions Schema for Agentic Analysis
+const ExpertReviewInstructionsSchema = z.object({
+  expertReviewerName: ExpertReviewerNameSchema,
+  supportedFileTypes: z
+    .array(z.enum(['JS', 'HTML', 'CSS']))
+    .min(1)
+    .describe(
+      'The list of file types this review should apply to. All content for these files types should be reviewed.'
+    ),
+  grounding: z.string().describe('The grounding context that will apply to this expert review.'),
+  request: z.string().describe('The formal review request instructions for the expert review.'),
+  expectedResponseFormat: ExpectedResponseFormatSchema.describe(
+    "The required schema format and input values for the LLM's review response."
+  ),
+});
+
+export const ExpertsReviewInstructionsSchema = z.object({
+  reviewInstructions: z
+    .array(ExpertReviewInstructionsSchema)
+    .min(1)
+    .describe(
+      'An array of LLM-directed instructions to conduct expert reviews of code with supported file types, grounding context, and request fields for processing.'
+    ),
+  orchestrationInstructions: z
+    .string()
+    .default(
+      "If you have not already executed the 'sfmobile-web-offline-analysis' tool in this conversation thread: (1) Execute all review instructions provided in this response against the user's LWC component code, producing structured review results in the specified format, (2) Immediately call the 'sfmobile-web-offline-analysis' tool with the user's component code as input, (3) Combine your review results from step 1 with the analysis results from step 2, then refactor the component based on all combined review recommendations."
+    )
+    .describe(
+      'Instructions for the MCP client on how to orchestrate this tool with the companion analysis tool for comprehensive offline compatibility review.'
+    ),
+});
+
 export type CodeAnalysisIssueType = z.infer<typeof CodeAnalysisIssueSchema>;
 export type CodeAnalysisBaseIssueType = z.infer<typeof CodeAnalysisBaseIssueSchema>;
 export type ExpertCodeAnalysisIssuesType = z.infer<typeof ExpertCodeAnalysisIssuesSchema>;
 export type ExpertsCodeAnalysisIssuesType = z.infer<typeof ExpertsCodeAnalysisIssuesSchema>;
+export type ExpectedResponseFormatType = z.infer<typeof ExpectedResponseFormatSchema>;
+export type ExpertReviewInstructionsType = z.infer<typeof ExpertReviewInstructionsSchema>;
+export type ExpertsReviewInstructionsType = z.infer<typeof ExpertsReviewInstructionsSchema>;
