@@ -1,0 +1,269 @@
+import {
+  getPackageInfo,
+  createReleaseName,
+  parseReleaseTag,
+  validatePackageVersion,
+} from './package-utils.js';
+import {
+  tagExists,
+  createTag,
+  createRelease,
+  uploadReleaseAsset,
+  updateRelease,
+  getRelease,
+  downloadReleaseAsset,
+} from './github-utils.js';
+import {
+  createTarball,
+  isVersionPublished,
+  publishToNpm,
+  verifyTarball,
+  cleanup,
+  getErrorMessage,
+  generateTarballName,
+  type CleanupResult,
+} from './npm-utils.js';
+import { ActionsReporter } from './actions-reporter.js';
+import { Octokit } from '@octokit/rest';
+import { Context } from '@actions/github/lib/context';
+import * as core from '@actions/core';
+
+interface CreateReleaseOptions {
+  packagePath: string;
+  packageDisplayName: string;
+}
+
+interface PublishReleaseOptions {
+  packagePath: string;
+  packageDisplayName: string;
+  releaseTag: string;
+  npmTag?: string;
+  dryRun?: boolean;
+}
+
+type GitHubAPI = InstanceType<typeof Octokit>;
+type GitHubContext = Context;
+type GitHubCore = typeof core;
+
+/**
+ * Release orchestrator that combines all utility modules
+ */
+export class ReleaseOrchestrator {
+  private github: GitHubAPI;
+  private context: GitHubContext;
+  private reporter: ActionsReporter;
+
+  constructor(github: GitHubAPI, context: GitHubContext, core: GitHubCore) {
+    this.github = github;
+    this.context = context;
+    this.reporter = new ActionsReporter(core);
+  }
+
+  /**
+   * Create a release workflow
+   * @param options - Release options
+   */
+  async createRelease(options: CreateReleaseOptions): Promise<void> {
+    const { packagePath, packageDisplayName } = options;
+
+    try {
+      this.reporter.step('Getting package information');
+      const packageInfo = getPackageInfo(packagePath);
+      const releaseName = createReleaseName(packageDisplayName, packageInfo.version);
+
+      this.reporter.packageInfo(packageInfo);
+
+      // Set outputs for GitHub Actions
+      this.reporter.setOutput('package_full_name', packageInfo.packageFullName);
+      this.reporter.setOutput('version', packageInfo.version);
+      this.reporter.setOutput('tag_name', packageInfo.tagName);
+      this.reporter.setOutput('release_name', releaseName);
+
+      this.reporter.step('Checking if tag already exists');
+      if (await tagExists(this.github, this.context, packageInfo.tagName)) {
+        this.reporter.setFailed(
+          `Tag ${packageInfo.tagName} already exists. Please increment the version in package.json and try again.`
+        );
+        return;
+      }
+      this.reporter.success(`Tag ${packageInfo.tagName} is available`);
+
+      this.reporter.step('Creating package tarball');
+      const tarballInfo = createTarball(packagePath);
+      this.reporter.setOutput('tarball_name', tarballInfo.tarballName);
+      this.reporter.setOutput('tarball_path', tarballInfo.tarballPath);
+      this.reporter.success(`Created tarball: ${tarballInfo.tarballName}`);
+
+      this.reporter.step('Creating git tag');
+      await createTag(
+        this.github,
+        this.context,
+        packageInfo.tagName,
+        releaseName,
+        this.context.sha
+      );
+      this.reporter.success(`Created and pushed tag: ${packageInfo.tagName}`);
+
+      this.reporter.step('Creating GitHub release');
+      const releaseNotes = `Release candidate for ${packageInfo.packageFullName} v${packageInfo.version}. Download the tarball, test thoroughly, then use the corresponding publish workflow to release to NPM.`;
+
+      const release = await createRelease(this.github, this.context, {
+        tagName: packageInfo.tagName,
+        name: releaseName,
+        body: releaseNotes,
+        prerelease: true,
+      });
+
+      this.reporter.step('Uploading tarball as release asset');
+      const fs = await import('fs');
+      const tarballContent = fs.readFileSync(tarballInfo.tarballPath);
+      await uploadReleaseAsset(
+        this.github,
+        this.context,
+        release.id,
+        tarballInfo.tarballName,
+        tarballContent
+      );
+
+      this.reporter.success(`Created GitHub release: ${packageInfo.tagName}`);
+
+      // Output final information
+      this.reporter.success('Release created successfully!');
+      this.reporter.releaseInfo({
+        packageFullName: packageInfo.packageFullName,
+        version: packageInfo.version,
+        tagName: packageInfo.tagName,
+        tarballName: tarballInfo.tarballName,
+      });
+
+      const repository = this.context.repo.owner + '/' + this.context.repo.repo;
+      this.reporter.links({
+        'Release URL': `https://github.com/${repository}/releases/tag/${packageInfo.tagName}`,
+      });
+
+      this.reporter.nextSteps([
+        'Download and test the package tarball from the release',
+        `Once UAT is complete, use the '${packageDisplayName} - Publish Release' workflow`,
+      ]);
+    } catch (error) {
+      this.reporter.setFailed(`Failed to create release: ${getErrorMessage(error)}`);
+    }
+  }
+
+  /**
+   * Publish a release workflow
+   * @param options - Publish options
+   */
+  async publishRelease(options: PublishReleaseOptions): Promise<void> {
+    const { packagePath, releaseTag, npmTag = 'latest', dryRun = false } = options;
+
+    try {
+      this.reporter.step('Validating inputs and release');
+
+      // Parse release tag
+      const { packageIdentifier, packageVersion } = parseReleaseTag(releaseTag);
+      this.reporter.setOutput('package_identifier', packageIdentifier);
+      this.reporter.setOutput('package_version', packageVersion);
+
+      this.reporter.info(`Package Identifier: ${packageIdentifier}`);
+      this.reporter.info(`Version: ${packageVersion}`);
+
+      this.reporter.step('Getting package information');
+      const packageInfo = validatePackageVersion(packagePath, packageVersion);
+      this.reporter.setOutput('package_full_name', packageInfo.packageFullName);
+      this.reporter.success('Package information validated');
+
+      this.reporter.step('Checking if version already published');
+      if (isVersionPublished(packageInfo.packageFullName, packageVersion)) {
+        this.reporter.setFailed(
+          `Cannot publish: Version ${packageVersion} already exists on NPM\nIf you need to republish, increment the version and create a new release`
+        );
+        return;
+      }
+      this.reporter.success(`Version ${packageVersion} is not yet published`);
+
+      this.reporter.step('Downloading release assets');
+      const release = await getRelease(this.github, this.context, releaseTag);
+
+      // Generate expected tarball name based on package info
+      const expectedTarballName = generateTarballName(packageInfo.packageFullName, packageVersion);
+      this.reporter.info(`Looking for specific tarball: ${expectedTarballName}`);
+
+      // Find the specific tarball asset by name
+      const tarballAsset = release.assets.find(asset => asset.name === expectedTarballName);
+      if (!tarballAsset) {
+        this.reporter.setFailed(
+          `Expected tarball '${expectedTarballName}' not found in release assets. Available assets: ${release.assets.map(a => a.name).join(', ')}`
+        );
+        return;
+      }
+
+      // Download the tarball
+      const assetData = await downloadReleaseAsset(this.github, this.context, tarballAsset.id);
+
+      // Create temp directory and save the tarball
+      const fs = await import('fs');
+      const path = await import('path');
+      const tempDir = './temp-release';
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+      }
+
+      const tarballPath = path.join(tempDir, tarballAsset.name);
+      fs.writeFileSync(tarballPath, assetData);
+      this.reporter.exportVariable('TARBALL_PATH', tarballPath);
+      this.reporter.success(`Downloaded tarball: ${tarballAsset.name}`);
+
+      this.reporter.step('Verifying tarball contents');
+      const verification = verifyTarball(tarballPath, packageVersion);
+      if (!verification.verified) {
+        this.reporter.setFailed(`Failed to verify tarball: ${verification.error}`);
+        return;
+      }
+      this.reporter.success(`Tarball verified - version matches: ${verification.extractedVersion}`);
+
+      this.reporter.step(`Publishing to NPM${dryRun ? ' (dry run)' : ''}`);
+      if (dryRun) {
+        this.reporter.info('🧪 DRY RUN MODE - Validating package but not publishing');
+      }
+
+      let publishSuccess = false;
+      try {
+        publishSuccess = publishToNpm(tarballPath, npmTag, dryRun);
+      } catch (error) {
+        this.reporter.setFailed(`Failed to publish release: ${getErrorMessage(error)}`);
+        return;
+      }
+
+      if (!dryRun && publishSuccess) {
+        this.reporter.step('Updating GitHub release');
+        await updateRelease(this.github, this.context, release.id, { prerelease: false });
+        this.reporter.success('Release updated - prerelease flag removed');
+
+        this.reporter.success('Package published successfully!');
+        this.reporter.info('📋 Publication Details:');
+        this.reporter.info(`  Package: ${packageInfo.packageFullName}`);
+        this.reporter.info(`  Version: ${packageVersion}`);
+        this.reporter.info(`  NPM Tag: ${npmTag}`);
+
+        const repository = this.context.repo.owner + '/' + this.context.repo.repo;
+        this.reporter.links({
+          'NPM Package': `https://www.npmjs.com/package/${packageInfo.packageFullName}/v/${packageVersion}`,
+          'GitHub Release': `https://github.com/${repository}/releases/tag/${releaseTag}`,
+        });
+      }
+    } catch (error) {
+      this.reporter.setFailed(`Failed to publish release: ${getErrorMessage(error)}`);
+    } finally {
+      // Cleanup
+      const cleanupResults: CleanupResult[] = cleanup(['./temp-release', './temp-verify']);
+      cleanupResults.forEach(result => {
+        if (result.success && result.existed) {
+          this.reporter.info(`🧹 Cleaned up ${result.directory} directory`);
+        } else if (!result.success) {
+          this.reporter.warning(`Cleanup failed for ${result.directory}: ${result.error}`);
+        }
+      });
+    }
+  }
+}

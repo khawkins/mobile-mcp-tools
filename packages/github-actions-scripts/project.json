@@ -1,0 +1,43 @@
+{
+  "name": "@mobile-mcp-tools/github-actions-scripts",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/github-actions-scripts/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run build",
+        "cwd": "packages/github-actions-scripts"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run test",
+        "cwd": "packages/github-actions-scripts"
+      }
+    },
+    "test:coverage": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run test:coverage",
+        "cwd": "packages/github-actions-scripts"
+      }
+    },
+    "test:watch": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run test:watch",
+        "cwd": "packages/github-actions-scripts"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npm run lint",
+        "cwd": "packages/github-actions-scripts"
+      }
+    }
+  }
+}
