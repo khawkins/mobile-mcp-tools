@@ -80,7 +80,7 @@ describe('NpmUtils', () => {
 
       expect(result).toEqual({
         tarballName: 'test-package-1.0.0.tgz',
-        tarballPath: `${packagePath}/test-package-1.0.0.tgz`,
+        tarballPath: path.join(packagePath, 'test-package-1.0.0.tgz'),
       });
 
       const commands = mockProcess.getExecutedCommands();
