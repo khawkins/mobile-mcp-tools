@@ -56,9 +56,9 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         with:
           script: |
-            const { ReleaseOrchestrator } = await import('${{ github.workspace }}/packages/github-actions-scripts/dist/release-orchestrator.js');
+            const { createReleaseOrchestrator } = await import('${{ github.workspace }}/packages/github-actions-scripts/dist/index.js');
 
-            const orchestrator = new ReleaseOrchestrator(github, context, core);
+            const orchestrator = createReleaseOrchestrator(context);
             await orchestrator.publishRelease({
               packagePath: '${{ inputs.package_path }}',
               packageDisplayName: '${{ inputs.package_display_name }}',

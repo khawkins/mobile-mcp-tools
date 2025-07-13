@@ -1,6 +1,4 @@
-import * as core from '@actions/core';
-
-type GitHubCore = typeof core;
+import { ActionsServiceProvider } from './services/index.js';
 
 interface PackageInfo {
   packageFullName: string;
@@ -19,18 +17,14 @@ interface ReleaseInfo {
  * GitHub Actions reporter utility for logging, outputs, and workflow control
  */
 export class ActionsReporter {
-  private core: GitHubCore;
-
-  constructor(core: GitHubCore) {
-    this.core = core;
-  }
+  constructor(private actionsService: ActionsServiceProvider) {}
 
   /**
    * Log an info message
    * @param message - Message to log
    */
   info(message: string): void {
-    this.core.info(message);
+    this.actionsService.info(message);
   }
 
   /**
@@ -38,7 +32,7 @@ export class ActionsReporter {
    * @param message - Message to log
    */
   warning(message: string): void {
-    this.core.warning(message);
+    this.actionsService.warning(message);
   }
 
   /**
@@ -46,7 +40,7 @@ export class ActionsReporter {
    * @param message - Message to log
    */
   error(message: string): void {
-    this.core.error(message);
+    this.actionsService.error(message);
   }
 
   /**
@@ -54,7 +48,7 @@ export class ActionsReporter {
    * @param message - Step message
    */
   step(message: string): void {
-    this.core.info(`🔄 ${message}`);
+    this.actionsService.info(`🔄 ${message}`);
   }
 
   /**
@@ -62,7 +56,7 @@ export class ActionsReporter {
    * @param message - Success message
    */
   success(message: string): void {
-    this.core.info(`✅ ${message}`);
+    this.actionsService.info(`✅ ${message}`);
   }
 
   /**
@@ -71,7 +65,7 @@ export class ActionsReporter {
    * @param value - Output value
    */
   setOutput(name: string, value: string): void {
-    this.core.setOutput(name, value);
+    this.actionsService.setOutput(name, value);
   }
 
   /**
@@ -80,7 +74,7 @@ export class ActionsReporter {
    * @param value - Variable value
    */
   exportVariable(name: string, value: string): void {
-    this.core.exportVariable(name, value);
+    this.actionsService.exportVariable(name, value);
   }
 
   /**
@@ -88,7 +82,7 @@ export class ActionsReporter {
    * @param message - Failure message
    */
   setFailed(message: string): void {
-    this.core.setFailed(message);
+    this.actionsService.setFailed(message);
   }
 
   /**
@@ -96,9 +90,9 @@ export class ActionsReporter {
    * @param packageInfo - Package information
    */
   packageInfo(packageInfo: PackageInfo): void {
-    this.core.info(`📦 Package: ${packageInfo.packageFullName}`);
-    this.core.info(`🔢 Version: ${packageInfo.version}`);
-    this.core.info(`🏷️  Tag: ${packageInfo.tagName}`);
+    this.actionsService.info(`📦 Package: ${packageInfo.packageFullName}`);
+    this.actionsService.info(`🔢 Version: ${packageInfo.version}`);
+    this.actionsService.info(`🏷️  Tag: ${packageInfo.tagName}`);
   }
 
   /**
@@ -106,12 +100,12 @@ export class ActionsReporter {
    * @param releaseInfo - Release information
    */
   releaseInfo(releaseInfo: ReleaseInfo): void {
-    this.core.info('');
-    this.core.info('📋 Release Details:');
-    this.core.info(`  Package: ${releaseInfo.packageFullName}`);
-    this.core.info(`  Version: ${releaseInfo.version}`);
-    this.core.info(`  Tag: ${releaseInfo.tagName}`);
-    this.core.info(`  Tarball: ${releaseInfo.tarballName}`);
+    this.actionsService.info('');
+    this.actionsService.info('📋 Release Details:');
+    this.actionsService.info(`  Package: ${releaseInfo.packageFullName}`);
+    this.actionsService.info(`  Version: ${releaseInfo.version}`);
+    this.actionsService.info(`  Tag: ${releaseInfo.tagName}`);
+    this.actionsService.info(`  Tarball: ${releaseInfo.tarballName}`);
   }
 
   /**
@@ -119,10 +113,10 @@ export class ActionsReporter {
    * @param links - Links object
    */
   links(links: Record<string, string>): void {
-    this.core.info('');
-    this.core.info('🔗 Links:');
+    this.actionsService.info('');
+    this.actionsService.info('🔗 Links:');
     Object.entries(links).forEach(([label, url]) => {
-      this.core.info(`  ${label}: ${url}`);
+      this.actionsService.info(`  ${label}: ${url}`);
     });
   }
 
@@ -131,10 +125,10 @@ export class ActionsReporter {
    * @param steps - Array of steps
    */
   nextSteps(steps: string[]): void {
-    this.core.info('');
-    this.core.info('📋 Next Steps:');
+    this.actionsService.info('');
+    this.actionsService.info('📋 Next Steps:');
     steps.forEach((step, index) => {
-      this.core.info(`${index + 1}. ${step}`);
+      this.actionsService.info(`${index + 1}. ${step}`);
     });
   }
 }

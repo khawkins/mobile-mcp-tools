@@ -1,32 +1,15 @@
-import {
-  getPackageInfo,
-  createReleaseName,
-  parseReleaseTag,
-  validatePackageVersion,
-} from './package-utils.js';
-import {
-  tagExists,
-  createTag,
-  createRelease,
-  uploadReleaseAsset,
-  updateRelease,
-  getRelease,
-  downloadReleaseAsset,
-} from './github-utils.js';
-import {
-  createTarball,
-  isVersionPublished,
-  publishToNpm,
-  verifyTarball,
-  cleanup,
-  getErrorMessage,
-  generateTarballName,
-  type CleanupResult,
-} from './npm-utils.js';
+import { GitHubUtils } from './github-utils.js';
+import { NpmUtils, type CleanupResult } from './npm-utils.js';
 import { ActionsReporter } from './actions-reporter.js';
-import { Octokit } from '@octokit/rest';
-import { Context } from '@actions/github/lib/context';
-import * as core from '@actions/core';
+import type { Context as GitHubContext } from '@actions/github/lib/context';
+import { join } from 'path';
+import {
+  FileSystemServiceProvider,
+  ProcessServiceProvider,
+  GitHubServiceProvider,
+  ActionsServiceProvider,
+  PackageServiceProvider,
+} from './services/index.js';
 
 interface CreateReleaseOptions {
   packagePath: string;
@@ -41,22 +24,32 @@ interface PublishReleaseOptions {
   dryRun?: boolean;
 }
 
-type GitHubAPI = InstanceType<typeof Octokit>;
-type GitHubContext = Context;
-type GitHubCore = typeof core;
-
 /**
- * Release orchestrator that combines all utility modules
+ * Release orchestrator that combines all utility modules with dependency injection
  */
 export class ReleaseOrchestrator {
-  private github: GitHubAPI;
   private context: GitHubContext;
+  private npmUtils: NpmUtils;
+  private githubUtils: GitHubUtils;
   private reporter: ActionsReporter;
+  private fsService: FileSystemServiceProvider;
+  private packageService: PackageServiceProvider;
+  private static readonly TEMP_RELEASE_DIR = 'temp-release';
 
-  constructor(github: GitHubAPI, context: GitHubContext, core: GitHubCore) {
-    this.github = github;
+  constructor(
+    context: GitHubContext,
+    fsService: FileSystemServiceProvider,
+    processService: ProcessServiceProvider,
+    githubService: GitHubServiceProvider,
+    actionsService: ActionsServiceProvider,
+    packageService: PackageServiceProvider
+  ) {
     this.context = context;
-    this.reporter = new ActionsReporter(core);
+    this.fsService = fsService;
+    this.packageService = packageService;
+    this.npmUtils = new NpmUtils(fsService, processService);
+    this.githubUtils = new GitHubUtils(githubService);
+    this.reporter = new ActionsReporter(actionsService);
   }
 
   /**
@@ -68,8 +61,11 @@ export class ReleaseOrchestrator {
 
     try {
       this.reporter.step('Getting package information');
-      const packageInfo = getPackageInfo(packagePath);
-      const releaseName = createReleaseName(packageDisplayName, packageInfo.version);
+      const packageInfo = this.packageService.getPackageInfo(packagePath);
+      const releaseName = this.packageService.createReleaseName(
+        packageDisplayName,
+        packageInfo.version
+      );
 
       this.reporter.packageInfo(packageInfo);
 
@@ -80,7 +76,7 @@ export class ReleaseOrchestrator {
       this.reporter.setOutput('release_name', releaseName);
 
       this.reporter.step('Checking if tag already exists');
-      if (await tagExists(this.github, this.context, packageInfo.tagName)) {
+      if (await this.githubUtils.tagExists(this.context, packageInfo.tagName)) {
         this.reporter.setFailed(
           `Tag ${packageInfo.tagName} already exists. Please increment the version in package.json and try again.`
         );
@@ -89,14 +85,13 @@ export class ReleaseOrchestrator {
       this.reporter.success(`Tag ${packageInfo.tagName} is available`);
 
       this.reporter.step('Creating package tarball');
-      const tarballInfo = createTarball(packagePath);
+      const tarballInfo = this.npmUtils.createTarball(packagePath);
       this.reporter.setOutput('tarball_name', tarballInfo.tarballName);
       this.reporter.setOutput('tarball_path', tarballInfo.tarballPath);
       this.reporter.success(`Created tarball: ${tarballInfo.tarballName}`);
 
       this.reporter.step('Creating git tag');
-      await createTag(
-        this.github,
+      await this.githubUtils.createTag(
         this.context,
         packageInfo.tagName,
         releaseName,
@@ -107,7 +102,7 @@ export class ReleaseOrchestrator {
       this.reporter.step('Creating GitHub release');
       const releaseNotes = `Release candidate for ${packageInfo.packageFullName} v${packageInfo.version}. Download the tarball, test thoroughly, then use the corresponding publish workflow to release to NPM.`;
 
-      const release = await createRelease(this.github, this.context, {
+      const release = await this.githubUtils.createRelease(this.context, {
         tagName: packageInfo.tagName,
         name: releaseName,
         body: releaseNotes,
@@ -115,14 +110,12 @@ export class ReleaseOrchestrator {
       });
 
       this.reporter.step('Uploading tarball as release asset');
-      const fs = await import('fs');
-      const tarballContent = fs.readFileSync(tarballInfo.tarballPath);
-      await uploadReleaseAsset(
-        this.github,
+      const tarballContent = this.fsService.readFileSync(tarballInfo.tarballPath);
+      await this.githubUtils.uploadReleaseAsset(
         this.context,
         release.id,
         tarballInfo.tarballName,
-        tarballContent
+        Buffer.from(tarballContent)
       );
 
       this.reporter.success(`Created GitHub release: ${packageInfo.tagName}`);
@@ -146,7 +139,7 @@ export class ReleaseOrchestrator {
         `Once UAT is complete, use the '${packageDisplayName} - Publish Release' workflow`,
       ]);
     } catch (error) {
-      this.reporter.setFailed(`Failed to create release: ${getErrorMessage(error)}`);
+      this.reporter.setFailed(`Failed to create release: ${this.npmUtils.getErrorMessage(error)}`);
     }
   }
 
@@ -161,7 +154,7 @@ export class ReleaseOrchestrator {
       this.reporter.step('Validating inputs and release');
 
       // Parse release tag
-      const { packageIdentifier, packageVersion } = parseReleaseTag(releaseTag);
+      const { packageIdentifier, packageVersion } = this.packageService.parseReleaseTag(releaseTag);
       this.reporter.setOutput('package_identifier', packageIdentifier);
       this.reporter.setOutput('package_version', packageVersion);
 
@@ -169,12 +162,12 @@ export class ReleaseOrchestrator {
       this.reporter.info(`Version: ${packageVersion}`);
 
       this.reporter.step('Getting package information');
-      const packageInfo = validatePackageVersion(packagePath, packageVersion);
+      const packageInfo = this.packageService.validatePackageVersion(packagePath, packageVersion);
       this.reporter.setOutput('package_full_name', packageInfo.packageFullName);
       this.reporter.success('Package information validated');
 
       this.reporter.step('Checking if version already published');
-      if (isVersionPublished(packageInfo.packageFullName, packageVersion)) {
+      if (this.npmUtils.isVersionPublished(packageInfo.packageFullName, packageVersion)) {
         this.reporter.setFailed(
           `Cannot publish: Version ${packageVersion} already exists on NPM\nIf you need to republish, increment the version and create a new release`
         );
@@ -183,10 +176,13 @@ export class ReleaseOrchestrator {
       this.reporter.success(`Version ${packageVersion} is not yet published`);
 
       this.reporter.step('Downloading release assets');
-      const release = await getRelease(this.github, this.context, releaseTag);
+      const release = await this.githubUtils.getRelease(this.context, releaseTag);
 
       // Generate expected tarball name based on package info
-      const expectedTarballName = generateTarballName(packageInfo.packageFullName, packageVersion);
+      const expectedTarballName = this.npmUtils.generateTarballName(
+        packageInfo.packageFullName,
+        packageVersion
+      );
       this.reporter.info(`Looking for specific tarball: ${expectedTarballName}`);
 
       // Find the specific tarball asset by name
@@ -199,23 +195,20 @@ export class ReleaseOrchestrator {
       }
 
       // Download the tarball
-      const assetData = await downloadReleaseAsset(this.github, this.context, tarballAsset.id);
+      const assetData = await this.githubUtils.downloadReleaseAsset(this.context, tarballAsset.id);
 
       // Create temp directory and save the tarball
-      const fs = await import('fs');
-      const path = await import('path');
-      const tempDir = './temp-release';
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true });
+      if (!this.fsService.existsSync(ReleaseOrchestrator.TEMP_RELEASE_DIR)) {
+        this.fsService.mkdirSync(ReleaseOrchestrator.TEMP_RELEASE_DIR, { recursive: true });
       }
 
-      const tarballPath = path.join(tempDir, tarballAsset.name);
-      fs.writeFileSync(tarballPath, assetData);
+      const tarballPath = join(ReleaseOrchestrator.TEMP_RELEASE_DIR, tarballAsset.name);
+      this.fsService.writeFileSync(tarballPath, assetData);
       this.reporter.exportVariable('TARBALL_PATH', tarballPath);
       this.reporter.success(`Downloaded tarball: ${tarballAsset.name}`);
 
       this.reporter.step('Verifying tarball contents');
-      const verification = verifyTarball(tarballPath, packageVersion);
+      const verification = this.npmUtils.verifyTarball(tarballPath, packageVersion);
       if (!verification.verified) {
         this.reporter.setFailed(`Failed to verify tarball: ${verification.error}`);
         return;
@@ -227,17 +220,18 @@ export class ReleaseOrchestrator {
         this.reporter.info('🧪 DRY RUN MODE - Validating package but not publishing');
       }
 
-      let publishSuccess = false;
       try {
-        publishSuccess = publishToNpm(tarballPath, npmTag, dryRun);
+        this.npmUtils.publishToNpm(tarballPath, npmTag, dryRun);
       } catch (error) {
-        this.reporter.setFailed(`Failed to publish release: ${getErrorMessage(error)}`);
+        this.reporter.setFailed(
+          `Failed to publish package: ${this.npmUtils.getErrorMessage(error)}`
+        );
         return;
       }
 
-      if (!dryRun && publishSuccess) {
+      if (!dryRun) {
         this.reporter.step('Updating GitHub release');
-        await updateRelease(this.github, this.context, release.id, { prerelease: false });
+        await this.githubUtils.updateRelease(this.context, release.id, { prerelease: false });
         this.reporter.success('Release updated - prerelease flag removed');
 
         this.reporter.success('Package published successfully!');
@@ -253,10 +247,11 @@ export class ReleaseOrchestrator {
         });
       }
     } catch (error) {
-      this.reporter.setFailed(`Failed to publish release: ${getErrorMessage(error)}`);
+      this.reporter.setFailed(`Failed to publish release: ${this.npmUtils.getErrorMessage(error)}`);
     } finally {
-      // Cleanup
-      const cleanupResults: CleanupResult[] = cleanup(['./temp-release', './temp-verify']);
+      const cleanupResults: CleanupResult[] = this.npmUtils.cleanup([
+        ReleaseOrchestrator.TEMP_RELEASE_DIR,
+      ]);
       cleanupResults.forEach(result => {
         if (result.success && result.existed) {
           this.reporter.info(`🧹 Cleaned up ${result.directory} directory`);
@@ -266,4 +261,37 @@ export class ReleaseOrchestrator {
       });
     }
   }
+}
+
+/**
+ * Factory function to create ReleaseOrchestrator with default service implementations
+ * Provides a convenient way to instantiate with concrete services
+ */
+import {
+  FileSystemService,
+  ProcessService,
+  GitHubService,
+  ActionsService,
+  PackageService,
+} from './services/index.js';
+
+export function createReleaseOrchestrator(context: GitHubContext): ReleaseOrchestrator {
+  const githubToken = process.env.GITHUB_TOKEN;
+  if (!githubToken) {
+    throw new Error('GITHUB_TOKEN environment variable is required');
+  }
+
+  const fileSystemService = new FileSystemService();
+  const processService = new ProcessService();
+  const gitHubService = new GitHubService(githubToken);
+  const actionsService = new ActionsService();
+  const packageService = new PackageService(fileSystemService);
+  return new ReleaseOrchestrator(
+    context,
+    fileSystemService,
+    processService,
+    gitHubService,
+    actionsService,
+    packageService
+  );
 }
