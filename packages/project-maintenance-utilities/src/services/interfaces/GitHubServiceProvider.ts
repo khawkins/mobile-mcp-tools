@@ -16,7 +16,8 @@ export interface GitHubServiceProvider {
     tag: string,
     name: string,
     body: string,
-    prerelease: boolean
+    prerelease: boolean,
+    generateReleaseNotes?: boolean
   ): Promise<Release>;
   uploadReleaseAsset(
     owner: string,

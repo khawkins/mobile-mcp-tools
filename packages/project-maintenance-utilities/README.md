@@ -4,13 +4,7 @@ This TypeScript project contains various utilities for managing projects within 
 
 ## Features
 
-### Current
-
 - The JavaScript modules used by the project's GitHub Actions workflows for releasing and publishing packages.
-
-### Future
-
-- Tools for creating release notes and changelogs automatically, for a given project.
 
 ## Project Structure
 

@@ -122,18 +122,24 @@ export class MockGitHubService implements GitHubServiceProvider {
     tag: string,
     name: string,
     body: string,
-    prerelease: boolean
+    prerelease: boolean,
+    generateReleaseNotes?: boolean
   ): Promise<Release> {
     const operationKey = `createRelease:${owner}/${repo}:${tag}`;
     if (this.shouldThrowOnOperation.has(operationKey)) {
       throw new Error(this.shouldThrowOnOperation.get(operationKey));
     }
 
+    // If generateReleaseNotes is true, append some mock auto-generated content
+    const finalBody = generateReleaseNotes
+      ? `${body}\n\n## What's Changed\n* Mock auto-generated release notes content\n* Various improvements and bug fixes`
+      : body;
+
     const releaseData: MockReleaseData = {
       id: Math.floor(Math.random() * 1000000),
       tag_name: tag,
       name,
-      body,
+      body: finalBody,
       prerelease,
       assets: [],
     };

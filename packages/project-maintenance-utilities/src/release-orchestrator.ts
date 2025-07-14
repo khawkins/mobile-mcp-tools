@@ -108,6 +108,7 @@ export class ReleaseOrchestrator {
         name: releaseName,
         body: releaseNotes,
         prerelease: true,
+        generateReleaseNotes: true,
       });
 
       this.reporter.step('Uploading tarball as release asset');

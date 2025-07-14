@@ -66,7 +66,7 @@ Each package must have:
 3. **Builds** the package using the build script
 4. **Creates a tarball** using `npm pack`
 5. **Creates a git tag** with format `<package-name>_v<version>`
-6. **Creates a GitHub release** marked as prerelease with the tarball attached as an asset, and basic release notes
+6. **Creates a GitHub release** marked as prerelease with the tarball attached as an asset, and automatically generated release notes
 
 ### Tag and Release Naming
 
@@ -77,13 +77,19 @@ The package name for tags is derived from the full package name in package.json,
 
 ### Release Notes
 
-The workflow currently generates simple, single-line release notes. The release notes include:
+The workflow automatically generates comprehensive release notes using GitHub's built-in release notes generation feature. This automatically includes:
+
+- **What's Changed**: Automatically generated from pull request titles and descriptions
+- **New Contributors**: Information about first-time contributors to the project
+- **Full Changelog**: Link to view all changes between releases
+
+The release notes also include:
 
 - Package name and version
 - Brief description of the release as a testing candidate
 - Instructions to use the publish workflow after testing
 
-More detailed release notes can be added manually to the GitHub release after creation if needed.
+The automatically generated content is combined with the testing instructions to provide both detailed change information and clear next steps for the release process.
 
 ## Phase 1b: UAT (User Acceptance Testing)
 

@@ -6,6 +6,7 @@ interface ReleaseData {
   name: string;
   body: string;
   prerelease?: boolean;
+  generateReleaseNotes?: boolean;
 }
 
 /**
@@ -75,7 +76,8 @@ export class GitHubUtils {
       releaseData.tagName,
       releaseData.name,
       releaseData.body,
-      releaseData.prerelease || false
+      releaseData.prerelease || false,
+      releaseData.generateReleaseNotes
     );
   }
 

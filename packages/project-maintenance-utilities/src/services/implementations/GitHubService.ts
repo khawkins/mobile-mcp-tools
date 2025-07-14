@@ -67,7 +67,8 @@ export class GitHubService implements GitHubServiceProvider {
     tag: string,
     name: string,
     body: string,
-    prerelease: boolean
+    prerelease: boolean,
+    generateReleaseNotes?: boolean
   ): Promise<Release> {
     const response = await this.octokit.rest.repos.createRelease({
       owner,
@@ -76,6 +77,7 @@ export class GitHubService implements GitHubServiceProvider {
       name,
       body,
       prerelease,
+      generate_release_notes: generateReleaseNotes,
     });
     return response.data;
   }
