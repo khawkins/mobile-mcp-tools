@@ -10,10 +10,6 @@ The workflow consists of two phases:
 2. **Phase 1b: UAT (User Acceptance Testing)** - Manual testing of the release candidate
 3. **Phase 2: Publish Release** - Publishes the tested package to NPM
 
-## Architecture
-
-The workflow system uses a **base + package-specific** architecture to ensure DRY principles and eliminate manual input errors.
-
 ### File Structure
 
 ```
@@ -33,28 +29,13 @@ These workflows:
 
 - Use `workflow_call` trigger to make them reusable
 - Accept package-specific parameters as inputs
-- Contain all the complex release/publish logic
-- Are DRY and maintainable
 
-### Package-Specific Workflows
+### Current Package-Specific Workflows
 
 - **`mobile-web-create-release.yml`** - Calls base-create-release with mobile-web parameters
 - **`mobile-web-publish-release.yml`** - Calls base-publish-release with mobile-web parameters
 
-These workflows:
-
-- Use `workflow_dispatch` trigger for manual execution
-- Hard-code package-specific parameters (name, path, display name)
-- Call the base workflows with `uses: ./.github/workflows/base-*.yml`
-- Are simple and error-free (no manual input for package details)
-
 ## Prerequisites
-
-### Repository Secrets
-
-Ensure the following secrets are configured in your repository settings:
-
-- `NPM_TOKEN`: Your NPM access token with publish permissions
 
 ### Package Requirements
 
@@ -70,7 +51,8 @@ Each package must have:
 
 1. Go to the **Actions** tab in your GitHub repository
 2. Select the **package-specific create release workflow** (e.g., `Mobile Web - Create Release`)
-3. Click **Run workflow** (no additional parameters required)
+3. Click **Run workflow**
+4. Select the branch you want to run against
 
 ### Available Package Workflows
 
@@ -84,14 +66,14 @@ Each package must have:
 3. **Builds** the package using the build script
 4. **Creates a tarball** using `npm pack`
 5. **Creates a git tag** with format `<package-name>_v<version>`
-6. **Creates a GitHub release** marked as prerelease with the tarball attached and basic release notes
+6. **Creates a GitHub release** marked as prerelease with the tarball attached as an asset, and basic release notes
 
 ### Tag and Release Naming
 
-- **Git Tag**: `<package-name>_v<version>` (e.g., `mobile-web-mcp-server_v1.2.3`)
+- **Git Tag**: `<package-name>_v<version>` (e.g., `salesforce-mobile-web-mcp-server_v1.2.3`)
 - **Release Name**: `<package-display-name> v<version>` (e.g., `Mobile Web MCP Server v1.2.3`)
 
-The package name for tags is derived from the full package name in package.json, removing any `@scope/` prefix and replacing slashes with dashes.
+The package name for tags is derived from the full package name in package.json, replacing slashes with dashes.
 
 ### Release Notes
 
@@ -132,7 +114,7 @@ npm install /path/to/downloaded-package.tgz
 2. Select the **package-specific publish workflow** (e.g., `Mobile Web - Publish Release`)
 3. Click **Run workflow**
 4. Fill in the parameters:
-   - **Release tag**: The git tag of the release to publish (e.g., `mobile-web-mcp-server_v1.0.0`)
+   - **Release tag**: The git tag of the release to publish (e.g., `salesforce-mobile-web-mcp-server_v1.0.0`)
    - **NPM tag**: The NPM tag to publish under (dropdown with options: `latest`, `beta`, `alpha`, `next`)
    - **Dry run**: Check this to test without actually publishing
 
@@ -234,33 +216,16 @@ jobs:
 ### Common Issues
 
 1. **"Tag already exists"**: The version hasn't been bumped since the last release
-
    - Solution: Update the version in `package.json`
 
 2. **"Package already published"**: Trying to publish a version that already exists
-
    - Solution: Increment the version and create a new release
 
 3. **"NPM credentials not configured"**: Missing or invalid NPM_TOKEN
-
    - Solution: Add valid NPM_TOKEN to repository secrets
 
 4. **"Build failed"**: Package build script failed
-
    - Solution: Fix build issues and ensure `npm run build` works locally
 
 5. **"Tests failed"**: Package tests failed during release
    - Solution: Fix failing tests and ensure `npm run test` passes locally
-
-### Getting Help
-
-- Check the workflow run logs for detailed error messages
-- Ensure all prerequisites are met
-- Test package operations locally before creating releases
-
-## Best Practices
-
-1. **Version Management**: Use semantic versioning (semver)
-2. **Testing**: Always test thoroughly during the UAT phase
-3. **Incremental Releases**: Don't skip versions; increment appropriately
-4. **Tag Cleanup**: If a release fails, clean up the git tag before retrying
