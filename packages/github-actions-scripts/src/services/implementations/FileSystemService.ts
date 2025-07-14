@@ -13,8 +13,13 @@ export class FileSystemService implements FileSystemServiceProvider {
     mkdirSync(path, options);
   }
 
-  readFileSync(path: string, encoding?: BufferEncoding): string {
-    return readFileSync(path, encoding || 'utf8');
+  readFileSync(path: string): Buffer;
+  readFileSync(path: string, encoding: BufferEncoding): string;
+  readFileSync(path: string, encoding?: BufferEncoding): string | Buffer {
+    if (encoding) {
+      return readFileSync(path, encoding);
+    }
+    return readFileSync(path);
   }
 
   writeFileSync(path: string, data: string | Buffer, encoding?: BufferEncoding): void {

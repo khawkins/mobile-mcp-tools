@@ -115,7 +115,7 @@ export class ReleaseOrchestrator {
         this.context,
         release.id,
         tarballInfo.tarballName,
-        Buffer.from(tarballContent)
+        tarballContent
       );
 
       this.reporter.success(`Created GitHub release: ${packageInfo.tagName}`);

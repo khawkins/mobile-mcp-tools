@@ -76,16 +76,28 @@ export class MockFileSystemService implements FileSystemServiceProvider {
     }
   }
 
-  readFileSync(path: string, encoding?: BufferEncoding): string {
+  readFileSync(path: string): Buffer;
+  readFileSync(path: string, encoding: BufferEncoding): string;
+  readFileSync(path: string, encoding?: BufferEncoding): string | Buffer {
     this.checkForError('readFileSync', path);
     const content = this.files.get(path);
     if (content === undefined) {
       throw new Error(`ENOENT: no such file or directory, open '${path}'`);
     }
-    if (Buffer.isBuffer(content)) {
-      return content.toString(encoding || 'utf8');
+
+    if (encoding) {
+      // Return string when encoding is specified
+      if (Buffer.isBuffer(content)) {
+        return content.toString(encoding);
+      }
+      return content;
+    } else {
+      // Return Buffer when no encoding is specified
+      if (Buffer.isBuffer(content)) {
+        return content;
+      }
+      return Buffer.from(content, 'utf8');
     }
-    return content;
   }
 
   writeFileSync(path: string, data: string | Buffer, encoding?: BufferEncoding): void {

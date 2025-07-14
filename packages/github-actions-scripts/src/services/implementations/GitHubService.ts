@@ -92,7 +92,9 @@ export class GitHubService implements GitHubServiceProvider {
       repo,
       release_id: releaseId,
       name,
-      data: data as unknown as string, // Octokit's types are off for buffer uploads
+      // Octokit's TypeScript types are off for Buffer uploads. We cast data as string to satisfy
+      // the type, but the API accepts Buffer for binary uploads.
+      data: data as unknown as string,
     });
   }
 
