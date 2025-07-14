@@ -1,11 +1,21 @@
-# GitHub Actions Scripts
+# Project Maintenance Utilities
 
-This TypeScript project implements and builds the JavaScript modules used by the project's GitHub Actions workflows. Having these modules pulled out of inline definition within the GitHub Actions enables better testing, reusability, and maintainability.
+This TypeScript project contains various utilities for managing projects within the repo.
+
+## Features
+
+### Current
+
+- The JavaScript modules used by the project's GitHub Actions workflows for releasing and publishing packages.
+
+### Future
+
+- Tools for creating release notes and changelogs automatically, for a given project.
 
 ## Project Structure
 
 ```
-packages/github-actions-scripts/
+packages/project-maintenance-utilities/
 ├── src/                         # TypeScript source code
 │   ├── package-utils.ts         # Package.json operations
 │   ├── github-utils.ts          # GitHub API operations
@@ -28,13 +38,13 @@ packages/github-actions-scripts/
 The project uses a simple build workflow:
 
 1. **Development**: Edit TypeScript files in `src/`
-2. **Build**: `nx build github-actions-scripts` compiles to `dist/`
-3. **Test**: `nx test github-actions-scripts` runs unit tests
+2. **Build**: `nx build project-maintenance-utilities` compiles to `dist/`
+3. **Test**: `nx test project-maintenance-utilities` runs unit tests
 
 ```bash
 # Development workflow
-nx build github-actions-scripts    # Compile TypeScript
-nx test github-actions-scripts     # Run tests
+nx build project-maintenance-utilities    # Compile TypeScript
+nx test project-maintenance-utilities    # Run tests
 ```
 
 ## GitHub Actions Integration
@@ -46,7 +56,7 @@ GitHub Actions workflows import directly from the built package:
   uses: actions/github-script@v7
   with:
     script: |
-      const { ReleaseOrchestrator } = await import('${{ github.workspace }}/packages/github-actions-scripts/dist/release-orchestrator.js');
+      const { ReleaseOrchestrator } = await import('${{ github.workspace }}/packages/project-maintenance-utilities/dist/release-orchestrator.js');
 
       const orchestrator = new ReleaseOrchestrator(github, context, core);
       await orchestrator.createRelease({
@@ -61,27 +71,27 @@ All functions are unit tested to ensure coverage of our GitHub Action workflows:
 
 ```bash
 # Run tests
-nx test github-actions-scripts
+nx test project-maintenance-utilities
 
 # Run tests with coverage
-nx test github-actions-scripts --coverage
+nx test project-maintenance-utilities --coverage
 
 # Run tests in watch mode
-cd packages/github-actions-scripts && npm run test:watch
+cd packages/project-maintenance-utilities && npm run test:watch
 ```
 
 ## Nx Commands
 
 ```bash
 # Build the project
-nx build github-actions-scripts
+nx build project-maintenance-utilities
 
 # Run tests
-nx test github-actions-scripts
+nx test project-maintenance-utilities
 
 # Run linting
-nx lint github-actions-scripts
+nx lint project-maintenance-utilities
 
 # Run all targets
-nx run-many --target=build,test,lint --projects=github-actions-scripts
+nx run-many --target=build,test,lint --projects=project-maintenance-utilities
 ```

@@ -16,9 +16,9 @@ export default tseslint.config(
       'packages/mobile-web/dist/**',
       'packages/mobile-web/resources/**',
       'packages/mobile-web/coverage/**',
-      'packages/github-actions-scripts/dist/**',
-      'packages/github-actions-scripts/node_modules/**',
-      'packages/github-actions-scripts/coverage/**',
+      'packages/project-maintenance-utilities/dist/**',
+      'packages/project-maintenance-utilities/node_modules/**',
+      'packages/project-maintenance-utilities/coverage/**',
       'packages/evaluation/dist/**',
       'packages/evaluation/node_modules/**',
       'packages/evaluation/coverage/**',
@@ -48,7 +48,7 @@ export default tseslint.config(
   {
     files: [
       'packages/mobile-web/src/**/*.ts',
-      'packages/github-actions-scripts/src/**/*.ts',
+      'packages/project-maintenance-utilities/src/**/*.ts',
       'packages/evaluation/src/**/*.ts',
     ],
     plugins: {

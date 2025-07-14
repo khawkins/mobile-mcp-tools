@@ -1,9 +1,9 @@
 {
-  "name": "@mobile-mcp-tools/github-actions-scripts",
+  "name": "@mobile-mcp-tools/project-maintenance-utilities",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "GitHub Actions utility scripts for mobile-mcp-tools",
+  "description": "Project maintenance utilities for mobile-mcp-tools",
   "license": "MIT",
   "files": [
     "dist"
