@@ -37,6 +37,7 @@ export default tseslint.config(
 
       // Mobile-web package files with linting issues
       'packages/mobile-web/tests/tools/mobile-offline/offline-analysis/tool.test.ts',
+      'packages/mobile-web/tests/tools/mobile-offline/offline-guidance/tool.test.ts',
       'packages/mobile-web/tests/utils/tool-test-helper.ts',
     ],
   },
