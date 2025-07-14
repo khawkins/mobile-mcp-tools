@@ -57,7 +57,8 @@ export class ReleaseOrchestrator {
    * @param options - Release options
    */
   async createRelease(options: CreateReleaseOptions): Promise<void> {
-    const { packagePath, packageDisplayName } = options;
+    const packagePath = options.packagePath.trim();
+    const packageDisplayName = options.packageDisplayName.trim();
 
     try {
       this.reporter.step('Getting package information');
@@ -148,7 +149,10 @@ export class ReleaseOrchestrator {
    * @param options - Publish options
    */
   async publishRelease(options: PublishReleaseOptions): Promise<void> {
-    const { packagePath, releaseTag, npmTag = 'latest', dryRun = false } = options;
+    const packagePath = options.packagePath.trim();
+    const releaseTag = options.releaseTag.trim();
+    const npmTag = (options.npmTag ?? 'latest').trim();
+    const dryRun = options.dryRun ?? false;
 
     try {
       this.reporter.step('Validating inputs and release');

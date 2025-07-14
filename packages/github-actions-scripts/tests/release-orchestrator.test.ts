@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { join, resolve } from 'path';
+import { join, resolve, sep } from 'path';
 import { Context } from '@actions/github/lib/context';
 import { ReleaseOrchestrator, createReleaseOrchestrator } from '../src/release-orchestrator.js';
 import {
@@ -597,6 +597,136 @@ describe('ReleaseOrchestrator', () => {
       expect(mockActions.getWarningMessages()).toContain(
         'Cleanup failed for temp-release: Permission denied'
       );
+    });
+  });
+
+  describe('Input sanitization', () => {
+    describe('createRelease', () => {
+      it('should handle input strings with leading/trailing spaces', async () => {
+        // Setup package service with trimmed path
+        mockPackage.setPackageInfo(`.${sep}test-package`, {
+          packageFullName: '@test/package',
+          version: '1.0.0',
+          tagName: 'test-package-v1.0.0',
+          tagPrefix: 'test-package',
+        });
+
+        // Setup GitHub service
+        mockGitHub.clear();
+
+        // Setup process service for npm pack commands
+        mockProcess.clear();
+        mockProcess.setCommandResponse(
+          'npm pack --dry-run --json',
+          JSON.stringify([
+            {
+              filename: 'test-package-1.0.0.tgz',
+              files: [{ path: 'package.json' }],
+              size: 1024,
+            },
+          ])
+        );
+        mockProcess.setCommandResponse('npm pack', 'test-package-1.0.0.tgz');
+
+        // Setup filesystem
+        mockFs.clear();
+        mockFs.setFileContent('test-package-1.0.0.tgz', 'tarball content');
+        mockFs.setFileContent(join('test-package', 'test-package-1.0.0.tgz'), 'tarball content');
+
+        // Test with inputs that have leading/trailing spaces
+        const options = {
+          packagePath: `  .${sep}test-package  `,
+          packageDisplayName: '  Test Package  ',
+        };
+
+        await orchestrator.createRelease(options);
+
+        // Should succeed despite the spaces in input
+        expect(mockActions.getOutput('package_full_name')).toBe('@test/package');
+        expect(mockActions.getOutput('version')).toBe('1.0.0');
+        expect(mockActions.getOutput('tag_name')).toBe('test-package-v1.0.0');
+        expect(mockActions.getOutput('release_name')).toBe('Test Package v1.0.0');
+        expect(mockActions.getInfoMessages()).toContain('✅ Release created successfully!');
+      });
+    });
+
+    describe('publishRelease', () => {
+      it('should handle input strings with leading/trailing spaces', async () => {
+        // Setup package service
+        mockPackage.setReleaseTag('test-package-v1.0.0', {
+          packageIdentifier: 'test-package',
+          packageVersion: '1.0.0',
+        });
+
+        mockPackage.setValidation(`.${sep}test-package`, '1.0.0', {
+          packageFullName: '@test/package',
+          version: '1.0.0',
+          tagName: 'test-package-v1.0.0',
+          tagPrefix: 'test-package',
+        });
+
+        // Setup GitHub service with a release
+        mockGitHub.clear();
+        mockGitHub.setRelease('test-package-v1.0.0', {
+          id: 123,
+          name: 'Test Package v1.0.0',
+          body: 'Release notes',
+          prerelease: true,
+          assets: [
+            {
+              id: 456,
+              name: 'test-package-1.0.0.tgz',
+              browser_download_url: 'https://example.com/test-package-1.0.0.tgz',
+            },
+          ],
+        });
+
+        // Setup mock asset data
+        mockGitHub.setAssetData(456, Buffer.from('tarball content'));
+
+        // Setup process service - all commands succeed
+        mockProcess.clear();
+        mockProcess.setCommandToThrow(
+          'npm view "@test/package@1.0.0" version',
+          'Version not found'
+        );
+        mockProcess.setCommandResponse(
+          `tar -tzf "${join('temp-release', 'test-package-1.0.0.tgz')}"`,
+          'package/package.json\npackage/index.js'
+        );
+        mockProcess.setCommandResponse(
+          `tar -xzf "${join('temp-release', 'test-package-1.0.0.tgz')}" -C "temp-verify"`,
+          ''
+        );
+        mockProcess.setCommandResponse(
+          `npm publish "${resolve(join('temp-release', 'test-package-1.0.0.tgz'))}" --tag "latest"`,
+          'published'
+        );
+
+        // Setup filesystem
+        mockFs.clear();
+        mockFs.setFileContent(
+          join('temp-verify', 'package', 'package.json'),
+          '{"version": "1.0.0"}'
+        );
+
+        // Test with inputs that have leading/trailing spaces
+        const options = {
+          packagePath: `  .${sep}test-package  `,
+          packageDisplayName: '  Test Package  ',
+          releaseTag: '  test-package-v1.0.0  ',
+          npmTag: '  latest  ',
+          dryRun: false,
+        };
+
+        await orchestrator.publishRelease(options);
+
+        // Should succeed despite the spaces in input
+        expect(mockActions.getInfoMessages()).toContain('✅ Package published successfully!');
+        expect(mockActions.getOutput('package_identifier')).toBe('test-package');
+        expect(mockActions.getOutput('package_version')).toBe('1.0.0');
+        expect(mockActions.getOutput('package_full_name')).toBe('@test/package');
+      });
     });
   });
 
