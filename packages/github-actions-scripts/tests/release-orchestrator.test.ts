@@ -47,7 +47,7 @@ describe('ReleaseOrchestrator', () => {
       mockPackage.setPackageInfo(join('.', 'test-package'), {
         packageFullName: '@test/package',
         version: '1.0.0',
-        tagName: 'test-package-v1.0.0',
+        tagName: 'test-package_v1.0.0',
         tagPrefix: 'test-package',
       });
 
@@ -83,7 +83,7 @@ describe('ReleaseOrchestrator', () => {
 
       expect(mockActions.getOutput('package_full_name')).toBe('@test/package');
       expect(mockActions.getOutput('version')).toBe('1.0.0');
-      expect(mockActions.getOutput('tag_name')).toBe('test-package-v1.0.0');
+      expect(mockActions.getOutput('tag_name')).toBe('test-package_v1.0.0');
       expect(mockActions.getOutput('release_name')).toBe('Test Package v1.0.0');
       expect(mockActions.getInfoMessages()).toContain('✅ Release created successfully!');
     });
@@ -93,13 +93,12 @@ describe('ReleaseOrchestrator', () => {
       mockPackage.setPackageInfo(join('.', 'test-package'), {
         packageFullName: '@test/package',
         version: '1.0.0',
-        tagName: 'test-package-v1.0.0',
+        tagName: 'test-package_v1.0.0',
         tagPrefix: 'test-package',
       });
 
       // Setup GitHub service to return that tag exists
-      mockGitHub.clear();
-      mockGitHub.setTagExists('test-package-v1.0.0');
+      mockGitHub.setTagExists('test-package_v1.0.0');
 
       const options = {
         packagePath: join('.', 'test-package'),
@@ -109,7 +108,7 @@ describe('ReleaseOrchestrator', () => {
       await orchestrator.createRelease(options);
 
       expect(mockActions.getFailureMessage()).toBe(
-        'Tag test-package-v1.0.0 already exists. Please increment the version in package.json and try again.'
+        'Tag test-package_v1.0.0 already exists. Please increment the version in package.json and try again.'
       );
     });
 
@@ -133,7 +132,7 @@ describe('ReleaseOrchestrator', () => {
   describe('publishRelease', () => {
     it('should publish a release successfully', async () => {
       // Setup package service
-      mockPackage.setReleaseTag('test-package-v1.0.0', {
+      mockPackage.setReleaseTag('test-package_v1.0.0', {
         packageIdentifier: 'test-package',
         packageVersion: '1.0.0',
       });
@@ -141,13 +140,13 @@ describe('ReleaseOrchestrator', () => {
       mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
         packageFullName: '@test/package',
         version: '1.0.0',
-        tagName: 'test-package-v1.0.0',
+        tagName: 'test-package_v1.0.0',
         tagPrefix: 'test-package',
       });
 
       // Setup GitHub service with a release
       mockGitHub.clear();
-      mockGitHub.setRelease('test-package-v1.0.0', {
+      mockGitHub.setRelease('test-package_v1.0.0', {
         id: 123,
         name: 'Test Package v1.0.0',
         body: 'Release notes',
@@ -197,7 +196,7 @@ describe('ReleaseOrchestrator', () => {
       const options = {
         packagePath: join('.', 'test-package'),
         packageDisplayName: 'Test Package',
-        releaseTag: 'test-package-v1.0.0',
+        releaseTag: 'test-package_v1.0.0',
         npmTag: 'latest',
         dryRun: false,
       };
@@ -212,7 +211,7 @@ describe('ReleaseOrchestrator', () => {
 
     it('should handle dry run mode', async () => {
       // Setup package service
-      mockPackage.setReleaseTag('test-package-v1.0.0', {
+      mockPackage.setReleaseTag('test-package_v1.0.0', {
         packageIdentifier: 'test-package',
         packageVersion: '1.0.0',
       });
@@ -220,13 +219,13 @@ describe('ReleaseOrchestrator', () => {
       mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
         packageFullName: '@test/package',
         version: '1.0.0',
-        tagName: 'test-package-v1.0.0',
+        tagName: 'test-package_v1.0.0',
         tagPrefix: 'test-package',
       });
 
       // Setup GitHub service with a release
       mockGitHub.clear();
-      mockGitHub.setRelease('test-package-v1.0.0', {
+      mockGitHub.setRelease('test-package_v1.0.0', {
         id: 123,
         name: 'Test Package v1.0.0',
         body: 'Release notes',
@@ -276,7 +275,7 @@ describe('ReleaseOrchestrator', () => {
       const options = {
         packagePath: join('.', 'test-package'),
         packageDisplayName: 'Test Package',
-        releaseTag: 'test-package-v1.0.0',
+        releaseTag: 'test-package_v1.0.0',
         npmTag: 'latest',
         dryRun: true,
       };
@@ -290,7 +289,7 @@ describe('ReleaseOrchestrator', () => {
 
     it('should fail if expected tarball is not found', async () => {
       // Setup package service
-      mockPackage.setReleaseTag('test-package-v1.0.0', {
+      mockPackage.setReleaseTag('test-package_v1.0.0', {
         packageIdentifier: 'test-package',
         packageVersion: '1.0.0',
       });
@@ -298,13 +297,13 @@ describe('ReleaseOrchestrator', () => {
       mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
         packageFullName: '@test/package',
         version: '1.0.0',
-        tagName: 'test-package-v1.0.0',
+        tagName: 'test-package_v1.0.0',
         tagPrefix: 'test-package',
       });
 
       // Setup GitHub service with a release but wrong tarball name
       mockGitHub.clear();
-      mockGitHub.setRelease('test-package-v1.0.0', {
+      mockGitHub.setRelease('test-package_v1.0.0', {
         id: 123,
         name: 'Test Package v1.0.0',
         body: 'Release notes',
@@ -326,7 +325,7 @@ describe('ReleaseOrchestrator', () => {
       const options = {
         packagePath: join('.', 'test-package'),
         packageDisplayName: 'Test Package',
-        releaseTag: 'test-package-v1.0.0',
+        releaseTag: 'test-package_v1.0.0',
       };
 
       await orchestrator.publishRelease(options);
@@ -343,27 +342,27 @@ describe('ReleaseOrchestrator', () => {
       const options = {
         packagePath: join('.', 'test-package'),
         packageDisplayName: 'Test Package',
-        releaseTag: 'invalid-tag',
+        releaseTag: 'test-package_v1.0.0',
       };
 
       await orchestrator.publishRelease(options);
 
       expect(mockActions.getFailureMessage()).toBe(
-        'Failed to publish release: Mock: No release tag configured for: invalid-tag'
+        'Failed to publish release: Mock: No release tag configured for: test-package_v1.0.0'
       );
     });
 
     it('should fail if version is already published on NPM', async () => {
       // Setup package service
-      mockPackage.setReleaseTag('test-package-v1.0.0', {
+      mockPackage.setReleaseTag('test-package_v1.0.0', {
         packageIdentifier: 'test-package',
         packageVersion: '1.0.0',
       });
 
-      mockPackage.setValidation('test-package', '1.0.0', {
+      mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
         packageFullName: '@test/package',
         version: '1.0.0',
-        tagName: 'test-package-v1.0.0',
+        tagName: 'test-package_v1.0.0',
         tagPrefix: 'test-package',
       });
 
@@ -374,7 +373,7 @@ describe('ReleaseOrchestrator', () => {
       const options = {
         packagePath: join('.', 'test-package'),
         packageDisplayName: 'Test Package',
-        releaseTag: 'test-package-v1.0.0',
+        releaseTag: 'test-package_v1.0.0',
         npmTag: 'latest',
         dryRun: false,
       };
@@ -388,21 +387,21 @@ describe('ReleaseOrchestrator', () => {
 
     it('should fail if tarball verification fails', async () => {
       // Setup package service
-      mockPackage.setReleaseTag('test-package-v1.0.0', {
+      mockPackage.setReleaseTag('test-package_v1.0.0', {
         packageIdentifier: 'test-package',
         packageVersion: '1.0.0',
       });
 
-      mockPackage.setValidation('test-package', '1.0.0', {
+      mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
         packageFullName: '@test/package',
         version: '1.0.0',
-        tagName: 'test-package-v1.0.0',
+        tagName: 'test-package_v1.0.0',
         tagPrefix: 'test-package',
       });
 
       // Setup GitHub service with a release
       mockGitHub.clear();
-      mockGitHub.setRelease('test-package-v1.0.0', {
+      mockGitHub.setRelease('test-package_v1.0.0', {
         id: 123,
         name: 'Test Package v1.0.0',
         body: 'Release notes',
@@ -434,7 +433,7 @@ describe('ReleaseOrchestrator', () => {
       const options = {
         packagePath: join('.', 'test-package'),
         packageDisplayName: 'Test Package',
-        releaseTag: 'test-package-v1.0.0',
+        releaseTag: 'test-package_v1.0.0',
         npmTag: 'latest',
         dryRun: false,
       };
@@ -448,21 +447,21 @@ describe('ReleaseOrchestrator', () => {
 
     it('should fail if NPM publish command fails', async () => {
       // Setup package service
-      mockPackage.setReleaseTag('test-package-v1.0.0', {
+      mockPackage.setReleaseTag('test-package_v1.0.0', {
         packageIdentifier: 'test-package',
         packageVersion: '1.0.0',
       });
 
-      mockPackage.setValidation('test-package', '1.0.0', {
+      mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
         packageFullName: '@test/package',
         version: '1.0.0',
-        tagName: 'test-package-v1.0.0',
+        tagName: 'test-package_v1.0.0',
         tagPrefix: 'test-package',
       });
 
       // Setup GitHub service with a release
       mockGitHub.clear();
-      mockGitHub.setRelease('test-package-v1.0.0', {
+      mockGitHub.setRelease('test-package_v1.0.0', {
         id: 123,
         name: 'Test Package v1.0.0',
         body: 'Release notes',
@@ -509,7 +508,7 @@ describe('ReleaseOrchestrator', () => {
       const options = {
         packagePath: join('.', 'test-package'),
         packageDisplayName: 'Test Package',
-        releaseTag: 'test-package-v1.0.0',
+        releaseTag: 'test-package_v1.0.0',
         npmTag: 'latest',
         dryRun: false,
       };
@@ -523,21 +522,21 @@ describe('ReleaseOrchestrator', () => {
 
     it('should warn if cleanup fails', async () => {
       // Setup package service
-      mockPackage.setReleaseTag('test-package-v1.0.0', {
+      mockPackage.setReleaseTag('test-package_v1.0.0', {
         packageIdentifier: 'test-package',
         packageVersion: '1.0.0',
       });
 
-      mockPackage.setValidation('test-package', '1.0.0', {
+      mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
         packageFullName: '@test/package',
         version: '1.0.0',
-        tagName: 'test-package-v1.0.0',
+        tagName: 'test-package_v1.0.0',
         tagPrefix: 'test-package',
       });
 
       // Setup GitHub service with a release
       mockGitHub.clear();
-      mockGitHub.setRelease('test-package-v1.0.0', {
+      mockGitHub.setRelease('test-package_v1.0.0', {
         id: 123,
         name: 'Test Package v1.0.0',
         body: 'Release notes',
@@ -586,7 +585,7 @@ describe('ReleaseOrchestrator', () => {
       const options = {
         packagePath: join('.', 'test-package'),
         packageDisplayName: 'Test Package',
-        releaseTag: 'test-package-v1.0.0',
+        releaseTag: 'test-package_v1.0.0',
         npmTag: 'latest',
         dryRun: false,
       };
@@ -607,7 +606,7 @@ describe('ReleaseOrchestrator', () => {
         mockPackage.setPackageInfo(`.${sep}test-package`, {
           packageFullName: '@test/package',
           version: '1.0.0',
-          tagName: 'test-package-v1.0.0',
+          tagName: 'test-package_v1.0.0',
           tagPrefix: 'test-package',
         });
 
@@ -644,7 +643,7 @@ describe('ReleaseOrchestrator', () => {
         // Should succeed despite the spaces in input
         expect(mockActions.getOutput('package_full_name')).toBe('@test/package');
         expect(mockActions.getOutput('version')).toBe('1.0.0');
-        expect(mockActions.getOutput('tag_name')).toBe('test-package-v1.0.0');
+        expect(mockActions.getOutput('tag_name')).toBe('test-package_v1.0.0');
         expect(mockActions.getOutput('release_name')).toBe('Test Package v1.0.0');
         expect(mockActions.getInfoMessages()).toContain('✅ Release created successfully!');
       });
@@ -653,7 +652,7 @@ describe('ReleaseOrchestrator', () => {
     describe('publishRelease', () => {
       it('should handle input strings with leading/trailing spaces', async () => {
         // Setup package service
-        mockPackage.setReleaseTag('test-package-v1.0.0', {
+        mockPackage.setReleaseTag('test-package_v1.0.0', {
           packageIdentifier: 'test-package',
           packageVersion: '1.0.0',
         });
@@ -661,13 +660,13 @@ describe('ReleaseOrchestrator', () => {
         mockPackage.setValidation(`.${sep}test-package`, '1.0.0', {
           packageFullName: '@test/package',
           version: '1.0.0',
-          tagName: 'test-package-v1.0.0',
+          tagName: 'test-package_v1.0.0',
           tagPrefix: 'test-package',
         });
 
         // Setup GitHub service with a release
         mockGitHub.clear();
-        mockGitHub.setRelease('test-package-v1.0.0', {
+        mockGitHub.setRelease('test-package_v1.0.0', {
           id: 123,
           name: 'Test Package v1.0.0',
           body: 'Release notes',
@@ -714,7 +713,7 @@ describe('ReleaseOrchestrator', () => {
         const options = {
           packagePath: `  .${sep}test-package  `,
           packageDisplayName: '  Test Package  ',
-          releaseTag: '  test-package-v1.0.0  ',
+          releaseTag: '  test-package_v1.0.0  ',
           npmTag: '  latest  ',
           dryRun: false,
         };

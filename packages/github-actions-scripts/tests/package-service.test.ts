@@ -29,8 +29,8 @@ describe('PackageService', () => {
       expect(result).toEqual({
         packageFullName: '@salesforce/mobile-web-mcp-server',
         version: '1.2.3',
-        tagName: 'mobile-web-mcp-server_v1.2.3',
-        tagPrefix: 'mobile-web-mcp-server',
+        tagName: 'salesforce-mobile-web-mcp-server_v1.2.3',
+        tagPrefix: 'salesforce-mobile-web-mcp-server',
       });
     });
 
@@ -77,8 +77,8 @@ describe('PackageService', () => {
         expect(result).toEqual({
           packageFullName: '@org/my-package',
           version: '1.0.0',
-          tagName: 'my-package_v1.0.0',
-          tagPrefix: 'my-package',
+          tagName: 'org-my-package_v1.0.0',
+          tagPrefix: 'org-my-package',
         });
       });
 
@@ -97,8 +97,8 @@ describe('PackageService', () => {
         expect(result).toEqual({
           packageFullName: '@scope/nested/package',
           version: '2.1.0',
-          tagName: 'nested-package_v2.1.0',
-          tagPrefix: 'nested-package',
+          tagName: 'scope-nested-package_v2.1.0',
+          tagPrefix: 'scope-nested-package',
         });
       });
 
@@ -117,8 +117,8 @@ describe('PackageService', () => {
         expect(result).toEqual({
           packageFullName: '@company/team/project/module',
           version: '0.3.1',
-          tagName: 'team-project-module_v0.3.1',
-          tagPrefix: 'team-project-module',
+          tagName: 'company-team-project-module_v0.3.1',
+          tagPrefix: 'company-team-project-module',
         });
       });
 
@@ -137,8 +137,8 @@ describe('PackageService', () => {
         expect(result).toEqual({
           packageFullName: '@my-org123/awesome-package',
           version: '1.2.3',
-          tagName: 'awesome-package_v1.2.3',
-          tagPrefix: 'awesome-package',
+          tagName: 'my-org123-awesome-package_v1.2.3',
+          tagPrefix: 'my-org123-awesome-package',
         });
       });
 
@@ -157,8 +157,8 @@ describe('PackageService', () => {
         expect(result).toEqual({
           packageFullName: '@test/my_package-name',
           version: '4.5.6',
-          tagName: 'my_package-name_v4.5.6',
-          tagPrefix: 'my_package-name',
+          tagName: 'test-my_package-name_v4.5.6',
+          tagPrefix: 'test-my_package-name',
         });
       });
 
@@ -295,8 +295,8 @@ describe('PackageService', () => {
         expect(result).toEqual({
           packageFullName: '@beta/test-package',
           version: '1.0.0-alpha.1',
-          tagName: 'test-package_v1.0.0-alpha.1',
-          tagPrefix: 'test-package',
+          tagName: 'beta-test-package_v1.0.0-alpha.1',
+          tagPrefix: 'beta-test-package',
         });
       });
 
@@ -355,8 +355,8 @@ describe('PackageService', () => {
         expect(result).toEqual({
           packageFullName: '@very-long-org-name/extremely-long-package-name-with-many-parts',
           version: '1.0.0',
-          tagName: 'extremely-long-package-name-with-many-parts_v1.0.0',
-          tagPrefix: 'extremely-long-package-name-with-many-parts',
+          tagName: 'very-long-org-name-extremely-long-package-name-with-many-parts_v1.0.0',
+          tagPrefix: 'very-long-org-name-extremely-long-package-name-with-many-parts',
         });
       });
     });

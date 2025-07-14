@@ -41,8 +41,16 @@ export class PackageService implements PackageServiceProvider {
     }
 
     // Create standardized names
+    // Extract scope if present
+    const scopePattern = /^@([^/]+)\//;
+    const scopeMatch = packageFullName.match(scopePattern);
+    const scope = scopeMatch ? scopeMatch[1] : null;
+
     // Remove @scope/ prefix and replace slashes with dashes for tag
-    const tagPrefix = packageFullName.replace(/^@[^/]+\//, '').replace(/\//g, '-');
+    const baseName = packageFullName.replace(scopePattern, '').replace(/\//g, '-');
+
+    // Create tag prefix with scope if present
+    const tagPrefix = scope ? `${scope}-${baseName}` : baseName;
     const tagName = `${tagPrefix}_v${version}`;
 
     return {
