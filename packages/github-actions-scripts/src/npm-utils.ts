@@ -1,5 +1,5 @@
 import { FileSystemServiceProvider, ProcessServiceProvider } from './services/index.js';
-import { join } from 'path';
+import { join, resolve } from 'path';
 
 interface TarballInfo {
   tarballName: string;
@@ -134,9 +134,12 @@ export class NpmUtils {
   publishToNpm(tarballPath: string, npmTag = 'latest', dryRun = false): void {
     const dryRunFlag = dryRun ? '--dry-run' : '';
 
+    // Resolve to absolute path to prevent npm from interpreting as git repository URL
+    const absoluteTarballPath = resolve(tarballPath);
+
     try {
       this.processService.execSync(
-        `npm publish "${tarballPath}" --tag "${npmTag}" ${dryRunFlag}`.trim(),
+        `npm publish "${absoluteTarballPath}" --tag "${npmTag}" ${dryRunFlag}`.trim(),
         {
           stdio: 'inherit',
         }

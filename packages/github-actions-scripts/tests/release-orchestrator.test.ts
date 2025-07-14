@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import { Context } from '@actions/github/lib/context';
 import { ReleaseOrchestrator, createReleaseOrchestrator } from '../src/release-orchestrator.js';
 import {
@@ -170,7 +170,7 @@ describe('ReleaseOrchestrator', () => {
       mockProcess.setCommandToThrow('npm view "@test/package@1.0.0" version', 'Version not found');
       // Mock npm publish command
       mockProcess.setCommandResponse(
-        `npm publish "${join('temp-release', 'test-package-1.0.0.tgz')}" --tag "latest"`,
+        `npm publish "${resolve(join('temp-release', 'test-package-1.0.0.tgz'))}" --tag "latest"`,
         ''
       );
       // Mock tar commands for tarball verification
@@ -249,7 +249,7 @@ describe('ReleaseOrchestrator', () => {
       mockProcess.setCommandToThrow('npm view "@test/package@1.0.0" version', 'Version not found');
       // Mock npm publish command with dry run
       mockProcess.setCommandResponse(
-        `npm publish "${join('temp-release', 'test-package-1.0.0.tgz')}" --tag "latest" --dry-run`,
+        `npm publish "${resolve(join('temp-release', 'test-package-1.0.0.tgz'))}" --tag "latest" --dry-run`,
         ''
       );
       // Mock tar commands for tarball verification
@@ -492,7 +492,7 @@ describe('ReleaseOrchestrator', () => {
       );
       // Make npm publish fail
       mockProcess.setCommandToThrow(
-        `npm publish "${join('temp-release', 'test-package-1.0.0.tgz')}" --tag "latest"`,
+        `npm publish "${resolve(join('temp-release', 'test-package-1.0.0.tgz'))}" --tag "latest"`,
         'npm ERR! 403 Forbidden'
       );
 
@@ -566,7 +566,7 @@ describe('ReleaseOrchestrator', () => {
         ''
       );
       mockProcess.setCommandResponse(
-        `npm publish "${join('temp-release', 'test-package-1.0.0.tgz')}" --tag "latest"`,
+        `npm publish "${resolve(join('temp-release', 'test-package-1.0.0.tgz'))}" --tag "latest"`,
         ''
       );
 
