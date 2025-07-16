@@ -55,14 +55,6 @@ export class Evaluator {
         'MODEL_TO_EVAL, MODEL_TO_EVAL_PROVIDER, MODEL_TO_EVAL_API_KEY, MODEL_TO_EVAL_BASE_URL, MODEL_TO_EVAL_CLIENT_FEATURE_ID, and MODEL_TO_EVAL_TENANT_ID must be set'
       );
     }
-    const componentLlmClient = new LlmClient({
-      model: process.env.MODEL_TO_EVAL,
-      provider: process.env.MODEL_TO_EVAL_PROVIDER,
-      apiKey: process.env.MODEL_TO_EVAL_API_KEY,
-      baseUrl: process.env.MODEL_TO_EVAL_BASE_URL,
-      clientFeatureID: process.env.MODEL_TO_EVAL_CLIENT_FEATURE_ID,
-      tenantId: process.env.MODEL_TO_EVAL_TENANT_ID,
-    });
     this.componentAgent = new LwcComponentAgent(evaluatorLlmClient);
   }
 

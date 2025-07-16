@@ -39,7 +39,7 @@ export class MobileWebMcpClient {
     return this.client.listTools();
   }
 
-  async callTool(toolName: string, params: Record<string, any>) {
+  async callTool(toolName: string, params: Record<string, unknown>) {
     return this.client.callTool({ name: toolName, arguments: params });
   }
 }

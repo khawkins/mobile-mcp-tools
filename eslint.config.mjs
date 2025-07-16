@@ -10,7 +10,6 @@ import tseslint from 'typescript-eslint';
 import prettier from 'eslint-plugin-prettier';
 
 export default tseslint.config(
-  // Global ignores
   {
     ignores: [
       'packages/mobile-web/dist/**',
@@ -25,26 +24,32 @@ export default tseslint.config(
       '**/dist/*',
       '**/*.d.ts',
 
-      // TODO: Clean up linting errors in these files in a future work item
-      // Evaluation package files with linting issues
-      'packages/evaluation/dataset/mobile-web/qrCodeOnlyScanner/component/qrCodeOnlyScanner.js',
-      'packages/evaluation/src/evaluation/evaluator.ts',
-      'packages/evaluation/src/evaluation/lwcEvaluatorAgent.ts',
-      'packages/evaluation/src/llmclient/llmClient.ts',
-      'packages/evaluation/src/mcpclient/mobileWebMcpClient.ts',
-      'packages/evaluation/src/utils/lwcUtils.ts',
-      'packages/evaluation/tests/mcpclient/mobileWebMcpClient.test.ts',
-
-      // Mobile-web package files with linting issues
+      // TODO: Clean up complex mock typing issues in these test files in a future work item
+      // Mobile-web package test files with complex mock typing issues
       'packages/mobile-web/tests/tools/mobile-offline/offline-analysis/tool.test.ts',
       'packages/mobile-web/tests/tools/mobile-offline/offline-guidance/tool.test.ts',
-      'packages/mobile-web/tests/utils/tool-test-helper.ts',
     ],
   },
-  // Base configs
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
-  // TypeScript and prettier configuration
+  // Configuration for JavaScript files (LWC components)
+  {
+    files: ['**/*.js'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        window: 'readonly',
+        document: 'readonly',
+      },
+    },
+    plugins: {
+      prettier: prettier,
+    },
+    rules: {
+      'prettier/prettier': 'error',
+    },
+  },
+  // Configuration for TypeScript files
   {
     files: [
       'packages/mobile-web/src/**/*.ts',
