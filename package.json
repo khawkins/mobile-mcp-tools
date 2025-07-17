@@ -17,6 +17,9 @@
     "build:all": "nx run-many --target=build && chmod +x packages/mobile-web/dist/index.js",
     "mobile-web:server:start": "npm run build:all && npx -y @salesforce/mobile-web-mcp-server",
     "inspect": "npm run build:all && npx @modelcontextprotocol/inspector node ./packages/mobile-web/dist/index.js",
+    "evaluate": "nx run @salesforce/mobile-mcp-tools-evaluation:evaluate --",
+    "evaluate:all": "nx run @salesforce/mobile-mcp-tools-evaluation:evaluate --",
+    "evaluate:component": "nx run @salesforce/mobile-mcp-tools-evaluation:evaluate:component --",
     "prepare": "husky"
   },
   "repository": {
@@ -29,9 +32,7 @@
     "url": "https://github.com/forcedotcom/mobile-mcp-tools/issues"
   },
   "homepage": "https://github.com/forcedotcom/mobile-mcp-tools#readme",
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@nx/workspace": "^21.2.1",
     "@types/node": "^24.0.10",
