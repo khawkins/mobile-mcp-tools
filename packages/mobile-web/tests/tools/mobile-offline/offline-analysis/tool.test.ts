@@ -7,24 +7,14 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { OfflineAnalysisTool } from '../../../../src/tools/mobile-offline/offline-analysis/tool.js';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
+import { createMockMcpServer, defaultTestAnnotations } from '../../../utils/mcp-test-helpers.js';
 import type { LwcCodeType } from '../../../../src/schemas/lwcSchema.js';
 
 describe('OfflineAnalysisTool', () => {
   let tool: OfflineAnalysisTool;
-  let server: McpServer;
-  let annotations: ToolAnnotations;
 
   beforeEach(() => {
     tool = new OfflineAnalysisTool();
-    server = new McpServer({ name: 'test-server', version: '1.0.0' });
-    annotations = {
-      readOnlyHint: true,
-      destructiveHint: false,
-      idempotentHint: true,
-      openWorldHint: false,
-    };
     vi.clearAllMocks();
   });
 
@@ -45,56 +35,25 @@ describe('OfflineAnalysisTool', () => {
 
   describe('Tool Registration', () => {
     it('should register the tool without throwing', () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema,
-            outputSchema: _config.outputSchema,
-            annotations: _config.annotations,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+      const { server, registerToolSpy } = createMockMcpServer();
 
-      expect(() => tool.register(server, annotations)).not.toThrow();
+      expect(() => tool.register(server, defaultTestAnnotations)).not.toThrow();
       expect(registerToolSpy).toHaveBeenCalledWith(
         'sfmobile-web-offline-analysis',
         expect.objectContaining({
           description: tool.description,
           inputSchema: tool.inputSchema.shape,
-          annotations: annotations,
+          outputSchema: tool.outputSchema.shape,
+          annotations: defaultTestAnnotations,
         }),
         expect.any(Function)
       );
     });
 
     it('should register with correct tool ID', () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema,
-            outputSchema: _config.outputSchema,
-            annotations: _config.annotations,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+      const { server, registerToolSpy } = createMockMcpServer();
 
-      tool.register(server, annotations);
+      tool.register(server, defaultTestAnnotations);
 
       expect(registerToolSpy).toHaveBeenCalledWith(
         'sfmobile-web-offline-analysis',
@@ -143,32 +102,11 @@ describe('OfflineAnalysisTool', () => {
     };
 
     it('should analyze code and return results', async () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema,
-            outputSchema: _config.outputSchema,
-            annotations: _config.annotations,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+      const { server, getToolHandler } = createMockMcpServer();
 
-      tool.register(server, annotations);
+      tool.register(server, defaultTestAnnotations);
 
-      // Get the handler function that was passed to registerTool
-      const handler = registerToolSpy.mock.calls[0][2] as (
-        code: LwcCodeType,
-        extra: any
-      ) => Promise<any>;
-
+      const handler = getToolHandler<LwcCodeType>();
       const result = await handler(mockLwcCode, {
         server: server,
         request: {
@@ -198,30 +136,12 @@ describe('OfflineAnalysisTool', () => {
       expect(toolInstance.name).toBe('Mobile Web Offline Analysis Tool');
     });
 
-    it('should have orchestration instructions', () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema,
-            outputSchema: _config.outputSchema,
-            annotations: _config.annotations,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+    it('should have orchestration instructions', async () => {
+      const { server, getToolHandler } = createMockMcpServer();
 
-      tool.register(server, annotations);
-      const handler = registerToolSpy.mock.calls[0][2] as (
-        code: LwcCodeType,
-        extra
-      ) => Promise<any>;
+      tool.register(server, defaultTestAnnotations);
+
+      const handler = getToolHandler<LwcCodeType>();
 
       // Test with a simple code sample
       const simpleCode: LwcCodeType = {
@@ -236,44 +156,25 @@ describe('OfflineAnalysisTool', () => {
         css: [{ path: 'test.css', content: '' }],
       };
 
-      return handler(simpleCode, {
+      const result = await handler(simpleCode, {
         server: server,
         request: {
           method: 'POST',
           url: '/api/v1/offline-analysis',
         },
-      }).then((result: any) => {
-        expect(result.content[0].text).toContain('orchestrationInstructions');
-        expect(result.content[0].text).toContain('sfmobile-web-offline-guidance');
       });
+      expect(result.content[0].text).toContain('orchestrationInstructions');
+      expect(result.content[0].text).toContain('sfmobile-web-offline-guidance');
     });
   });
 
   describe('Error Handling', () => {
     it('should handle invalid code gracefully', async () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema,
-            outputSchema: _config.outputSchema,
-            annotations: _config.annotations,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+      const { server, getToolHandler } = createMockMcpServer();
 
-      tool.register(server, annotations);
-      const handler = registerToolSpy.mock.calls[0][2] as (
-        code: LwcCodeType,
-        extra
-      ) => Promise<any>;
+      tool.register(server, defaultTestAnnotations);
+
+      const handler = getToolHandler<LwcCodeType>();
 
       const invalidCode: LwcCodeType = {
         name: 'InvalidComponent',
@@ -299,29 +200,11 @@ describe('OfflineAnalysisTool', () => {
     });
 
     it('should handle empty code arrays', async () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema,
-            outputSchema: _config.outputSchema,
-            annotations: _config.annotations,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+      const { server, getToolHandler } = createMockMcpServer();
 
-      tool.register(server, annotations);
-      const handler = registerToolSpy.mock.calls[0][2] as (
-        code: LwcCodeType,
-        extra
-      ) => Promise<any>;
+      tool.register(server, defaultTestAnnotations);
+
+      const handler = getToolHandler<LwcCodeType>();
 
       const emptyCode: LwcCodeType = {
         name: 'EmptyComponent',
@@ -347,29 +230,11 @@ describe('OfflineAnalysisTool', () => {
     });
 
     it('should handle code analysis errors and return the error as text', async () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema,
-            outputSchema: _config.outputSchema,
-            annotations: _config.annotations,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+      const { server, getToolHandler } = createMockMcpServer();
 
-      tool.register(server, annotations);
-      const handler = registerToolSpy.mock.calls[0][2] as (
-        code: LwcCodeType,
-        extra
-      ) => Promise<any>;
+      tool.register(server, defaultTestAnnotations);
+
+      const handler = getToolHandler<LwcCodeType>();
 
       // Mock the analyzeCode method to throw an error
       vi.spyOn(tool, 'analyzeCode').mockRejectedValue(new Error('Analysis failed'));

@@ -12,7 +12,11 @@ import {
   defaultTestAnnotations,
   createMockRequestContext,
 } from '../../../utils/mcp-test-helpers.js';
-import { ExpertsReviewInstructionsSchema, ExpertCodeAnalysisIssuesSchema, ExpertReviewInstructionsType } from '../../../../src/schemas/analysisSchema.js';
+import {
+  ExpertsReviewInstructionsSchema,
+  ExpertCodeAnalysisIssuesSchema,
+  ExpertReviewInstructionsType,
+} from '../../../../src/schemas/analysisSchema.js';
 
 describe('OfflineGuidanceTool', () => {
   const tool = new OfflineGuidanceTool();
@@ -21,7 +25,9 @@ describe('OfflineGuidanceTool', () => {
     it('should have correct tool properties', () => {
       expect(tool.name).toBe('Mobile Web Offline Guidance Tool');
       expect(tool.toolId).toBe('sfmobile-web-offline-guidance');
-      expect(tool.description).toContain('Provides structured review instructions to detect and remediate Mobile Offline code violations in Lightning web components (LWCs) for Salesforce Mobile Apps.');
+      expect(tool.description).toContain(
+        'Provides structured review instructions to detect and remediate Mobile Offline code violations in Lightning web components (LWCs) for Salesforce Mobile Apps.'
+      );
       console.error(tool.description);
     });
 
@@ -121,7 +127,9 @@ describe('OfflineGuidanceTool', () => {
       const structuredContent = result.structuredContent as Record<string, unknown>;
       const reviewInstructions = structuredContent.reviewInstructions as unknown[];
       const expert = reviewInstructions.find(
-        (expert: unknown) => (expert as ExpertReviewInstructionsType).expertReviewerName === 'Conditional Rendering Compatibility Expert'
+        (expert: unknown) =>
+          (expert as ExpertReviewInstructionsType).expertReviewerName ===
+          'Conditional Rendering Compatibility Expert'
       );
 
       expect(expert).toBeDefined();
@@ -158,7 +166,9 @@ describe('OfflineGuidanceTool', () => {
       const reviewInstructions = structuredContent.reviewInstructions as unknown[];
 
       const expert = reviewInstructions.find(
-        (expert: unknown) => (expert as ExpertReviewInstructionsType).expertReviewerName === 'GraphQL Wire Configuration Expert'
+        (expert: unknown) =>
+          (expert as ExpertReviewInstructionsType).expertReviewerName ===
+          'GraphQL Wire Configuration Expert'
       );
 
       expect(expert).toBeDefined();
@@ -178,7 +188,7 @@ describe('OfflineGuidanceTool', () => {
       expect(graphqlWireExpert.expectedResponseFormat.inputValues).toEqual({
         expertReviewerName: 'GraphQL Wire Configuration Expert',
       });
-    });     
+    });
 
     it('should include proper orchestration instructions', async () => {
       const { server, getToolHandler } = createMockMcpServer();
@@ -216,11 +226,15 @@ describe('OfflineGuidanceTool', () => {
         expect(typedExpert.expectedResponseFormat).toHaveProperty('inputValues');
 
         // Verify schema contains the correct structure
-        expect(typedExpert.expectedResponseFormat.schema).toEqual(ExpertCodeAnalysisIssuesSchema.shape);
+        expect(typedExpert.expectedResponseFormat.schema).toEqual(
+          ExpertCodeAnalysisIssuesSchema.shape
+        );
 
         // Verify inputValues contains expertReviewerName
         expect(typedExpert.expectedResponseFormat.inputValues).toHaveProperty('expertReviewerName');
-        expect(typeof typedExpert.expectedResponseFormat.inputValues.expertReviewerName).toBe('string');
+        expect(typeof typedExpert.expectedResponseFormat.inputValues.expertReviewerName).toBe(
+          'string'
+        );
         expect(typedExpert.expectedResponseFormat.inputValues.expertReviewerName).toBe(
           typedExpert.expertReviewerName
         );
