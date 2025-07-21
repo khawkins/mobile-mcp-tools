@@ -23,8 +23,6 @@ export default tseslint.config(
       'packages/evaluation/coverage/**',
       '**/dist/*',
       '**/*.d.ts',
-
-
     ],
   },
   eslint.configs.recommended,
