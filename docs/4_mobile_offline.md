@@ -327,6 +327,8 @@ The MCP server package includes:
 
 # MCP Server Tools
 
+Each tool's **Title** field is used as the `title` annotation in the MCP server implementation, providing human-readable display names for client interfaces.
+
 ## Tool 1: Mobile Offline Guidance
 
 **Name:** `sfmobile-web-offline-guidance`  

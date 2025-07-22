@@ -24,6 +24,8 @@ The Mobile Native Capabilities tool suite provides grounding context for creatin
 
 # MCP Server Tools
 
+Each tool's **Title** field is used as the `title` annotation in the MCP server implementation, providing human-readable display names for client interfaces.
+
 ## App Review
 
 **Name:** `sfmobile-web-app-review`  
