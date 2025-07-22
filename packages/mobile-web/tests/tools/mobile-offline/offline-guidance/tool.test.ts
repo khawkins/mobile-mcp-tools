@@ -17,6 +17,7 @@ import {
   ExpertCodeAnalysisIssuesSchema,
   ExpertReviewInstructionsType,
 } from '../../../../src/schemas/analysisSchema.js';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 describe('OfflineGuidanceTool', () => {
   const tool = new OfflineGuidanceTool();
@@ -145,8 +146,14 @@ describe('OfflineGuidanceTool', () => {
       expect(conditionalRenderingExpert.request).toContain('if:true/if:false');
       expect(conditionalRenderingExpert.expectedResponseFormat).toHaveProperty('schema');
       expect(conditionalRenderingExpert.expectedResponseFormat).toHaveProperty('inputValues');
-      expect(conditionalRenderingExpert.expectedResponseFormat.schema).toEqual(
-        ExpertCodeAnalysisIssuesSchema.shape
+      expect(conditionalRenderingExpert.expectedResponseFormat.schema).toHaveProperty('type');
+      expect(conditionalRenderingExpert.expectedResponseFormat.schema.type).toBe('object');
+      expect(conditionalRenderingExpert.expectedResponseFormat.schema).toHaveProperty('properties');
+      expect(conditionalRenderingExpert.expectedResponseFormat.schema.properties).toHaveProperty(
+        'expertReviewerName'
+      );
+      expect(conditionalRenderingExpert.expectedResponseFormat.schema.properties).toHaveProperty(
+        'issues'
       );
       expect(conditionalRenderingExpert.expectedResponseFormat.inputValues).toEqual({
         expertReviewerName: 'Conditional Rendering Compatibility Expert',
@@ -182,9 +189,13 @@ describe('OfflineGuidanceTool', () => {
       expect(graphqlWireExpert.request).toContain('getter methods');
       expect(graphqlWireExpert.expectedResponseFormat).toHaveProperty('schema');
       expect(graphqlWireExpert.expectedResponseFormat).toHaveProperty('inputValues');
-      expect(graphqlWireExpert.expectedResponseFormat.schema).toEqual(
-        ExpertCodeAnalysisIssuesSchema.shape
+      expect(graphqlWireExpert.expectedResponseFormat.schema).toHaveProperty('type');
+      expect(graphqlWireExpert.expectedResponseFormat.schema.type).toBe('object');
+      expect(graphqlWireExpert.expectedResponseFormat.schema).toHaveProperty('properties');
+      expect(graphqlWireExpert.expectedResponseFormat.schema.properties).toHaveProperty(
+        'expertReviewerName'
       );
+      expect(graphqlWireExpert.expectedResponseFormat.schema.properties).toHaveProperty('issues');
       expect(graphqlWireExpert.expectedResponseFormat.inputValues).toEqual({
         expertReviewerName: 'GraphQL Wire Configuration Expert',
       });
@@ -227,7 +238,7 @@ describe('OfflineGuidanceTool', () => {
 
         // Verify schema contains the correct structure
         expect(typedExpert.expectedResponseFormat.schema).toEqual(
-          ExpertCodeAnalysisIssuesSchema.shape
+          zodToJsonSchema(ExpertCodeAnalysisIssuesSchema)
         );
 
         // Verify inputValues contains expertReviewerName
