@@ -1,5 +1,5 @@
 {
-  "name": "@mobile-mcp-tools/project-maintenance-utilities",
+  "name": "@salesforce/project-maintenance-utilities",
   "version": "1.0.0",
   "private": true,
   "type": "module",
