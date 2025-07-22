@@ -17,6 +17,7 @@ import {
   ExpertCodeAnalysisIssuesSchema,
   ExpertReviewInstructionsType,
 } from '../../../../src/schemas/analysisSchema.js';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 describe('OfflineGuidanceTool', () => {
   const tool = new OfflineGuidanceTool();
@@ -237,7 +238,7 @@ describe('OfflineGuidanceTool', () => {
 
         // Verify schema contains the correct structure
         expect(typedExpert.expectedResponseFormat.schema).toEqual(
-          ExpertCodeAnalysisIssuesSchema.shape
+          zodToJsonSchema(ExpertCodeAnalysisIssuesSchema)
         );
 
         // Verify inputValues contains expertReviewerName
