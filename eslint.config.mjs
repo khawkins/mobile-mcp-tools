@@ -23,11 +23,6 @@ export default tseslint.config(
       'packages/evaluation/coverage/**',
       '**/dist/*',
       '**/*.d.ts',
-
-      // TODO: Clean up complex mock typing issues in these test files in a future work item
-      // Mobile-web package test files with complex mock typing issues
-      'packages/mobile-web/tests/tools/mobile-offline/offline-analysis/tool.test.ts',
-      'packages/mobile-web/tests/tools/mobile-offline/offline-guidance/tool.test.ts',
     ],
   },
   eslint.configs.recommended,
