@@ -5,105 +5,65 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { OfflineGuidanceTool } from '../../../../src/tools/mobile-offline/offline-guidance/tool.js';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
+import {
+  createMockMcpServer,
+  defaultTestAnnotations,
+  createMockRequestContext,
+} from '../../../utils/mcp-test-helpers.js';
+import {
+  ExpertsReviewInstructionsSchema,
+  ExpertCodeAnalysisIssuesSchema,
+  ExpertReviewInstructionsType,
+} from '../../../../src/schemas/analysisSchema.js';
 
 describe('OfflineGuidanceTool', () => {
-  let tool: OfflineGuidanceTool;
-  let server: McpServer;
-  let annotations: ToolAnnotations;
-
-  beforeEach(() => {
-    tool = new OfflineGuidanceTool();
-    server = new McpServer({ name: 'test-server', version: '1.0.0' });
-    annotations = {
-      readOnlyHint: true,
-      destructiveHint: false,
-      idempotentHint: true,
-      openWorldHint: false,
-    };
-    vi.clearAllMocks();
-  });
+  const tool = new OfflineGuidanceTool();
 
   describe('Tool Properties', () => {
     it('should have correct tool properties', () => {
       expect(tool.name).toBe('Mobile Web Offline Guidance Tool');
-      expect(tool.description).toContain('structured review instructions');
-      expect(tool.description).toContain('Mobile Offline code violations');
       expect(tool.toolId).toBe('sfmobile-web-offline-guidance');
-      expect(tool.inputSchema).toBeDefined();
-      expect(tool.outputSchema).toBeDefined();
-    });
-
-    it('should have a meaningful description', () => {
-      expect(tool.description).toContain('Mobile Offline code violations');
-      expect(tool.description).toContain('Lightning web components');
+      expect(tool.description).toContain(
+        'Provides structured review instructions to detect and remediate Mobile Offline code violations in Lightning web components (LWCs) for Salesforce Mobile Apps.'
+      );
+      console.error(tool.description);
     });
 
     it('should require no input', () => {
-      const inputShape = tool.inputSchema.shape;
-      expect(Object.keys(inputShape)).toHaveLength(0);
+      const inputSchemaKeys = Object.keys(tool.inputSchema.shape);
+      expect(inputSchemaKeys).toHaveLength(0);
     });
   });
 
   describe('Tool Registration', () => {
     it('should register the tool without throwing', () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema as any,
-            outputSchema: _config.outputSchema as any,
-            annotations: _config.annotations as any,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+      const { server, registerToolSpy } = createMockMcpServer();
 
-      expect(() => tool.register(server, annotations)).not.toThrow();
+      expect(() => {
+        tool.register(server, defaultTestAnnotations);
+      }).not.toThrow();
+
       expect(registerToolSpy).toHaveBeenCalledWith(
-        'sfmobile-web-offline-guidance',
+        tool.toolId,
         expect.objectContaining({
           description: tool.description,
           inputSchema: tool.inputSchema.shape,
           outputSchema: tool.outputSchema.shape,
-          annotations: annotations,
+          annotations: defaultTestAnnotations,
         }),
         expect.any(Function)
       );
     });
 
     it('should register with correct tool ID', () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema as any,
-            outputSchema: _config.outputSchema as any,
-            annotations: _config.annotations as any,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+      const { server, registerToolSpy } = createMockMcpServer();
 
-      tool.register(server, annotations);
+      tool.register(server, defaultTestAnnotations);
 
       expect(registerToolSpy).toHaveBeenCalledWith(
-        'sfmobile-web-offline-guidance',
+        tool.toolId,
         expect.any(Object),
         expect.any(Function)
       );
@@ -112,30 +72,13 @@ describe('OfflineGuidanceTool', () => {
 
   describe('Expert Review Instructions', () => {
     it('should return expert review instructions', async () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema as any,
-            outputSchema: _config.outputSchema as any,
-            annotations: _config.annotations as any,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+      const { server, getToolHandler } = createMockMcpServer();
 
-      tool.register(server, annotations);
+      tool.register(server, defaultTestAnnotations);
 
-      // Get the handler function that was passed to registerTool
-      const handler = registerToolSpy.mock.calls[0][2] as (input: {}) => Promise<any>;
-
-      const result = await handler({});
+      const handler = getToolHandler();
+      const context = createMockRequestContext();
+      const result = await handler({}, context);
 
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
@@ -146,68 +89,53 @@ describe('OfflineGuidanceTool', () => {
       expect(result.structuredContent).toBeDefined();
     });
 
-    it('should return structured content with review instructions', async () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema as any,
-            outputSchema: _config.outputSchema as any,
-            annotations: _config.annotations as any,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+    it('should include review instructions and orchestration', async () => {
+      const { server, getToolHandler } = createMockMcpServer();
 
-      tool.register(server, annotations);
+      tool.register(server, defaultTestAnnotations);
 
-      const handler = registerToolSpy.mock.calls[0][2] as (input: {}) => Promise<any>;
-      const result = await handler({});
+      const handler = getToolHandler();
+      const context = createMockRequestContext();
+      const result = await handler({}, context);
+
+      const structuredContent = result.structuredContent as Record<string, unknown>;
+      expect(structuredContent).toHaveProperty('reviewInstructions');
+      expect(structuredContent).toHaveProperty('orchestrationInstructions');
+
+      // Assert that reviewInstructions is an array with at least one element
+      expect(Array.isArray(structuredContent.reviewInstructions)).toBe(true);
+      expect((structuredContent.reviewInstructions as unknown[]).length).toBeGreaterThan(0);
+
+      // Assert that orchestrationInstructions is a string
+      expect(typeof structuredContent.orchestrationInstructions).toBe('string');
+      expect((structuredContent.reviewInstructions as unknown[]).length).toBeGreaterThan(0);
 
       expect(result.structuredContent).toBeDefined();
-      expect(result.structuredContent).toHaveProperty('reviewInstructions');
-      expect(result.structuredContent).toHaveProperty('orchestrationInstructions');
-      expect(Array.isArray(result.structuredContent.reviewInstructions)).toBe(true);
-      expect(result.structuredContent.reviewInstructions.length).toBeGreaterThan(0);
-      expect(typeof result.structuredContent.orchestrationInstructions).toBe('string');
+      const parsed = ExpertsReviewInstructionsSchema.safeParse(result.structuredContent);
+      expect(parsed.success).toBe(true);
     });
 
     it('should include conditional rendering expert instructions', async () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema as any,
-            outputSchema: _config.outputSchema as any,
-            annotations: _config.annotations as any,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+      const { server, getToolHandler } = createMockMcpServer();
 
-      tool.register(server, annotations);
+      tool.register(server, defaultTestAnnotations);
 
-      const handler = registerToolSpy.mock.calls[0][2] as (input: {}) => Promise<any>;
-      const result = await handler({});
+      const handler = getToolHandler();
+      const context = createMockRequestContext();
+      const result = await handler({}, context);
 
-      const reviewInstructions = result.structuredContent.reviewInstructions;
-      const conditionalRenderingExpert = reviewInstructions.find(
-        (expert: any) => expert.expertReviewerName === 'Conditional Rendering Compatibility Expert'
+      const structuredContent = result.structuredContent as Record<string, unknown>;
+      const reviewInstructions = structuredContent.reviewInstructions as unknown[];
+      const expert = reviewInstructions.find(
+        (expert: unknown) =>
+          (expert as ExpertReviewInstructionsType).expertReviewerName ===
+          'Conditional Rendering Compatibility Expert'
       );
 
-      expect(conditionalRenderingExpert).toBeDefined();
+      expect(expert).toBeDefined();
+
+      const conditionalRenderingExpert = expert as ExpertReviewInstructionsType;
+
       expect(conditionalRenderingExpert.supportedFileTypes).toEqual(['HTML']);
       expect(conditionalRenderingExpert.grounding).toContain(
         'Komaci offline static analysis engine'
@@ -232,35 +160,27 @@ describe('OfflineGuidanceTool', () => {
     });
 
     it('should include GraphQL wire expert instructions', async () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema as any,
-            outputSchema: _config.outputSchema as any,
-            annotations: _config.annotations as any,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+      const { server, getToolHandler } = createMockMcpServer();
 
-      tool.register(server, annotations);
+      tool.register(server, defaultTestAnnotations);
 
-      const handler = registerToolSpy.mock.calls[0][2] as (input: {}) => Promise<any>;
-      const result = await handler({});
+      const handler = getToolHandler();
+      const context = createMockRequestContext();
+      const result = await handler({}, context);
 
-      const reviewInstructions = result.structuredContent.reviewInstructions;
-      const graphqlWireExpert = reviewInstructions.find(
-        (expert: any) => expert.expertReviewerName === 'GraphQL Wire Configuration Expert'
+      const structuredContent = result.structuredContent as Record<string, unknown>;
+      const reviewInstructions = structuredContent.reviewInstructions as unknown[];
+
+      const expert = reviewInstructions.find(
+        (expert: unknown) =>
+          (expert as ExpertReviewInstructionsType).expertReviewerName ===
+          'GraphQL Wire Configuration Expert'
       );
 
-      expect(graphqlWireExpert).toBeDefined();
+      expect(expert).toBeDefined();
+
+      const graphqlWireExpert = expert as ExpertReviewInstructionsType;
+
       expect(graphqlWireExpert.supportedFileTypes).toEqual(['JS']);
       expect(graphqlWireExpert.grounding).toContain('Komaci offline static analysis engine');
       expect(graphqlWireExpert.grounding).toContain('GraphQL queries');
@@ -281,118 +201,119 @@ describe('OfflineGuidanceTool', () => {
     });
 
     it('should include proper orchestration instructions', async () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema as any,
-            outputSchema: _config.outputSchema as any,
-            annotations: _config.annotations as any,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+      const { server, getToolHandler } = createMockMcpServer();
 
-      tool.register(server, annotations);
+      tool.register(server, defaultTestAnnotations);
 
-      const handler = registerToolSpy.mock.calls[0][2] as (input: {}) => Promise<any>;
-      const result = await handler({});
+      const handler = getToolHandler();
+      const context = createMockRequestContext();
+      const result = await handler({}, context);
 
-      const orchestrationInstructions = result.structuredContent.orchestrationInstructions;
+      const structuredContent = result.structuredContent as Record<string, unknown>;
+      const orchestrationInstructions = structuredContent.orchestrationInstructions;
       expect(orchestrationInstructions).toContain('sfmobile-web-offline-analysis');
       expect(orchestrationInstructions).toContain('Execute all review instructions');
       expect(orchestrationInstructions).toContain('Combine your review results');
     });
 
     it('should provide valid expectedResponseFormat schema structure', async () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema as any,
-            outputSchema: _config.outputSchema as any,
-            annotations: _config.annotations as any,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+      const { server, getToolHandler } = createMockMcpServer();
 
-      tool.register(server, annotations);
+      tool.register(server, defaultTestAnnotations);
 
-      const handler = registerToolSpy.mock.calls[0][2] as (input: {}) => Promise<any>;
-      const result = await handler({});
+      const handler = getToolHandler();
+      const context = createMockRequestContext();
+      const result = await handler({}, context);
 
-      const reviewInstructions = result.structuredContent.reviewInstructions;
+      const structuredContent = result.structuredContent as Record<string, unknown>;
+
+      const reviewInstructions = structuredContent.reviewInstructions as unknown[];
 
       // Verify all experts have the new expectedResponseFormat structure
-      reviewInstructions.forEach((expert: any) => {
-        expect(expert.expectedResponseFormat).toHaveProperty('schema');
-        expect(expert.expectedResponseFormat).toHaveProperty('inputValues');
+      reviewInstructions.forEach((expert: unknown) => {
+        const typedExpert = expert as ExpertReviewInstructionsType;
+        expect(typedExpert.expectedResponseFormat).toHaveProperty('schema');
+        expect(typedExpert.expectedResponseFormat).toHaveProperty('inputValues');
 
         // Verify schema contains the correct structure
-        expect(expert.expectedResponseFormat.schema).toHaveProperty('type');
-        expect(expert.expectedResponseFormat.schema.type).toBe('object');
-        expect(expert.expectedResponseFormat.schema).toHaveProperty('properties');
-        expect(expert.expectedResponseFormat.schema.properties).toHaveProperty(
-          'expertReviewerName'
+        expect(typedExpert.expectedResponseFormat.schema).toEqual(
+          ExpertCodeAnalysisIssuesSchema.shape
         );
-        expect(expert.expectedResponseFormat.schema.properties).toHaveProperty('issues');
-        expect(expert.expectedResponseFormat.schema).toHaveProperty('required');
-        expect(expert.expectedResponseFormat.schema).toHaveProperty('additionalProperties');
-        expect(expert.expectedResponseFormat.schema).toHaveProperty('$schema');
 
         // Verify inputValues contains expertReviewerName
-        expect(expert.expectedResponseFormat.inputValues).toHaveProperty('expertReviewerName');
-        expect(typeof expert.expectedResponseFormat.inputValues.expertReviewerName).toBe('string');
-        expect(expert.expectedResponseFormat.inputValues.expertReviewerName).toBe(
-          expert.expertReviewerName
+        expect(typedExpert.expectedResponseFormat.inputValues).toHaveProperty('expertReviewerName');
+        expect(typeof typedExpert.expectedResponseFormat.inputValues.expertReviewerName).toBe(
+          'string'
+        );
+        expect(typedExpert.expectedResponseFormat.inputValues.expertReviewerName).toBe(
+          typedExpert.expertReviewerName
         );
       });
+    });
+
+    it('should return consistent response format', async () => {
+      const { server, getToolHandler } = createMockMcpServer();
+
+      tool.register(server, defaultTestAnnotations);
+
+      const handler = getToolHandler<Record<string, never>>();
+      const context = createMockRequestContext();
+
+      // Call multiple times to ensure consistency
+      const result1 = await handler({}, context);
+      const result2 = await handler({}, context);
+
+      expect(result1.content[0].type).toBe(result2.content[0].type);
+      expect(typeof result1.content[0].text).toBe(typeof result2.content[0].text);
+      expect(result1.structuredContent).toBeDefined();
+      expect(result2.structuredContent).toBeDefined();
+    });
+  });
+
+  describe('Output Schema Validation', () => {
+    it('should validate output against schema', async () => {
+      const { server, getToolHandler } = createMockMcpServer();
+
+      tool.register(server, defaultTestAnnotations);
+
+      const handler = getToolHandler();
+      const context = createMockRequestContext();
+      const result = await handler({}, context);
+
+      const validation = tool.outputSchema.safeParse(result.structuredContent);
+      expect(validation.success).toBe(true);
+    });
+
+    it('should include required properties in structured content', async () => {
+      const { server, getToolHandler } = createMockMcpServer();
+
+      tool.register(server, defaultTestAnnotations);
+
+      const handler = getToolHandler();
+      const context = createMockRequestContext();
+      const result = await handler({}, context);
+
+      expect(result.structuredContent).toHaveProperty('reviewInstructions');
+      expect(result.structuredContent).toHaveProperty('orchestrationInstructions');
     });
   });
 
   describe('Error Handling', () => {
     it('should handle errors gracefully', async () => {
-      const registerToolSpy = vi
-        .spyOn(server, 'registerTool')
-        .mockImplementation((_id, _config, handler) => {
-          return {
-            callback: handler,
-            enabled: true,
-            enable: vi.fn(),
-            disable: vi.fn(),
-            name: _id,
-            description: '',
-            inputSchema: _config.inputSchema as any,
-            outputSchema: _config.outputSchema as any,
-            annotations: _config.annotations as any,
-            update: vi.fn(),
-            remove: vi.fn(),
-          };
-        });
+      const { server, getToolHandler } = createMockMcpServer();
 
-      // Mock an error in the tool execution
+      tool.register(server, defaultTestAnnotations);
+
+      const handler = getToolHandler();
+      const context = createMockRequestContext();
+
+      // Mock an error in the tool execution BEFORE calling the handler
       const originalGetExpertReviewInstructions = tool['getExpertReviewInstructions'];
       tool['getExpertReviewInstructions'] = vi.fn().mockImplementation(() => {
         throw new Error('Test error');
       });
 
-      tool.register(server, annotations);
-
-      const handler = registerToolSpy.mock.calls[0][2] as (input: {}) => Promise<any>;
-      const result = await handler({});
+      const result = await handler({}, context);
 
       expect(result).toBeDefined();
       expect(result.isError).toBe(true);
@@ -402,6 +323,32 @@ describe('OfflineGuidanceTool', () => {
 
       // Restore the original method
       tool['getExpertReviewInstructions'] = originalGetExpertReviewInstructions;
+    });
+
+    it('should handle empty input gracefully', async () => {
+      const { server, getToolHandler } = createMockMcpServer();
+
+      tool.register(server, defaultTestAnnotations);
+
+      const handler = getToolHandler<Record<string, never>>();
+      const context = createMockRequestContext();
+
+      expect(async () => {
+        await handler({}, context);
+      }).not.toThrow();
+    });
+
+    it('should handle undefined input gracefully', async () => {
+      const { server, getToolHandler } = createMockMcpServer();
+
+      tool.register(server, defaultTestAnnotations);
+
+      const handler = getToolHandler();
+      const context = createMockRequestContext();
+
+      expect(async () => {
+        await handler(undefined, context);
+      }).not.toThrow();
     });
   });
 });

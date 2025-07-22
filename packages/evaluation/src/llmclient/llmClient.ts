@@ -13,6 +13,33 @@ export enum StreamType {
   GENERATION = 'generation', // Successful generation
 }
 
+interface GenerationChunk {
+  text: string;
+  parameters?: {
+    finish_reason?: string;
+    prompt_tokens?: number;
+    generated_tokens?: number;
+  };
+}
+
+interface GenerationEvent {
+  generations: GenerationChunk[];
+}
+
+interface ErrorEvent {
+  errorCode: string;
+}
+
+type StreamEvent = GenerationEvent | ErrorEvent;
+
+function isGenerationEvent(event: StreamEvent): event is GenerationEvent {
+  return 'generations' in event;
+}
+
+function isErrorEvent(event: StreamEvent): event is ErrorEvent {
+  return 'errorCode' in event;
+}
+
 /**
  * This class is the client to interact with LLM model.
  * It provides the base functionality for calling the LLM model and
@@ -66,7 +93,7 @@ export class LlmClient {
       const error = new Error(
         `Failed the http post call to ${url}. Status: ${response.status}. Status Text: ${response.statusText}`
       );
-      const errorWithResponse = error as Error & { response?: any };
+      const errorWithResponse = error as Error & { response?: Response };
       errorWithResponse.response = response;
       throw errorWithResponse;
     }
@@ -98,9 +125,7 @@ export class LlmClient {
   async streamToText(stream: ReadableStream<Uint8Array>): Promise<string> {
     let result = '';
     const reader = stream.pipeThrough(new TextDecoderStream()).getReader();
-    // eslint-disable-next-line no-constant-condition
     while (true) {
-      // eslint-disable-next-line no-await-in-loop
       const { done, value } = await reader.read();
       if (done) {
         break;
@@ -108,7 +133,7 @@ export class LlmClient {
       // Ref: xGen API https://salesforce.quip.com/b9aJAKS55Oya
 
       const data = this.processStream(value, StreamType.GENERATION);
-      if (data && data.generations) {
+      if (data && isGenerationEvent(data)) {
         result += data.generations.map((chunk: { text: string }) => chunk.text).join('');
         const parameters = data.generations[0]?.parameters;
         const finishReason = parameters?.finish_reason;
@@ -118,15 +143,12 @@ export class LlmClient {
               '[ERROR] xGen response terminated before completion due to reaching max tokens limit!'
             );
           }
-          console.debug(
-            `Prompt tokens: ${parameters?.prompt_tokens}, Generated tokens: ${parameters?.generated_tokens}`
-          );
         }
         continue; // As long as we receive successful generation stream continue ...
       }
 
       const error = this.processStream(value, StreamType.ERROR);
-      if (error) {
+      if (error && isErrorEvent(error)) {
         console.error('LLM/Gateway error:', error);
         const errorResponse = new Error(`LLM/Gateway call failed due to: ${error.errorCode}`);
         errorResponse.stack = JSON.stringify(error);
@@ -137,10 +159,9 @@ export class LlmClient {
     return result;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, consistent-return
   //  process the stream and return the event or events.
   // For generation, value could have multiple 'generation' events, merge them into one event.
-  processStream(value: string, streamType: StreamType): any {
+  processStream(value: string, streamType: StreamType): StreamEvent | null {
     const eventSeparator = `event: ${streamType}\n`;
 
     const trimmedValue = value.trim();
@@ -153,10 +174,10 @@ export class LlmClient {
 
     if (events.length > 0) {
       const event = this.getEvent(events[0]);
-      if (streamType === StreamType.GENERATION) {
+      if (streamType === StreamType.GENERATION && isGenerationEvent(event)) {
         for (let i = 1; i < events.length; i++) {
           const moreEvent = this.getEvent(events[i]);
-          if (moreEvent) {
+          if (moreEvent && isGenerationEvent(moreEvent)) {
             event.generations.push(moreEvent.generations[0]);
           }
         }
@@ -165,7 +186,7 @@ export class LlmClient {
     }
   }
 
-  private getEvent(value: string): any {
+  private getEvent(value: string): StreamEvent | null {
     const startIndex = value.indexOf('{');
     const endIndex = value.lastIndexOf('}');
 
