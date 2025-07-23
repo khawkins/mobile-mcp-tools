@@ -9,6 +9,7 @@ import { BaseTool } from '../baseTool.js';
 
 export class ContactsTool extends BaseTool {
   readonly name = 'Contacts Service';
+  readonly title = 'Salesforce Mobile Contacts Service LWC Native Capability';
   public readonly toolId = 'sfmobile-web-contacts';
   public readonly description =
     'Provides expert grounding to implement a Contacts feature in a Salesforce Lightning web component (LWC).';

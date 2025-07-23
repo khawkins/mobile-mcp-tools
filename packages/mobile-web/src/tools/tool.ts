@@ -14,6 +14,8 @@ export interface Tool {
   readonly name: string;
   /** A description of what the tool does */
   readonly description: string;
+  /** Human-readable title for display in client interfaces */
+  readonly title: string;
   /** Unique identifier for the tool */
   readonly toolId: string;
   /** Schema defining the input parameters for the tool */

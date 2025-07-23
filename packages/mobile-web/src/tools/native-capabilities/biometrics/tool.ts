@@ -9,6 +9,7 @@ import { BaseTool } from '../baseTool.js';
 
 export class BiometricsTool extends BaseTool {
   readonly name = 'Biometrics Service';
+  readonly title = 'Salesforce Mobile Biometrics Service LWC Native Capability';
   public readonly toolId = 'sfmobile-web-biometrics';
   public readonly description =
     'Provides expert grounding to implement a Biometrics feature in a Salesforce Lightning web component (LWC).';

@@ -16,6 +16,7 @@ import { Tool } from '../tool.js';
 export abstract class BaseTool implements Tool {
   public abstract readonly name: string;
   public abstract readonly description: string;
+  public abstract readonly title: string;
   protected abstract readonly typeDefinitionPath: string;
   public abstract readonly toolId: string;
   protected abstract readonly serviceDescription: string;
@@ -101,11 +102,17 @@ ${typeDefinitions}
   }
 
   public register(server: McpServer, annotations: ToolAnnotations): void {
+    // Add title annotation from the tool
+    const enhancedAnnotations = {
+      ...annotations,
+      title: this.title,
+    };
+
     server.tool(
       this.toolId,
       this.description,
       EmptySchema.shape,
-      annotations,
+      enhancedAnnotations,
       this.handleRequest.bind(this)
     );
   }

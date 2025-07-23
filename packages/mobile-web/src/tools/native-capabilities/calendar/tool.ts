@@ -9,6 +9,7 @@ import { BaseTool } from '../baseTool.js';
 
 export class CalendarTool extends BaseTool {
   readonly name = 'Calendar Service';
+  readonly title = 'Salesforce Mobile Calendar Service LWC Native Capability';
   public readonly toolId = 'sfmobile-web-calendar';
   public readonly description =
     'Provides expert grounding to implement a Calendar feature in a Salesforce Lightning web component (LWC).';

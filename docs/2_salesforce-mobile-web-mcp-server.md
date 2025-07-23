@@ -111,7 +111,7 @@ This ensures a frictionless, installation-free experience for developers and too
 
 _See [Tool Annotations](https://modelcontextprotocol.io/docs/concepts/tools#tool-annotations) in the Model Context Protocol User Guide_
 
-The following server tool annotations are applied based on tool type:
+All tools include a `title` annotation using the human-readable title specified in their respective tool suite documentation. The following additional server tool annotations are applied based on tool type:
 
 **Information-Only Tools (e.g., Native Capabilities):**
 

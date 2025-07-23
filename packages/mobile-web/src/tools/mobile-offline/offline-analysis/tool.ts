@@ -34,6 +34,7 @@ const LINTER_CONFIG: Linter.Config = {
 
 export class OfflineAnalysisTool implements Tool {
   readonly name = 'Mobile Web Offline Analysis Tool';
+  readonly title = 'Salesforce Mobile Offline LWC Expert Static Analysis';
   readonly description =
     'Analyzes LWC components for mobile-specific issues and provides detailed recommendations for improvements. It can be leveraged to check if components are mobile-ready.';
   readonly toolId = 'sfmobile-web-offline-analysis';
@@ -55,7 +56,10 @@ export class OfflineAnalysisTool implements Tool {
         description: this.description,
         inputSchema: this.inputSchema.shape,
         outputSchema: this.outputSchema.shape,
-        annotations: annotations,
+        annotations: {
+          ...annotations,
+          title: this.title,
+        },
       },
       async (code: LwcCodeType) => {
         try {

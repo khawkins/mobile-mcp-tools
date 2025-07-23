@@ -9,6 +9,7 @@ import { BaseTool } from '../baseTool.js';
 
 export class GeofencingTool extends BaseTool {
   readonly name = 'Geofencing Service';
+  readonly title = 'Salesforce Mobile Geofencing Service LWC Native Capability';
   public readonly toolId = 'sfmobile-web-geofencing';
   public readonly description =
     'Provides expert grounding to implement a Geofencing feature in a Salesforce Lightning web component (LWC).';

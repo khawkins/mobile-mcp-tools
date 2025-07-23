@@ -21,6 +21,7 @@ const EMPTY_INPUT_SCHEMA = z.object({}).describe('No input required');
 
 export class OfflineGuidanceTool implements Tool {
   readonly name = 'Mobile Web Offline Guidance Tool';
+  readonly title = 'Salesforce Mobile Offline LWC Expert Instruction Delivery';
   readonly description =
     'Provides structured review instructions to detect and remediate Mobile Offline code violations in Lightning web components (LWCs) for Salesforce Mobile Apps.';
   readonly toolId = 'sfmobile-web-offline-guidance';
@@ -34,7 +35,10 @@ export class OfflineGuidanceTool implements Tool {
         description: this.description,
         inputSchema: this.inputSchema.shape,
         outputSchema: this.outputSchema.shape,
-        annotations: annotations,
+        annotations: {
+          ...annotations,
+          title: this.title,
+        },
       },
       async () => {
         try {
