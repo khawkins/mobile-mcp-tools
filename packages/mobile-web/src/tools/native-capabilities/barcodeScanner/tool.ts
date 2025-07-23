@@ -9,6 +9,7 @@ import { BaseTool } from '../baseTool.js';
 
 export class BarcodeScannerTool extends BaseTool {
   readonly name = 'Barcode Scanner';
+  readonly title = 'Salesforce Mobile Barcode Scanner LWC Native Capability';
   public readonly toolId = 'sfmobile-web-barcode-scanner';
   public readonly description =
     'Provides expert grounding to implement a Barcode Scanner feature in a Salesforce Lightning web component (LWC).';

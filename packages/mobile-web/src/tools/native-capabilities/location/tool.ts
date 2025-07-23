@@ -9,6 +9,7 @@ import { BaseTool } from '../baseTool.js';
 
 export class LocationTool extends BaseTool {
   readonly name = 'Location Service';
+  readonly title = 'Salesforce Mobile Location Services LWC Native Capability';
   public readonly toolId = 'sfmobile-web-location';
   public readonly description =
     'Provides expert grounding to implement a Location feature in a Salesforce Lightning web component (LWC).';
