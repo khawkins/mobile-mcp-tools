@@ -52,7 +52,7 @@ describe('OfflineGuidanceTool', () => {
           description: tool.description,
           inputSchema: tool.inputSchema.shape,
           outputSchema: tool.outputSchema.shape,
-          annotations: defaultTestAnnotations,
+          annotations: { ...defaultTestAnnotations, title: tool.title },
         }),
         expect.any(Function)
       );
