@@ -45,7 +45,7 @@ const noWireConfigReferenceNonLocalPropertyRule: CodeAnalysisBaseIssueType = {
         - Update the wire configuration to use the getter name as the reactive parameter
         Example:
             // Instead of:
-            @wire(getData, { param: importedValue })
+            @wire(getData, { param: '$importedValue' })
             
             // Use:
             get localValue() {
