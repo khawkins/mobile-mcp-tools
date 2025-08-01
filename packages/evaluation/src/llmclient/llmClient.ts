@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
@@ -174,7 +174,7 @@ export class LlmClient {
 
     if (events.length > 0) {
       const event = this.getEvent(events[0]);
-      if (streamType === StreamType.GENERATION && isGenerationEvent(event)) {
+      if (streamType === StreamType.GENERATION && event && isGenerationEvent(event)) {
         for (let i = 1; i < events.length; i++) {
           const moreEvent = this.getEvent(events[i]);
           if (moreEvent && isGenerationEvent(moreEvent)) {
@@ -195,4 +195,66 @@ export class LlmClient {
       return JSON.parse(jsonString);
     }
   }
+}
+
+/**
+ * Create a Component LLM client from environment variables
+ * @returns A new LlmClient instance configured for component generation
+ * @throws Error if required environment variables are not set
+ */
+export function createComponentLlmClient(): LlmClient {
+  if (
+    !process.env.MODEL_TO_EVAL ||
+    !process.env.MODEL_TO_EVAL_PROVIDER ||
+    !process.env.MODEL_TO_EVAL_API_KEY ||
+    !process.env.MODEL_TO_EVAL_BASE_URL ||
+    !process.env.MODEL_TO_EVAL_CLIENT_FEATURE_ID ||
+    !process.env.MODEL_TO_EVAL_TENANT_ID
+  ) {
+    throw new Error(
+      'MODEL_TO_EVAL, MODEL_TO_EVAL_PROVIDER, MODEL_TO_EVAL_API_KEY, MODEL_TO_EVAL_BASE_URL, MODEL_TO_EVAL_CLIENT_FEATURE_ID, and MODEL_TO_EVAL_TENANT_ID must be set'
+    );
+  }
+
+  const modelConfig: ModelConfig = {
+    model: process.env.MODEL_TO_EVAL,
+    provider: process.env.MODEL_TO_EVAL_PROVIDER,
+    apiKey: process.env.MODEL_TO_EVAL_API_KEY,
+    baseUrl: process.env.MODEL_TO_EVAL_BASE_URL,
+    clientFeatureID: process.env.MODEL_TO_EVAL_CLIENT_FEATURE_ID,
+    tenantId: process.env.MODEL_TO_EVAL_TENANT_ID,
+  };
+
+  return new LlmClient(modelConfig);
+}
+
+/**
+ * Create an evaluator LLM client from environment variables
+ * @returns A new LlmClient instance configured for evaluation/judging
+ * @throws Error if required environment variables are not set
+ */
+export function createEvaluatorLlmClient(): LlmClient {
+  if (
+    !process.env.JUDGE_MODEL ||
+    !process.env.JUDGE_MODEL_PROVIDER ||
+    !process.env.JUDGE_MODEL_API_KEY ||
+    !process.env.JUDGE_MODEL_BASE_URL ||
+    !process.env.JUDGE_MODEL_CLIENT_FEATURE_ID ||
+    !process.env.JUDGE_MODEL_TENANT_ID
+  ) {
+    throw new Error(
+      'JUDGE_MODEL, JUDGE_MODEL_PROVIDER, JUDGE_MODEL_API_KEY, JUDGE_MODEL_BASE_URL, JUDGE_MODEL_CLIENT_FEATURE_ID, and JUDGE_MODEL_TENANT_ID must be set'
+    );
+  }
+
+  const modelConfig: ModelConfig = {
+    model: process.env.JUDGE_MODEL,
+    provider: process.env.JUDGE_MODEL_PROVIDER,
+    apiKey: process.env.JUDGE_MODEL_API_KEY,
+    baseUrl: process.env.JUDGE_MODEL_BASE_URL,
+    clientFeatureID: process.env.JUDGE_MODEL_CLIENT_FEATURE_ID,
+    tenantId: process.env.JUDGE_MODEL_TENANT_ID,
+  };
+
+  return new LlmClient(modelConfig);
 }

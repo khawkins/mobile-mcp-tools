@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * SPDX-License-Identifier: MIT
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
@@ -7,33 +7,10 @@
 
 import { z } from 'zod/v4';
 import { LlmClient } from '../llmclient/llmClient.js';
-import { formatComponent4LLM, LWCComponent } from '../utils/lwcUtils.js';
-
-const ScoreVerdictEnum = z.enum([
-  'Pass GA Criteria',
-  'Pass Beta Criteria',
-  'Pass Dev Preview Criteria',
-  'FAIL',
-]);
-
-const Score = z.object({
-  verdict: ScoreVerdictEnum,
-  rawScore: z.number().min(0).max(100),
-});
-
-export type Score = z.infer<typeof Score>;
-export type ScoreVerdict = z.infer<typeof ScoreVerdictEnum>;
-
-const ScoreCategory = z.enum([
-  'Excellent', // Perfect or near-perfect match
-  'Good', // Strong understanding with minor differences
-  'Satisfactory', // Adequate understanding with some notable differences
-  'Limited', // Basic understanding with significant gaps
-  'Poor', // Major misunderstandings or omissions
-  'Missing', // Issue completely overlooked or fatally misunderstood
-]);
-
-export type ScoreCategory = z.infer<typeof ScoreCategory>;
+import { formatComponent4LLM } from '../utils/lwcUtils.js';
+import { LwcCodeType } from '@salesforce/mobile-web-mcp-server';
+import { getJsonResponse } from '../utils/responseUtils.js';
+import { Score, ScoreVerdict, ScoreVerdictEnum, ScoreCategorySchema } from '../schema/schema.js';
 
 const withMetadata = <T extends z.ZodTypeAny>(schema: T, metadata: Record<string, unknown>) => {
   const extended = schema as T & { _metadata: Record<string, unknown> };
@@ -45,47 +22,47 @@ const withMetadata = <T extends z.ZodTypeAny>(schema: T, metadata: Record<string
 const EvaluationResponseSchema = z.object({
   functionalRequirements: z.object({
     coreFunctionality: z.object({
-      score: ScoreCategory,
+      score: ScoreCategorySchema,
       matches: z.array(z.string()),
       mismatches: z.array(z.string()),
     }),
     errorHandling: z.object({
-      score: ScoreCategory,
+      score: ScoreCategorySchema,
       matches: z.array(z.string()),
       mismatches: z.array(z.string()),
     }),
   }),
   codeQuality: z.object({
     templateImplementation: z.object({
-      score: ScoreCategory,
+      score: ScoreCategorySchema,
       matches: z.array(z.string()),
       mismatches: z.array(z.string()),
     }),
     javascriptImplementation: z.object({
-      score: ScoreCategory,
+      score: ScoreCategorySchema,
       matches: z.array(z.string()),
       mismatches: z.array(z.string()),
     }),
     mobileCapabilities: z.object({
-      score: ScoreCategory,
+      score: ScoreCategorySchema,
       matches: z.array(z.string()),
       mismatches: z.array(z.string()),
     }),
   }),
   performanceAndSecurity: z.object({
     performance: z.object({
-      score: ScoreCategory,
+      score: ScoreCategorySchema,
       concerns: z.array(z.string()),
     }),
     security: z.object({
-      score: ScoreCategory,
+      score: ScoreCategorySchema,
       concerns: z.array(z.string()),
     }),
   }),
   userExperience: withMetadata(
     z.object({
       uiImplementation: z.object({
-        score: ScoreCategory,
+        score: ScoreCategorySchema,
         matches: z.array(z.string()),
         mismatches: z.array(z.string()),
       }),
@@ -203,7 +180,7 @@ export class LwcEvaluatorAgent {
     this.llmClient = llmClient;
   }
 
-  async evaluate(referenceLWC: LWCComponent, developmentLWC: LWCComponent): Promise<Score> {
+  async evaluate(referenceLWC: LwcCodeType, developmentLWC: LwcCodeType): Promise<Score> {
     const prompt = this.createLLMPrompt(referenceLWC, developmentLWC);
     const llmResponse = await this.llmClient.callLLM(prompt);
     const evaluationResponse = this.parseResponse(llmResponse);
@@ -214,24 +191,12 @@ export class LwcEvaluatorAgent {
 
   private parseResponse(llmResponse: string): EvaluationResponse {
     try {
-      const jsonResponse = this.getJsonResponse(llmResponse);
+      const jsonResponse = getJsonResponse(llmResponse);
       return EvaluationResponseSchema.parse(JSON.parse(jsonResponse));
     } catch (error) {
       console.error('Error parsing LLM response:', error);
       throw new Error('Failed to parse LLM response as valid evaluation data');
     }
-  }
-
-  private getJsonResponse(llmResponse: string): string {
-    const jsonMatch = llmResponse.match(/```json\n([\s\S]*?)\n```/);
-    if (jsonMatch) {
-      return jsonMatch[1];
-    }
-    // Sometime LLM returns the json with out the ```json\n and \n``` tags
-    if (llmResponse.startsWith('{') && llmResponse.endsWith('}')) {
-      return llmResponse;
-    }
-    throw new Error('No JSON response found in LLM output');
   }
 
   /**
@@ -240,7 +205,7 @@ export class LwcEvaluatorAgent {
    * @param resultLWC - The development LWC component.
    * @returns The prompt for the LLM model.
    */
-  private createLLMPrompt(referenceLWC: LWCComponent, resultLWC: LWCComponent): string {
+  private createLLMPrompt(referenceLWC: LwcCodeType, resultLWC: LwcCodeType): string {
     const referenceLwcString = formatComponent4LLM(referenceLWC, 'referenceLWC');
     const developmentLwcString = formatComponent4LLM(resultLWC, 'developmentLWC');
 
@@ -304,8 +269,6 @@ For each aspect of the implementation, provide one of these categorical scores:
       - Layout and styling
       - Lightning Design System usage
       - Loading states
-
-
 
 ## Response Schema
 Your response must be valid JSON conforming to this JSON Schema:

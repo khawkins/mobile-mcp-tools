@@ -27,6 +27,21 @@ import { PaymentsTool } from './tools/native-capabilities/payments/tool.js';
 import { OfflineAnalysisTool } from './tools/mobile-offline/offline-analysis/tool.js';
 import { OfflineGuidanceTool } from './tools/mobile-offline/offline-guidance/tool.js';
 
+// Export schema types for use by other packages
+export {
+  ExpertsCodeAnalysisIssuesSchema,
+  CodeAnalysisIssuesSchema,
+  ExpertsCodeAnalysisIssuesType,
+  ExpertsReviewInstructionsType,
+  CodeAnalysisIssueType,
+  CodeAnalysisIssuesType,
+  ExpertCodeAnalysisIssuesType,
+  ExpectedResponseFormatType,
+  ExpertReviewInstructionsType,
+} from './schemas/analysisSchema.js';
+
+export { LwcCodeType } from './schemas/lwcSchema.js';
+
 const server = new McpServer({
   name: 'sfdc-mobile-web-mcp-server',
   version,

@@ -7,8 +7,9 @@
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { readdir } from 'node:fs/promises';
-import { Evaluator } from '../evaluation/evaluator.js';
-import { Score } from '../evaluation/lwcEvaluatorAgent.js';
+import { Score } from '../schema/schema.js';
+import { createEvaluatorLlmClient, createComponentLlmClient } from '../llmclient/llmClient.js';
+import { Evaluator } from '../evaluator/evaluator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -111,8 +112,10 @@ export async function runEvaluation(componentNames?: string[]): Promise<void> {
   try {
     // Initialize evaluator
     console.log('🔧 Initializing evaluator...');
-    evaluator = await Evaluator.create();
-    console.log('✅ Evaluator initialized successfully');
+    const evaluatorLlmClient = createEvaluatorLlmClient();
+    const componentLlmClient = createComponentLlmClient();
+    evaluator = await Evaluator.create(evaluatorLlmClient, componentLlmClient);
+    console.log('✅ LwcGenerationEvaluator initialized successfully');
 
     // Get components to evaluate
     let componentsToEvaluate: string[];
