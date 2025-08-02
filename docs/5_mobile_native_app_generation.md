@@ -291,15 +291,486 @@ mobile-native/
 - **Extension Guidance**: Specific instructions for common scenarios (record type additions, feature integrations)
 - **Best Practices**: Embedded guidance following official Mobile SDK documentation patterns
 
-### Real-Time Documentation Access
+### Real-Time Documentation Access: Simple Document Store with Section Selectors
 
-**TODO**: Define strategy for connecting LLM to official Salesforce documentation during implementation phase. Options under consideration:
+**Architecture Decision**: Implement a minimal documentation storage system where each MCP tool knows exactly which document and section it needs, eliminating complex lookup logic while maintaining local reliability.
 
-- **Metadata Dictionary Approach**: Curated map of documentation URLs for specific use cases
-- **Vectorized Documentation**: Local vector database of Mobile SDK documentation for semantic search
-- **Hybrid Approach**: Metadata dictionary with fallback to vectorized search for comprehensive coverage
+#### Simple Documentation System Architecture
 
-_Priority_: Critical for preventing API hallucination and ensuring generated code follows Mobile SDK best practices.
+The documentation facility consists of two core components:
+
+```typescript
+// Minimal Documentation System
+interface DocumentationSystem {
+  documentStore: SimpleDocumentStore;
+  updateManager: DocumentUpdateManager;
+}
+```
+
+#### Document Configuration Schema
+
+**Simple Document Storage**: Each MCP server lists the documents it needs, and each tool knows exactly which section to extract:
+
+```typescript
+interface DocumentationConfig {
+  mcpServerName: string;
+  documents: DocumentSource[];
+  toolMappings: ToolDocumentMapping[];
+  updateFrequency: UpdateFrequency;
+}
+
+interface DocumentSource {
+  id: string; // Unique identifier for this document
+  name: string; // Human-readable name
+  url: string; // Source URL
+  type: 'html' | 'markdown';
+}
+
+// Each tool maps to one or more document sections
+interface ToolDocumentMapping {
+  toolName: string; // e.g., "createiOSProject"
+  documents: DocumentReference[]; // Can reference multiple documents/sections
+  description: string; // What this documentation provides
+}
+
+interface DocumentReference {
+  documentId: string; // References DocumentSource.id
+  selector?: string; // CSS selector for HTML, simple path for Markdown. If omitted, returns whole document
+  label?: string; // Optional label for this document section (e.g., "CLI Commands", "Authentication Setup")
+}
+
+// Example configuration for mobile-native MCP server (initial focus)
+const mobileNativeDocsConfig: DocumentationConfig = {
+  mcpServerName: 'sfdc-mobile-native-mcp-server',
+  documents: [
+    {
+      id: 'forceios-cli-reference',
+      name: 'Force iOS CLI Reference',
+      url: 'https://developer.salesforce.com/docs/atlas.en-us.mobile_sdk.meta/mobile_sdk/native_ios_tools_forceios.htm',
+      type: 'html',
+    },
+    {
+      id: 'forcedroid-cli-reference',
+      name: 'Force Android CLI Reference',
+      url: 'https://developer.salesforce.com/docs/atlas.en-us.mobile_sdk.meta/mobile_sdk/native_android_tools_forcedroid.htm',
+      type: 'html',
+    },
+    {
+      id: 'mobile-auth-setup',
+      name: 'Mobile SDK Authentication Setup',
+      url: 'https://developer.salesforce.com/docs/atlas.en-us.mobile_sdk.meta/mobile_sdk/oauth_setup.htm',
+      type: 'html',
+    },
+    {
+      id: 'mobile-templates',
+      name: 'Mobile SDK Template Overview',
+      url: 'https://developer.salesforce.com/docs/atlas.en-us.mobile_sdk.meta/mobile_sdk/native_templates.htm',
+      type: 'html',
+    },
+  ],
+  toolMappings: [
+    {
+      toolName: 'createiOSProject',
+      documents: [
+        {
+          documentId: 'forceios-cli-reference',
+          selector: '.main .create-section',
+          label: 'CLI Commands',
+        },
+        {
+          documentId: 'mobile-templates',
+          selector: '.ios-templates',
+          label: 'iOS Templates',
+        },
+      ],
+      description:
+        'Instructions for creating iOS projects using forceios CLI and available templates',
+    },
+    {
+      toolName: 'createAndroidProject',
+      documents: [
+        {
+          documentId: 'forcedroid-cli-reference',
+          selector: '.main .create-section',
+          label: 'CLI Commands',
+        },
+        {
+          documentId: 'mobile-templates',
+          selector: '.android-templates',
+          label: 'Android Templates',
+        },
+      ],
+      description:
+        'Instructions for creating Android projects using forcedroid CLI and available templates',
+    },
+    {
+      toolName: 'configureAuthentication',
+      documents: [
+        {
+          documentId: 'mobile-auth-setup',
+          // No selector - returns whole document
+          label: 'Complete Authentication Guide',
+        },
+      ],
+      description: 'Complete OAuth and connected app configuration guide',
+    },
+    {
+      toolName: 'selectProjectTemplate',
+      documents: [
+        {
+          documentId: 'mobile-templates',
+          selector: '.template-options',
+          label: 'Template Options',
+        },
+      ],
+      description: 'Available project templates and their use cases',
+    },
+  ],
+  updateFrequency: 'weekly',
+};
+```
+
+#### Simple Document Storage
+
+**Minimal Processing**: Store whole documents in their native format and parse sections at runtime:
+
+```typescript
+interface SimpleDocumentStore {
+  storeDocument(document: StoredDocument): Promise<void>;
+  getDocument(documentId: string): Promise<StoredDocument | null>;
+  getDocumentSection(documentId: string, selector?: string): Promise<string>;
+  updateDocument(documentId: string, content: string): Promise<void>;
+  listDocuments(): Promise<StoredDocument[]>;
+}
+
+interface StoredDocument {
+  id: string;
+  name: string;
+  url: string;
+  type: 'html' | 'markdown';
+  content: string; // Raw HTML or Markdown content
+  lastUpdated: Date;
+}
+
+// Built-in parsers for extracting sections
+interface DocumentParser {
+  extractSection(content: string, selector?: string): string;
+}
+
+class HtmlParser implements DocumentParser {
+  extractSection(htmlContent: string, cssSelector?: string): string {
+    if (!cssSelector) {
+      return htmlContent; // Return whole document if no selector
+    }
+    // Use standard HTML parsing (e.g., jsdom) with CSS selectors
+    // Returns the matched section as text/HTML
+  }
+}
+
+class MarkdownParser implements DocumentParser {
+  extractSection(markdownContent: string, pathSelector?: string): string {
+    if (!pathSelector) {
+      return markdownContent; // Return whole document if no selector
+    }
+    // Simple path-based selection for Markdown
+    // e.g., "## Getting Started > ### Installation"
+    // Returns the matched section as Markdown/text
+  }
+}
+```
+
+**Key Principles**:
+
+- **Whole Document Storage**: Each document stored as a single database row in native format
+- **Runtime Parsing**: Tools parse and extract sections when needed, not during ingestion
+- **Built-in Parsers**: HTML and Markdown parsers included in the MCP server package
+- **Flexible Tool Access**: Each tool can access one or more documents, with optional section selectors
+- **Optional Selectors**: Tools can get whole documents (no selector) or specific sections (with selector)
+
+#### Tool Interface for Documentation Access
+
+**Direct Document Access**: Each tool accesses exactly the documentation section it needs:
+
+```typescript
+// Simple service that tools use to get their documentation
+class DocumentationService {
+  constructor(
+    private documentStore: SimpleDocumentStore,
+    private config: DocumentationConfig
+  ) {}
+
+  async getDocumentationForTool(toolName: string): Promise<ToolDocumentation> {
+    // Find the mapping for this tool
+    const mapping = this.config.toolMappings.find(m => m.toolName === toolName);
+    if (!mapping) {
+      throw new Error(`No documentation mapping found for tool: ${toolName}`);
+    }
+
+    // Get all document sections for this tool
+    const sections = await Promise.all(
+      mapping.documents.map(async docRef => {
+        const content = await this.documentStore.getDocumentSection(
+          docRef.documentId,
+          docRef.selector
+        );
+        return {
+          content,
+          label: docRef.label || docRef.documentId,
+          documentId: docRef.documentId,
+        };
+      })
+    );
+
+    return {
+      sections,
+      description: mapping.description,
+    };
+  }
+}
+
+interface ToolDocumentation {
+  sections: DocumentationSection[];
+  description: string;
+}
+
+interface DocumentationSection {
+  content: string;
+  label: string;
+  documentId: string;
+}
+```
+
+**Storage Implementation**:
+
+- **SQLite Database**: Local, file-based storage for simplicity and reliability
+- **Single Table**: Documents stored as rows with `id`, `content`, `type`, `url`, `lastUpdated`
+- **Shared Database**: Single database shared across all MCP tools in the server
+- **Local Deployment**: Self-contained storage within MCP server installations
+- **No External Dependencies**: Standard Node.js libraries (SQLite, jsdom for HTML parsing)
+
+#### Example Tool Implementation
+
+**Simple Tool Usage**: Each tool directly gets its required documentation section:
+
+```typescript
+// Example MCP tool implementation
+class CreateiOSProjectTool {
+  constructor(private documentationService: DocumentationService) {}
+
+  async execute(requirements: ProjectRequirements): Promise<ToolResult> {
+    // Tool gets all its configured documentation sections
+    const docs = await this.documentationService.getDocumentationForTool('createiOSProject');
+
+    // Format multiple sections into response
+    const formattedDocs = docs.sections
+      .map(section => `## ${section.label}\n\n${section.content}`)
+      .join('\n\n');
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `To create your iOS project, follow these steps:
+
+${formattedDocs}
+
+Based on your requirements:
+- Project name: ${requirements.name}
+- Template: ${requirements.template}
+- Platform: iOS
+
+Run the following command:
+\`\`\`bash
+forceios create --name ${requirements.name} --template ${requirements.template}
+\`\`\`
+
+Next steps: ${this.generateNextSteps(requirements)}`,
+        },
+      ],
+    };
+  }
+}
+
+class ConfigureAuthenticationTool {
+  constructor(private documentationService: DocumentationService) {}
+
+  async execute(): Promise<ToolResult> {
+    // Gets the whole authentication document (no selector configured)
+    const docs = await this.documentationService.getDocumentationForTool('configureAuthentication');
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `To configure authentication for your mobile app:
+
+${docs.sections[0].content}
+
+Make sure to save your Connected App consumer key and callback URL for the next steps.`,
+        },
+      ],
+    };
+  }
+}
+```
+
+#### Document Update Manager
+
+**Simple Update Process**: Periodically fetch fresh documentation from sources:
+
+```typescript
+interface DocumentUpdateManager {
+  updateDocument(documentId: string, url: string): Promise<void>;
+  updateAllDocuments(config: DocumentationConfig): Promise<void>;
+}
+
+class SimpleUpdateManager implements DocumentUpdateManager {
+  constructor(private documentStore: SimpleDocumentStore) {}
+
+  async updateDocument(documentId: string, url: string): Promise<void> {
+    // Fetch fresh content from URL
+    const response = await fetch(url);
+    const content = await response.text();
+
+    // Store updated document
+    await this.documentStore.updateDocument(documentId, content);
+  }
+
+  async updateAllDocuments(config: DocumentationConfig): Promise<void> {
+    for (const doc of config.documents) {
+      await this.updateDocument(doc.id, doc.url);
+    }
+  }
+}
+```
+
+#### GitHub Integration via Project Maintenance Utilities
+
+**Simple Automated Updates**: Weekly documentation refresh via GitHub Actions:
+
+```typescript
+// Add to project-maintenance-utilities
+export class DocumentationUpdateService {
+  async updateMobileNativeDocumentation(): Promise<void> {
+    const updateManager = new SimpleUpdateManager(documentStore);
+    await updateManager.updateAllDocuments(mobileNativeDocsConfig);
+  }
+}
+```
+
+**GitHub Action Workflow**:
+
+```yaml
+# .github/workflows/update-documentation.yml
+name: Update Documentation
+on:
+  schedule:
+    - cron: '0 2 * * 1' # Weekly Monday 2AM
+  workflow_dispatch:
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Update documentation
+        run: npm run update-docs:mobile-native
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git diff --staged --quiet || git commit -m "chore: update documentation"
+          git push
+```
+
+#### Implementation Timeline and Phases
+
+**Phase 1: Core Documentation Storage**
+
+- Simple SQLite document store
+- HTML and Markdown parsers (jsdom, marked)
+- Basic DocumentationService for tools to access sections
+- Initial mobile-native tool integration
+
+**Phase 2: Mobile SDK Documentation**
+
+- Ingest Force iOS/Android CLI documentation
+- Configure tool mappings for createiOSProject, createAndroidProject, configureAuthentication
+- Test section extraction with CSS selectors
+- Implement automated GitHub Actions updates
+
+**Phase 3: Polish and Reliability**
+
+- Error handling for missing documents/selectors
+- Markdown path selector implementation
+- Performance optimization for document parsing
+- Comprehensive testing
+
+#### Simplified Package Structure
+
+```
+mobile-mcp-tools/
+├── packages/
+│   ├── mobile-native/                  # Enhanced with simple documentation
+│   │   ├── src/
+│   │   │   ├── tools/
+│   │   │   │   ├── createiOSProject.ts
+│   │   │   │   ├── createAndroidProject.ts
+│   │   │   │   └── configureAuthentication.ts
+│   │   │   ├── documentation/
+│   │   │   │   ├── DocumentationService.ts
+│   │   │   │   ├── SimpleDocumentStore.ts
+│   │   │   │   ├── HtmlParser.ts
+│   │   │   │   ├── MarkdownParser.ts
+│   │   │   │   └── config.ts           # Tool mappings configuration
+│   │   │   └── database/
+│   │   │       └── docs.sqlite         # Local document storage
+│   │   └── package.json
+│   └── project-maintenance-utilities/   # Enhanced with simple doc updates
+│       ├── src/services/implementations/
+│       │   └── DocumentationUpdateService.ts
+│       └── package.json
+```
+
+#### Benefits of Simple Document Store Approach
+
+**vs. URL-Based Documentation Access:**
+
+- **Reliability**: Local documentation eliminates network dependency failures
+- **Performance**: Instant document access from local SQLite database
+- **Offline**: Works in air-gapped or restricted network environments
+- **Consistency**: Guaranteed documentation availability across all user environments
+
+**vs. Complex RAG/Vector Database Systems:**
+
+- **Deployment Simplicity**: No embedding models, vector databases, or complex dependencies
+- **Startup Performance**: Instant initialization - just SQLite and standard parsers
+- **Predictable Results**: Each tool knows exactly which document section it gets
+- **Minimal Resource Usage**: Standard Node.js libraries only
+- **Maintenance**: Simple document updates, no complex reindexing or embeddings
+
+**Core Advantages:**
+
+- **Tool-Driven Context**: Each tool knows exactly what documentation it needs (single or multiple documents)
+- **Direct Mapping**: No complex lookup logic - tools directly access their configured sections
+- **Runtime Parsing**: Parse document sections only when needed, not pre-processed
+- **Standard Technologies**: HTML/CSS selectors and simple Markdown paths
+- **Flexible Granularity**: Tools can access whole documents or specific sections as needed
+- **No Black Box**: Clear, debuggable document → selector → content flow
+
+**Implementation Benefits:**
+
+- **Fast Development**: No need to build complex search/ranking systems
+- **Easy Debugging**: Can inspect exact document content and selector results
+- **Simple Configuration**: Just document URLs and CSS/path selectors per tool
+- **Familiar Technologies**: Developers already know HTML selectors and Markdown structure
+
+_Priority_: Critical for preventing API hallucination and ensuring generated code follows Mobile SDK best practices while maintaining maximum deployment simplicity and developer familiarity.
 
 ## CLI Tool Integration
 
