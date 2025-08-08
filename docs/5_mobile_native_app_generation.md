@@ -70,17 +70,105 @@ This server embodies the four fundamental shifts that redefine mobile developer 
 
 ## Four-Phase Workflow Architecture
 
+### Workflow Overview
+
+The four-phase workflow follows this pattern:
+
+- **Plan phase** runs once during initial setup
+- **Design/Iterate phase** can run multiple times across sequential user sessions
+- **Build and Run phases** are incorporated within Design/Iterate for validation and iteration
+
+### Phase Workflow and Checkpoints
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant PlanPhase as Plan Phase
+    participant DesignPhase as Design/Iterate Phase
+    participant BuildPhase as Build Phase
+    participant RunPhase as Run Phase
+
+    User->>PlanPhase: Initial app request
+    PlanPhase->>PlanPhase: Environment setup
+    PlanPhase->>PlanPhase: Template selection
+    PlanPhase->>PlanPhase: Connected app inputs
+    PlanPhase->>BuildPhase: Create skeletal project
+    BuildPhase->>RunPhase: Deploy & validate login
+    RunPhase->>User: CHECKPOINT: Functioning skeletal app
+    User->>DesignPhase: Feature requirements + feedback
+
+    loop Design/Iterate Cycle
+        DesignPhase->>DesignPhase: Implement features
+        DesignPhase->>BuildPhase: Build updated project
+        BuildPhase->>RunPhase: Deploy & validate features
+        RunPhase->>User: CHECKPOINT: Feature validation
+        alt User satisfied
+            User->>User: End cycle
+        else User needs refinement
+            User->>DesignPhase: Refinement feedback
+        end
+    end
+```
+
+#### Checkpoint: Post-Plan Phase
+
+By the end of the Plan phase, a functioning skeletal mobile app project must be in place. This checkpoint validates:
+
+1. **Build Validation**: Execute Build phase to ensure project builds successfully
+2. **Runtime Validation**: Execute Run phase to launch app in virtual device
+3. **Login Verification**: Ensure user can successfully login to the functioning app
+4. **User Feedback Collection**: Prompt user for feedback to carry into Design/Iterate phase
+
+#### Checkpoint: Post-Design/Iterate Phase
+
+By the end of each Design/Iterate phase, the user validates implemented features:
+
+1. **Build Validation**: Execute Build phase for updated project
+2. **Feature Deployment**: Execute Run phase to deploy app to virtual device
+3. **Feature Validation**: User reviews implemented features in running app
+4. **Satisfaction Check**: User determines if features meet requirements
+   - **If satisfied**: End phase cycle
+   - **If refinement needed**: Collect feedback and repeat Design/Iterate phase
+
 ### Phase 1: Plan
 
-- **Environment Validation**: Verify required development tools are installed and configured
-- **Template Discovery**: Analyze user intent and recommend appropriate Mobile SDK templates
-- **Setup Guidance**: Provide specific installation and configuration instructions when needed
+**Objective**: Establish environment and create functioning skeletal mobile app project.
 
-### Phase 2: Design
+#### Environment Setup
+
+- Validate required development tools for chosen mobile platform using `@salesforce/lwc-dev-mobile-core` CLI plugin
+- Leverage existing `sf force lightning local setup` command environment checks
+- _Note: CLI plugin requires updates to support structured JSON output via `--json` flag_
+
+#### Template Selection
+
+- Determine optimal `forceios` or `forcedroid` project template based on user requirements
+- Templates sourced from existing SalesforceMobileSDK-Templates repo or new template collection
+- **CLI Enhancements Required**:
+  - Support for template collection URIs in `forceios` and `forcedroid`
+  - Collection-level metadata for template registry/directory
+  - Template-specific metadata for self-describing projects
+
+#### Template Metadata System
+
+- **Collection Metadata**: Descriptive directory enabling LLM template selection
+- **Template Metadata**: Rich project information including:
+  - Nature of implemented features
+  - Design and implementation considerations
+- **Local Access**: All templates and metadata available locally per documentation repository approach
+- _Note: Metadata system design details TBD_
+
+#### Connected App Configuration
+
+- Gather required Connected App Client ID and Callback URI
+- Essential inputs for baseline mobile app project creation
+
+### Phase 2: Design/Iterate
 
 - **Specification Generation**: Create concrete design documents based on user requirements
 - **User Checkpoint**: Present design for user review and feedback before implementation
 - **Implementation Roadmap**: Generate detailed plan referencing design document for subsequent phases
+- **Iterative Refinement**: Support multiple cycles based on user feedback
 
 ### Phase 3: Execute
 
@@ -102,7 +190,7 @@ This server embodies the four fundamental shifts that redefine mobile developer 
 
 # System Flow
 
-The following sequence diagram illustrates the comprehensive workflow for transforming user intent into a production-ready native mobile application:
+The following sequence diagram illustrates the comprehensive workflow including checkpoints and iterative cycles:
 
 ```mermaid
 sequenceDiagram
@@ -110,7 +198,7 @@ sequenceDiagram
     participant MCPHost
     participant MCPClient
     participant PlanTools as Plan Tools
-    participant DesignTools as Design Tools
+    participant DesignTools as Design/Iterate Tools
     participant ExecuteTools as Execute Tools
     participant RunTools as Run Tools
     participant CLI as Force CLI Tools
@@ -119,42 +207,60 @@ sequenceDiagram
     User->>MCPHost: "Build a field service app with barcode scanning"
     MCPHost->>MCPClient: Parse natural language intent
 
-    Note over MCPClient,PlanTools: Phase 1: Plan
+    Note over MCPClient,PlanTools: Phase 1: Plan (One-time)
     MCPClient->>PlanTools: Validate environment setup
-    PlanTools-->>MCPClient: Environment status + setup guidance
+    PlanTools->>CLI: Check lwc-dev-mobile-core
+    CLI-->>PlanTools: Environment status
     MCPClient->>PlanTools: Discover appropriate templates
     PlanTools->>Docs: Reference template metadata
     Docs-->>PlanTools: Template descriptions and use cases
     PlanTools-->>MCPClient: Recommended template + rationale
+    MCPClient->>PlanTools: Gather Connected App inputs
+    PlanTools-->>MCPClient: Client ID + Callback URI
 
-    Note over MCPClient,DesignTools: Phase 2: Design
-    MCPClient->>DesignTools: Generate design specification
-    DesignTools->>Docs: Reference extension patterns
-    Docs-->>DesignTools: Implementation guidance
-    DesignTools-->>MCPClient: Concrete design document
-    MCPClient-->>MCPHost: Present design for user review
-    MCPHost-->>User: Design specification + implementation plan
-    User->>MCPHost: Approve design
-
-    Note over MCPClient,ExecuteTools: Phase 3: Execute
-    MCPHost->>MCPClient: Proceed with implementation
-    MCPClient->>ExecuteTools: Create app foundation
+    Note over MCPClient,RunTools: Post-Plan Checkpoint
+    MCPClient->>ExecuteTools: Create skeletal project
     ExecuteTools->>CLI: forceios/forcedroid create project
-    CLI-->>ExecuteTools: Working app template
-    MCPClient->>ExecuteTools: Configure connected app
-    ExecuteTools-->>MCPClient: OAuth setup instructions
-    MCPClient->>ExecuteTools: Implement features
-    ExecuteTools->>Docs: Reference API documentation
-    Docs-->>ExecuteTools: Implementation patterns
-    ExecuteTools-->>MCPClient: Enhanced application
-
-    Note over MCPClient,RunTools: Phase 4: Run
-    MCPClient->>RunTools: Deploy and validate
+    CLI-->>ExecuteTools: Working skeletal app
+    MCPClient->>RunTools: Deploy and validate login
     RunTools->>CLI: Deploy to virtual device
     CLI-->>RunTools: Deployment status
-    RunTools-->>MCPClient: Validation results
-    MCPClient-->>MCPHost: Working application ready
-    MCPHost-->>User: Complete native mobile app
+    RunTools-->>MCPClient: Login validation results
+    MCPClient-->>MCPHost: Functioning skeletal app ready
+    MCPHost-->>User: CHECKPOINT: Review skeletal app + provide feedback
+
+    User->>MCPHost: Feature requirements + feedback
+
+    loop Design/Iterate Cycle
+        Note over MCPClient,DesignTools: Phase 2: Design/Iterate
+        MCPClient->>DesignTools: Generate feature specification
+        DesignTools->>Docs: Reference extension patterns
+        Docs-->>DesignTools: Implementation guidance
+        DesignTools-->>MCPClient: Feature implementation plan
+
+        Note over MCPClient,ExecuteTools: Phase 3: Execute (within iteration)
+        MCPClient->>ExecuteTools: Implement features
+        ExecuteTools->>Docs: Reference API documentation
+        Docs-->>ExecuteTools: Implementation patterns
+        ExecuteTools-->>MCPClient: Enhanced application
+
+        Note over MCPClient,RunTools: Phase 4: Run (within iteration)
+        MCPClient->>RunTools: Deploy and validate features
+        RunTools->>CLI: Deploy to virtual device
+        CLI-->>RunTools: Deployment status
+        RunTools-->>MCPClient: Feature validation results
+
+        Note over MCPClient,User: Post-Design/Iterate Checkpoint
+        MCPClient-->>MCPHost: Feature implementation ready
+        MCPHost-->>User: CHECKPOINT: Review implemented features
+
+        alt User satisfied with features
+            User->>MCPHost: Approve implementation
+            MCPHost-->>User: Complete native mobile app
+        else User needs refinement
+            User->>MCPHost: Refinement feedback
+        end
+    end
 ```
 
 ---
@@ -257,15 +363,18 @@ mobile-native/
 
 ### Plan Phase Tools
 
-- **Environment Validator**: Checks for Xcode, Force CLI, required dependencies
-- **Template Discoverer**: Analyzes user intent and recommends appropriate Mobile SDK templates
-- **Setup Guide Provider**: Delivers contextual installation and configuration guidance
+- **Environment Validator**: Leverages `@salesforce/lwc-dev-mobile-core` CLI plugin to validate development tools for chosen mobile platform
+- **Template Discoverer**: Analyzes user intent and recommends optimal `forceios` or `forcedroid` project templates using collection-level metadata
+- **Template Metadata Manager**: Accesses self-describing template information including feature descriptions and implementation considerations
+- **Connected App Configurator**: Gathers required Connected App Client ID and Callback URI for project creation
+- **Skeletal Project Creator**: Creates functioning baseline mobile app project and validates through build/run cycle
 
-### Design Phase Tools
+### Design/Iterate Phase Tools
 
-- **Specification Generator**: Creates concrete design documents from user requirements
-- **Design Reviewer**: Facilitates user checkpoints and design approval workflow
+- **Feature Specification Generator**: Creates concrete design documents from user requirements and feedback
+- **Iterative Design Manager**: Orchestrates multiple design cycles with user feedback integration
 - **Implementation Planner**: Generates detailed roadmaps referencing design specifications
+- **User Checkpoint Facilitator**: Manages feature validation and refinement approval workflow
 
 ### Execute Phase Tools
 
