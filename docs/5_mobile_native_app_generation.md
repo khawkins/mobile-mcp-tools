@@ -10,63 +10,96 @@ The Mobile Native App Generation server embodies the core vision of **prompt-to-
 
 # High-Level Project Design
 
-## Vision Alignment
+## Vision: Democratizing Native Mobile Development
 
-This MCP server directly implements the vision outlined in **Mobile Apps with Agentic AI at Salesforce** and **Redefining the Salesforce Mobile Developer Experience**, specifically targeting the elimination of the "development skill tax" that has historically constrained mobile app creation. The server transforms the mobile development paradigm from "figure it out" to "build what you imagined."
+For too long, mobile app development has forced an artificial choice between optimal user experience and development accessibility. Customers who want the responsive, intuitive, and engaging experience that only native mobile apps provide have been constrained by a "development skill tax"—the penalty paid in time, complexity, and expertise required to build truly excellent mobile experiences.
 
-### From Intent to Impact: The Four Core Shifts
+This paradigm made sense in the pre-generative-AI era, when technical complexity genuinely required specialized human expertise to navigate. However, with the advent of generative AI and agentic technology, we now have the tools to level this playing field. When customers are freed from technical constraints and asked what kind of mobile experience they truly want, the answer is overwhelmingly clear: the most responsive, attention-holding, intuitive, and productivity-enhancing experience possible. These experiences are optimally delivered through native mobile applications.
 
-This server embodies the four fundamental shifts that redefine mobile developer experience:
+**The complexities of native mobile development are real and substantial.** Platform-specific toolchains, SDK integrations, build systems, and deployment workflows create multiplicative complexity far beyond the comparatively more straightforward approaches of e.g. mobile web development. This genuine technical complexity established a legitimate barrier to entry that was beyond most customers' reach.
+
+Yet these technical hurdles need not be insurmountable for aspiring app creators. Through the skillful deployment of generative AI and agentic systems, we can make sophisticated native development accessible to anyone who can describe what they want to build. The underlying complexity remains—but it can be elegantly managed by expert systems that translate vision into implementation.
+
+### The Agentic Mobile Development Revolution
+
+This MCP server represents a fundamental shift in how mobile applications are created. Rather than forcing developers to master platform-specific expertise, complex toolchains, and intricate SDK integrations, we enable them to describe what they want to build in natural language and receive production-ready native mobile applications.
+
+This isn't about replacing developers—it's about **eliminating artificial constraints** that have historically forced compromise between development feasibility and user experience quality. When agentic AI handles the technical complexity, developers can focus entirely on specifying desired outcomes while the system generates optimal implementations.
+
+### From Intent to Impact: Four Transformative Shifts
+
+Our vision rests on four fundamental transformations that redefine mobile developer experience:
+
+1. **Machine-Actionable Documentation**: Documentation becomes executable intelligence—structured, tagged, and context-rich so AI assistants can reason about and act upon it, transforming more open-ended prompts into real project scaffolding
+
+2. **Intent-Orchestrated Development**: Existing CLI tools and SDKs become composable building blocks orchestrated by natural language intent, with AI assistants acting as intelligent command planners
+
+3. **IDE as Intelligent Partner**: Development environments transform from editors to guides, delivering contextual assistance, setup automation, and next-step suggestions exactly when and where needed
+
+4. **Apps That Provide Live Feedback**: Generated applications provide immediate, structured runtime feedback to app developers, enabling fast iteration cycles and experience-driven decision making as they refine their mobile experiences
+
+### The Ultimate Goal: Removing the Development Skill Tax
+
+When we eliminate the artificial barriers between intent and implementation, we unlock a new class of mobile app creators who can build sophisticated native experiences without mastering specialized technical skills. Customers no longer sacrifice user experience quality for development feasibility—they simply describe what they want to build and receive the optimal implementation.
+
+This transformation democratizes access to the pinnacle of mobile user experience while preserving the full power and sophistication of existing mobile development ecosystems. We're not replacing professional mobile development—we're making its capabilities accessible to anyone who can articulate their vision.
+
+**The future of mobile development shifts the starting point from "figure it out" to "build what you imagined."**
+
+## Core Design Principles
 
 1. **Machine-Actionable Documentation**: Template metadata and extension guidance that LLMs can reason about and act upon
 2. **Intent-Orchestrated CLIs**: Existing Force CLI tools become composable building blocks orchestrated by natural language intent
 3. **IDE as Guide**: The development environment becomes an intelligent partner that transforms intent into working software
-4. **Apps That Talk Back**: Generated applications provide live feedback for real-time debugging and iteration
-
-## Core Design Principles
+4. **Apps That Talk Back**: Generated applications provide immediate user experience feedback to developers, enabling fast iteration cycles and experience-driven refinement
 
 ### Machine-Actionable Documentation and Metadata
 
 **Philosophy**: "Don't build tools, tell the LLM how to use what we already have."
 
-**From Human-Readable to Machine-Actionable**: Documentation isn't just for humans—it's structured, tagged, and context-rich so LLMs can reason about and act upon it.
+**From Human-Readable to Machine-Actionable**: Documentation isn't just for humans—it's structured, tagged, and context-rich so LLMs can reason about and act upon it. We recognize that documentation exists in multiple forms throughout the development ecosystem:
 
-- **Rich Template Metadata**: Each mobile SDK template includes comprehensive, structured documentation describing when to use it, its architecture, main files, and crucially, how to extend and build upon it
-- **Actionable Extension Guidance**: Specific, step-by-step instructions for common scenarios (e.g., adding opportunity support requires updating `userStore.json` and `userSync.json`) that LLMs can directly execute
+- **Public Development Guides**: Official customer-facing documentation including development guides, best practices, tutorials, and architectural patterns
+- **API Documentation**: Richly-described TypeScript declaration files, DocC comments (iOS), KDoc documentation (Android), and inline code documentation that provides semantic context about functionality and usage
+- **Self-Describing CLI Tools**: Command-line interfaces that expose their capabilities, parameters, and usage patterns through built-in help systems and structured output formats
+
+We embrace and extend all of these documentation outlets as sources of rich, contextual information that can guide agentic decision-making and provide prescriptive workflows for complex development scenarios.
+
+- **Rich Template Metadata**: Each mobile SDK template includes comprehensive, structured documentation that goes beyond basic descriptions. This includes not only _what_ the template provides, but _how_ it works—covering design considerations, architectural decisions, extension scenarios, upgrade paths, common pitfalls, and integration patterns
 - **Embedded Complete Examples**: Verifiable code examples that demonstrate exact implementation patterns
 - **Clear Requirements and Dependencies**: Structured information about platform, version, prerequisites, and dependencies that can be programmatically validated
-- **Documentation Grounding**: All guidance stems from official Salesforce Mobile SDK documentation, ensuring accuracy and best practices while being machine-interpretable
+- **Documentation Grounding**: All guidance stems from official Salesforce documentation across all sources—public development guides, SDK API documentation, CLI tool specifications, and code-level documentation—ensuring accuracy and best practices while being machine-interpretable and actionable
 
-### Preserve LLM Agency for Self-Healing
+**Enabling LLM Agency Through Knowledge**: This comprehensive documentation ecosystem enables sophisticated LLM autonomy and resilience:
 
-- **Guided Autonomy**: Provide comprehensive context and guidance while allowing the LLM to make implementation decisions
-- **Error Recovery**: When issues arise, the LLM can adapt and self-correct rather than failing due to overly restrictive tool constraints
-- **Adaptive Problem-Solving**: LLM maintains the ability to reason through unexpected scenarios using provided documentation context
+- **Guided Autonomy**: Rich contextual information allows the LLM to make informed implementation decisions while staying grounded in best practices
+- **Error Recovery**: When issues arise, comprehensive documentation provides the knowledge base for the LLM to adapt and self-correct rather than failing due to insufficient context
+- **Adaptive Problem-Solving**: The LLM maintains the ability to reason through unexpected scenarios by drawing upon the full spectrum of available documentation and examples
 
-### IDE as Intelligent Guide
+### Assistant as Intelligent Guide
 
-**Principle**: The IDE should be where the real developer experience begins—not just editing, but understanding, suggesting, and adapting.
+**Principle**: The assistant should be where the real developer experience begins—not just code generation, but understanding, suggesting, and adapting, wherever developers choose to work.
 
-**From Editor to Partner**: The development environment becomes an intelligent guide that turns developer intent into working software by stitching together documentation, tools, and SDKs.
+**From Tool to Partner**: The AI assistant becomes an intelligent guide that turns developer intent into working software by stitching together documentation, tools, and SDKs, meeting developers in their preferred environment.
 
-- **Contextual Guidance**: All necessary documentation, setup instructions, and troubleshooting guidance delivered directly in the IDE through MCP tools
-- **Environment Orchestration**: Comprehensive validation and intelligent setup of required tools (Xcode, Force CLI, simulators) without requiring users to leave their development context
-- **In-Context Configuration**: Step-by-step mobile-specific OAuth and connected app configuration guidance delivered exactly when and where needed
-- **Next-Step Suggestions**: The assistant doesn't just autocomplete code—it suggests logical next steps based on current context and project state
-- **Real-Time Adaptation**: The IDE adapts its guidance based on the specific template, features being implemented, and current project configuration
+- **Contextual Guidance**: All necessary documentation, setup instructions, and troubleshooting guidance delivered directly through the assistant interface, regardless of the developer's chosen environment
+- **Environment Orchestration**: Comprehensive validation and intelligent setup of required tools (Xcode, Force CLI, simulators) orchestrated by the assistant across any development context
+- **Adaptive Configuration**: Step-by-step mobile-specific OAuth and connected app configuration guidance delivered exactly when and where needed, whether in an IDE, terminal, or other development environment
+- **Next-Step Suggestions**: The assistant doesn't just generate code—it suggests logical next steps based on current context and project state, maintaining continuity across different interaction modes
+- **Real-Time Adaptation**: The assistant adapts its guidance based on the specific template, features being implemented, and current project configuration
 
 ### Intent-Orchestrated CLIs
 
-**Philosophy**: CLIs don't need more complexity—they need intelligent orchestration by AI assistants.
+**Philosophy**: CLI functionality provides the algorithmic foundation, removing the burden of imagination from agents for predictable tasks and freeing them to focus on complex feature integration.
 
-**From Manual Commands to Intelligent Composition**: Our CLIs stay simple and focused, while AI assistants become command planners that chain steps together, pre-fill parameters, resolve errors, and explain outputs.
+**Division of Labor**: CLIs handle the algorithmically repeatable, well-defined operations while agents focus on the creative, feature-specific challenges that require reasoning and adaptation.
 
-- **CLI Tool Orchestration**: Utilize existing `forceios` and `forcedroid` CLI tools as composable building blocks, orchestrated by natural language intent
-- **Intelligent Command Planning**: AI assistant acts as command planner, consulting documentation and intelligently invoking CLI commands in sequence to achieve user goals
-- **Template-Based Bootstrapping**: Start with proven, tested app templates rather than generating from scratch, using deterministic CLI operations
-- **Parameter Pre-filling**: Automatically determine and populate CLI parameters based on user intent and project context
-- **Error Resolution**: Automatically diagnose and resolve common CLI errors using documentation guidance
-- **Incremental LLM Enhancement**: LLM adds features on top of deterministically created, working foundations
+- **Algorithmic Foundation**: Leverage CLI tools (`forceios`, `forcedroid`) for deterministic, repeatable operations like project generation, dependency setup, and file templating
+- **Predictable Scaffolding**: Use CLIs to establish the proven, tested structural foundation that agents can confidently build upon
+- **Agent Focus on Value**: By offloading repetitive, algorithmic tasks to CLIs, agents can concentrate on the complex work of feature integration, user experience design, and adaptive problem-solving
+- **Intelligent Orchestration**: Agents determine when and how to invoke CLI operations based on user intent, but rely on CLI precision for execution
+- **Deterministic Base + Creative Extension**: Start with CLI-generated, working foundations, then layer agent-driven features and customizations on top
+- **Error-Resistant Foundation**: CLIs provide tested, reliable base functionality, reducing the surface area where agents need to handle edge cases
 
 ## Three-Phase Workflow Architecture
 
