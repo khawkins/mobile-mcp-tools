@@ -46,6 +46,8 @@ This transformation democratizes access to the pinnacle of mobile user experienc
 
 **The future of mobile development shifts the starting point from "figure it out" to "build what you imagined."**
 
+---
+
 ## Core Design Principles
 
 1. **Machine-Actionable Documentation**: Template metadata and extension guidance that LLMs can reason about and act upon
@@ -100,6 +102,8 @@ We embrace and extend all of these documentation outlets as sources of rich, con
 - **Intelligent Orchestration**: Agents determine when and how to invoke CLI operations based on user intent, but rely on CLI precision for execution
 - **Deterministic Base + Creative Extension**: Start with CLI-generated, working foundations, then layer agent-driven features and customizations on top
 - **Error-Resistant Foundation**: CLIs provide tested, reliable base functionality, reducing the surface area where agents need to handle edge cases
+
+---
 
 ## Three-Phase Workflow Architecture
 
@@ -348,8 +352,8 @@ sequenceDiagram
     loop Design/Iterate Cycle
         Note over MCPClient,DesignTools: Phase 2: Design/Iterate - Task Planning
         MCPClient->>DesignTools: Analyze requirements + changelog history
-        DesignTools->>Docs: Reference extension patterns
-        Docs-->>DesignTools: Implementation guidance
+    DesignTools->>Docs: Reference extension patterns
+    Docs-->>DesignTools: Implementation guidance
         DesignTools-->>MCPClient: Sequential task list
 
         loop Task Execution (1 to n)
@@ -375,7 +379,7 @@ sequenceDiagram
 
                 Note over MCPClient,RunTools: Validate Task
                 MCPClient->>RunTools: Build and deploy task changes
-                RunTools->>CLI: Deploy to virtual device
+    RunTools->>CLI: Deploy to virtual device
                 CLI-->>RunTools: Build/deployment status
 
                 alt Build/Deploy Successful
