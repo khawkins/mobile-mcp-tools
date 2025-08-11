@@ -287,14 +287,19 @@ Build capabilities are embedded throughout the Design/Iterate phase rather than 
 - Maintain app in buildable/deployable state after each task
 - Enable continuous user validation and feedback integration
 
-### Phase 3: Run - Apps That Talk Back
+### Phase 3: Run
 
-- **Deployment**: Leverage existing tooling for app deployment to virtual devices and physical devices
-- **Live Feedback Integration**: Generated applications provide structured runtime events back to the IDE/AI assistant including logs, errors, analytics, network requests, and configuration issues
-- **Real-Time Debugging**: AI assistant uses live feedback for intelligent troubleshooting and immediate issue resolution
-- **Validation with Context**: Verify login functionality and core app features while streaming diagnostic information for rapid iteration
-- **Intelligent Error Resolution**: When deployment or runtime issues occur, automatically diagnose problems using live feedback and suggest specific fixes
-- **User Handoff**: Provide working, deployable native mobile application with established feedback loop for ongoing development
+**Overall Goal**: Provide developers with fast feedback on their app changes by building, deploying, and launching to virtual devices, enabling quick assessment of implementation details and user experience-driven iteration.
+
+**Core Functionality**: Leverage existing CLI tooling to rapidly deploy app projects to configured virtual devices (iOS simulator, Android emulator), allowing developers to immediately see and interact with their changes.
+
+- **CLI-Driven Deployment**: Utilize the `@salesforce/lwc-dev-mobile` Salesforce CLI plugin to automatically launch app projects to virtual devices
+- **Fast Feedback Loop**: Enable immediate visual and interactive feedback on implementation changes, supporting experience-driven decision making
+- **Virtual Device Integration**: Seamless deployment to iOS simulators and Android emulators for rapid testing and validation
+- **User Experience Focus**: Prioritize developer assessment of user experience and interface changes over automated debugging
+- **Iterative Validation**: Support quick build-deploy-test cycles that inform the next round of Design/Iterate phase improvements
+
+**Implementation Details**: The CLI tooling functionality exists but requires restoration, as `@salesforce/lwc-dev-mobile` is currently deprecated and sparsely documented. The MCP server tools will orchestrate this CLI plugin to provide automated virtual device deployment.
 
 ---
 
