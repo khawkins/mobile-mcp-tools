@@ -68,15 +68,15 @@ This server embodies the four fundamental shifts that redefine mobile developer 
 - **Error Resolution**: Automatically diagnose and resolve common CLI errors using documentation guidance
 - **Incremental LLM Enhancement**: LLM adds features on top of deterministically created, working foundations
 
-## Four-Phase Workflow Architecture
+## Three-Phase Workflow Architecture
 
 ### Workflow Overview
 
-The four-phase workflow follows this pattern:
+The three-phase workflow follows this pattern:
 
-- **Plan phase** runs once during initial setup
-- **Design/Iterate phase** can run multiple times across sequential user sessions
-- **Build and Run phases** are incorporated within Design/Iterate for validation and iteration
+- **Plan phase** runs once during initial setup (includes template instantiation and connected app configuration)
+- **Design/Iterate phase** can run multiple times across sequential user sessions (includes feature implementation and testing)
+- **Run phase** is incorporated within Design/Iterate for validation and iteration
 
 ### Phase Workflow and Checkpoints
 
@@ -85,22 +85,21 @@ sequenceDiagram
     participant User
     participant PlanPhase as Plan Phase
     participant DesignPhase as Design/Iterate Phase
-    participant BuildPhase as Build Phase
     participant RunPhase as Run Phase
 
     User->>PlanPhase: Initial app request
     PlanPhase->>PlanPhase: Environment setup
     PlanPhase->>PlanPhase: Template selection
     PlanPhase->>PlanPhase: Connected app inputs
-    PlanPhase->>BuildPhase: Create skeletal project
-    BuildPhase->>RunPhase: Deploy & validate login
+    PlanPhase->>PlanPhase: Create skeletal project
+    PlanPhase->>RunPhase: Deploy & validate login
     RunPhase->>User: CHECKPOINT: Functioning skeletal app
     User->>DesignPhase: Feature requirements + feedback
 
     loop Design/Iterate Cycle
         DesignPhase->>DesignPhase: Implement features
-        DesignPhase->>BuildPhase: Build updated project
-        BuildPhase->>RunPhase: Deploy & validate features
+        DesignPhase->>DesignPhase: Build updated project
+        DesignPhase->>RunPhase: Deploy & validate features
         RunPhase->>User: CHECKPOINT: Feature validation
         alt User satisfied
             User->>User: End cycle
@@ -114,8 +113,8 @@ sequenceDiagram
 
 By the end of the Plan phase, a functioning skeletal mobile app project must be in place. This checkpoint validates:
 
-1. **Build Validation**: Execute Build phase to ensure project builds successfully
-2. **Runtime Validation**: Execute Run phase to launch app in virtual device
+1. **Build Validation**: Ensure project builds successfully
+2. **Runtime Validation**: Launch app in virtual device using Run phase tools
 3. **Login Verification**: Ensure user can successfully login to the functioning app
 4. **User Feedback Collection**: Prompt user for feedback to carry into Design/Iterate phase
 
@@ -123,8 +122,8 @@ By the end of the Plan phase, a functioning skeletal mobile app project must be 
 
 By the end of each Design/Iterate phase, the user validates implemented features:
 
-1. **Build Validation**: Execute Build phase for updated project
-2. **Feature Deployment**: Execute Run phase to deploy app to virtual device
+1. **Build Validation**: Ensure updated project builds successfully
+2. **Feature Deployment**: Deploy app to virtual device using Run phase tools
 3. **Feature Validation**: User reviews implemented features in running app
 4. **Satisfaction Check**: User determines if features meet requirements
    - **If satisfied**: End phase cycle
@@ -163,21 +162,99 @@ By the end of each Design/Iterate phase, the user validates implemented features
 - Gather required Connected App Client ID and Callback URI
 - Essential inputs for baseline mobile app project creation
 
+#### Project Creation and Setup
+
+- **Template-Based Project Generation**: Use `forceios`/`forcedroid` CLI tools to generate boilerplate app projects from Mobile SDK templates through keyword substitution
+- **Connected App Integration**: CLI tools configure OAuth parameters in generated project files using provided Connected App credentials
+- **Dependency Configuration**: Generated projects include properly configured CocoaPods/Swift Package Manager (iOS) or Gradle (Android) dependencies
+- **Ready-to-Build Foundation**: CLI output creates immediately buildable projects using native platform build systems
+
 ### Phase 2: Design/Iterate
 
-- **Specification Generation**: Create concrete design documents based on user requirements
-- **User Checkpoint**: Present design for user review and feedback before implementation
-- **Implementation Roadmap**: Generate detailed plan referencing design document for subsequent phases
-- **Iterative Refinement**: Support multiple cycles based on user feedback
+**Objective**: Transform user requirements into working features through iterative development cycles with continuous validation.
 
-### Phase 3: Execute
+#### Pre-Conditions
 
-- **Template Instantiation**: Use CLI tools to create working app foundation from selected template
-- **Connected App Configuration**: Guide setup of Salesforce OAuth configuration for mobile applications
-- **Feature Implementation**: Add requested features guided by design document and template extension instructions
-- **Documentation-Grounded Development**: Reference official Mobile SDK documentation for all implementation decisions
+- List of user requirements from initial utterance
+- Functioning mobile app project based on selected Mobile SDK template that builds and deploys successfully
+- User can login to launched app on virtual devices
 
-### Phase 4: Run - Apps That Talk Back
+#### Core Facility: Changelog System
+
+- **Iteration Tracking**: Create sequential Markdown documents (`changelog-1.md`, `changelog-2.md`, etc.) in `changelog/` folder within mobile app project
+- **Changelog Content**:
+  - Date/time of change
+  - User-consumable summary of iteration changes
+  - Rationale for significant design decisions
+  - **Structured Metadata** (machine-readable while preserving user readability):
+    - `task_scope`: Brief categorization (e.g., "new_feature", "refactor", "bug_fix", "ui_enhancement")
+    - `complexity_level`: Task complexity rating (e.g., "simple", "moderate", "complex")
+    - `affected_components`: List of major code areas modified
+    - `dependencies`: Tasks or features this iteration depends on
+    - `validation_criteria`: Specific success criteria for the task
+- **Purpose**: Provide chronological history and reasoning for future LLM iterations to inform decision-making
+
+#### Workflow
+
+**Goal**: Break work into reasonably-scoped tasks to ensure high quality and adherence to user requirements.
+
+1. **Task Planning**
+   - Analyze user feature utterances, local documentation store, and previous changelog docs
+   - Create sequential/iterative task list to execute user requirements
+   - Each task completion results in buildable and deployable app state
+   - **Task Granularity Guidance**: MCP tools provide LLM with task sizing recommendations and execution strategies:
+     - **Simple tasks**: Single UI component, basic configuration change, simple data model update, single file modifications
+       - _Approach_: Execute as single atomic operation with immediate validation
+       - _Validation_: Build, deploy, verify single feature works as expected
+     - **Moderate tasks**: Feature integration, API endpoint implementation, complex UI workflow, multi-file coordinated changes
+       - _Approach_: Break into 2-3 sub-steps, validate each step incrementally within the task
+       - _Validation_: Build after each sub-step, deploy and test complete feature functionality
+     - **Complex tasks**: Multi-component features, major architectural changes, cross-platform implementations, extensive refactoring
+       - _Approach_: Decompose into 3-5 smaller tasks instead of executing as single complex task
+       - _Execution_: Insert decomposed tasks at top of task list, adjust remaining tasks as needed
+     - **Avoid**: Tasks affecting >3 major code areas simultaneously or requiring fundamental architecture changes
+       - _Execution_: Always decompose into multiple moderate or simple tasks, insert at top of task list
+
+2. **Iterative Task Execution** (Loop for tasks 1 to n)
+   - **Execute Task**: Update mobile app project for current task
+   - **Test Implementation**: Add/amend unit tests to validate implemented functionality
+   - **Document Changes**: Create next sequential changelog file with structured metadata
+   - **Validate Build**: Build and launch app with project changes
+   - **Error Handling**: If build fails or critical issues arise:
+     - Attempt immediate recovery through iterative fixes
+     - If recovery impossible: rollback to previous "good" state and treat as fatal workflow error
+     - Cease further task processing on fatal errors
+   - **User Review**: Report task completion with tri-state feedback prompt:
+     - _"I've completed [feature description]. Would you like to make changes? Or otherwise, would you like me to keep going with the next round of changes?"_
+   - **Dynamic Task List Management**: Handle all task list adjustments through unified mechanism:
+     - **User Feedback (Option A)**: Evaluate requested changes → insert new tasks at top of list → adjust remaining tasks
+     - **Task Decomposition**: Complex task identified → decompose into smaller tasks → insert at top of list → adjust remaining tasks
+     - **Error Recovery**: Build failure requiring fixes → insert recovery tasks at top of list → adjust remaining tasks
+     - **Continue Execution (Option B)**: No adjustments needed → continue to next task in current list
+     - **Stop Processing (Option C)**: Complete current iteration cycle → exit to post-iteration checkpoint
+
+#### Integrated Build Process
+
+Build capabilities are embedded throughout the Design/Iterate phase rather than being a separate phase:
+
+- **Continuous Build Validation**: Every task completion includes automated build verification using native platform build tools (Xcode for iOS, Gradle for Android)
+- **Build-First Approach**: Code changes are immediately validated through platform build process before user review
+- **Native Build System Integration**: Direct orchestration of Xcode compilation/linking (iOS) and Gradle compilation/packaging (Android)
+- **Build Error Recovery**: Build failures trigger automatic error recovery task insertion using unified task list management
+- **CLI Tool Separation**: `forceios`/`forcedroid` handle project generation only; build validation uses native platform tooling
+
+**Build Workflow Integration:**
+
+1. **Task Implementation** → **Native Platform Build** → **Build Validation** → **Deploy & Test** → **User Review**
+2. **Build Failure** → **Error Analysis** → **Recovery Task Generation** → **Task List Insertion** → **Retry Build**
+
+#### Task Scoping Principles
+
+- Focus on one feature set iteration at a time
+- Maintain app in buildable/deployable state after each task
+- Enable continuous user validation and feedback integration
+
+### Phase 3: Run - Apps That Talk Back
 
 - **Deployment**: Leverage existing tooling for app deployment to virtual devices and physical devices
 - **Live Feedback Integration**: Generated applications provide structured runtime events back to the IDE/AI assistant including logs, errors, analytics, network requests, and configuration issues
@@ -199,7 +276,6 @@ sequenceDiagram
     participant MCPClient
     participant PlanTools as Plan Tools
     participant DesignTools as Design/Iterate Tools
-    participant ExecuteTools as Execute Tools
     participant RunTools as Run Tools
     participant CLI as Force CLI Tools
     participant Docs as Documentation Sources
@@ -219,9 +295,9 @@ sequenceDiagram
     PlanTools-->>MCPClient: Client ID + Callback URI
 
     Note over MCPClient,RunTools: Post-Plan Checkpoint
-    MCPClient->>ExecuteTools: Create skeletal project
-    ExecuteTools->>CLI: forceios/forcedroid create project
-    CLI-->>ExecuteTools: Working skeletal app
+    MCPClient->>PlanTools: Create skeletal project
+    PlanTools->>CLI: forceios/forcedroid create project
+    CLI-->>PlanTools: Working skeletal app
     MCPClient->>RunTools: Deploy and validate login
     RunTools->>CLI: Deploy to virtual device
     CLI-->>RunTools: Deployment status
@@ -232,33 +308,76 @@ sequenceDiagram
     User->>MCPHost: Feature requirements + feedback
 
     loop Design/Iterate Cycle
-        Note over MCPClient,DesignTools: Phase 2: Design/Iterate
-        MCPClient->>DesignTools: Generate feature specification
+        Note over MCPClient,DesignTools: Phase 2: Design/Iterate - Task Planning
+        MCPClient->>DesignTools: Analyze requirements + changelog history
         DesignTools->>Docs: Reference extension patterns
         Docs-->>DesignTools: Implementation guidance
-        DesignTools-->>MCPClient: Feature implementation plan
+        DesignTools-->>MCPClient: Sequential task list
 
-        Note over MCPClient,ExecuteTools: Phase 3: Execute (within iteration)
-        MCPClient->>ExecuteTools: Implement features
-        ExecuteTools->>Docs: Reference API documentation
-        Docs-->>ExecuteTools: Implementation patterns
-        ExecuteTools-->>MCPClient: Enhanced application
+        loop Task Execution (1 to n)
+            Note over MCPClient,DesignTools: Pre-Execution: Task Analysis
+            MCPClient->>DesignTools: Analyze current task complexity
+            DesignTools-->>MCPClient: Task granularity assessment
 
-        Note over MCPClient,RunTools: Phase 4: Run (within iteration)
-        MCPClient->>RunTools: Deploy and validate features
-        RunTools->>CLI: Deploy to virtual device
-        CLI-->>RunTools: Deployment status
-        RunTools-->>MCPClient: Feature validation results
+            alt Task Decomposition Required
+                Note over MCPClient,DesignTools: Complex Task Identified
+                MCPClient->>DesignTools: Decompose into smaller tasks
+                DesignTools->>DesignTools: Apply unified task list management
+                DesignTools-->>MCPClient: Insert decomposed tasks at top, adjust list
+            else Task Ready for Execution
+                Note over MCPClient,DesignTools: Implement Current Task
+                MCPClient->>DesignTools: Implement task features
+                DesignTools->>Docs: Reference API documentation
+                Docs-->>DesignTools: Implementation patterns
+                DesignTools-->>MCPClient: Task implementation complete
 
-        Note over MCPClient,User: Post-Design/Iterate Checkpoint
-        MCPClient-->>MCPHost: Feature implementation ready
-        MCPHost-->>User: CHECKPOINT: Review implemented features
+                Note over MCPClient,DesignTools: Update Documentation
+                MCPClient->>DesignTools: Create changelog entry
+                DesignTools-->>MCPClient: Changelog updated
 
-        alt User satisfied with features
-            User->>MCPHost: Approve implementation
-            MCPHost-->>User: Complete native mobile app
-        else User needs refinement
-            User->>MCPHost: Refinement feedback
+                Note over MCPClient,RunTools: Validate Task
+                MCPClient->>RunTools: Build and deploy task changes
+                RunTools->>CLI: Deploy to virtual device
+                CLI-->>RunTools: Build/deployment status
+
+                alt Build/Deploy Successful
+                    RunTools-->>MCPClient: Task validation successful
+
+                    Note over MCPClient,User: Task Review (Tri-State Feedback)
+                    MCPClient-->>MCPHost: Task completion report
+                    MCPHost-->>User: "I've completed [feature]. Make changes? Keep going? Or stop here?"
+
+                    alt Option A: User requests changes
+                        User->>MCPHost: Change feedback
+                        MCPClient->>DesignTools: Apply unified task list management
+                        DesignTools-->>MCPClient: Insert new tasks at top, adjust list
+                    else Option B: User approves, continue
+                        User->>MCPHost: Keep going
+                        MCPClient->>MCPClient: Continue to next task
+                    else Option C: User approves, stop
+                        User->>MCPHost: Stop here
+                        MCPClient->>MCPClient: Exit task loop
+                    end
+
+                else Build/Deploy Failed
+                    RunTools-->>MCPClient: Task validation failed
+                    Note over MCPClient,DesignTools: Error Recovery
+                    MCPClient->>DesignTools: Generate recovery tasks
+                    DesignTools->>DesignTools: Apply unified task list management
+                    DesignTools-->>MCPClient: Insert recovery tasks at top, adjust list
+                end
+            end
+        end
+
+        Note over MCPClient,User: Iteration Complete
+        MCPClient-->>MCPHost: All tasks completed
+        MCPHost-->>User: CHECKPOINT: Review complete iteration
+
+        alt User satisfied with iteration
+            User->>MCPHost: Approve iteration
+            MCPHost-->>User: Ready for next iteration or completion
+        else User needs iteration refinement
+            User->>MCPHost: Iteration feedback
         end
     end
 ```
@@ -292,7 +411,7 @@ npx -y @salesforce/mobile-native-mcp-server
 ## Server Metadata
 
 **Name:** `sfdc-mobile-native-mcp-server`  
-**Description:** The `sfdc-mobile-native-mcp-server` MCP server provides a comprehensive collection of tools that enable prompt-to-app development for Salesforce Platform-based native mobile applications. The server orchestrates a four-phase workflow (Plan, Design, Execute, Run) leveraging existing Mobile SDK tooling, templates, and documentation to transform natural language intent into production-ready native mobile applications.
+**Description:** The `sfdc-mobile-native-mcp-server` MCP server provides a comprehensive collection of tools that enable prompt-to-app development for Salesforce Platform-based native mobile applications. The server orchestrates a three-phase workflow (Plan, Design/Iterate, Run) leveraging existing Mobile SDK tooling, templates, and documentation to transform natural language intent into production-ready native mobile applications.
 
 ## Tool Categories and Annotations
 
@@ -344,10 +463,9 @@ Following the monorepo pattern established in `mobile-mcp-tools`:
 mobile-native/
 ├── src/           # MCP server implementation
 │   ├── tools/     # Phase-specific tool implementations
-│   │   ├── plan/      # Environment validation, template discovery
-│   │   ├── design/    # Specification generation, user checkpoints
-│   │   ├── execute/   # App creation, feature implementation
-│   │   └── run/       # Deployment, validation
+│   │   ├── plan/      # Environment validation, template discovery, project creation
+│   │   ├── design-iterate/ # Task planning, feature implementation, changelog management, iteration orchestration
+│   │   └── run/       # Deployment, validation, live feedback
 │   ├── schemas/   # Zod schemas for tool inputs/outputs
 │   └── utils/     # Shared utilities and CLI integrations
 ├── resources/     # Template metadata and documentation
@@ -359,6 +477,50 @@ mobile-native/
 └── package.json   # Project configuration and dependencies
 ```
 
+## Generated Mobile App Project Structure (includes changelog system)
+
+```
+mobile-app-project/
+├── changelog/     # Sequential iteration history
+│   ├── changelog-1.md
+│   ├── changelog-2.md
+│   └── ...
+├── [platform-specific files] # iOS/Android project structure
+└── [standard mobile project files]
+```
+
+## Sample Changelog Structure
+
+## changelog/changelog-1.md
+
+```markdown
+# Changelog Entry 1
+
+**Date**: 2024-01-15 14:30:00
+**Task Scope**: new_feature
+**Complexity Level**: moderate
+**Affected Components**: [ContactListView, ContactService, ContactModel]
+**Dependencies**: [Base template, OAuth setup]
+**Validation Criteria**: [Contact list displays, search functionality works, detail navigation functional]
+
+## Summary
+
+Implemented contact list feature with search and detail navigation capabilities.
+
+## Changes Made
+
+- Added ContactListView component with search bar
+- Implemented ContactService for Salesforce Contact API integration
+- Created ContactModel with proper field mapping
+- Added navigation routing to contact detail screens
+
+## Design Rationale
+
+- Used standard iOS UITableView for performance with large contact lists
+- Implemented local caching to reduce API calls and improve offline experience
+- Followed Mobile SDK patterns for OAuth-authenticated API calls
+```
+
 ## Tool Suite Organization
 
 ### Plan Phase Tools
@@ -367,19 +529,24 @@ mobile-native/
 - **Template Discoverer**: Analyzes user intent and recommends optimal `forceios` or `forcedroid` project templates using collection-level metadata
 - **Template Metadata Manager**: Accesses self-describing template information including feature descriptions and implementation considerations
 - **Connected App Configurator**: Gathers required Connected App Client ID and Callback URI for project creation
-- **Skeletal Project Creator**: Creates functioning baseline mobile app project and validates through build/run cycle
+- **Project Generator**: Uses `forceios`/`forcedroid` CLI tools to generate boilerplate projects from templates via keyword substitution
+- **Template Configuration Manager**: Handles parameter substitution and dependency setup in generated project files
+- **Project Validation Controller**: Validates generated skeletal project builds and deploys successfully with login verification using native platform build tools
 
 ### Design/Iterate Phase Tools
 
-- **Feature Specification Generator**: Creates concrete design documents from user requirements and feedback
-- **Iterative Design Manager**: Orchestrates multiple design cycles with user feedback integration
-- **Implementation Planner**: Generates detailed roadmaps referencing design specifications
-- **User Checkpoint Facilitator**: Manages feature validation and refinement approval workflow
-
-### Execute Phase Tools
-
-- **Foundation Creator**: Interfaces with Force CLI tools to instantiate app templates
-- **Connected App Configurator**: Guides OAuth setup for mobile application authentication
+- **Task Planning Orchestrator**: Analyzes user requirements, documentation, and changelog history to create sequential task lists with granularity guidance
+- **Task Granularity Advisor**: Provides LLM with task sizing recommendations and decomposition strategies to ensure optimal task scoping
+- **Dynamic Task List Manager**: Unified mechanism for all task list adjustments including:
+  - User feedback integration (new tasks from change requests)
+  - Task decomposition (complex tasks broken into smaller tasks)
+  - Error recovery task insertion (build failure fixes)
+  - Task prioritization and dependency management
+- **Changelog Manager**: Creates and maintains sequential changelog files with structured metadata and design rationale
+- **Iterative Task Executor**: Manages individual task execution cycles including code updates and test implementation
+- **Integrated Build Manager**: Orchestrates continuous build validation throughout task execution using native platform build systems (Xcode/Gradle)
+- **Build Validation Controller**: Ensures app remains in buildable/deployable state after each task completion with error recovery capabilities
+- **Error Recovery Manager**: Handles build failures and implements rollback to previous stable states when necessary
 - **Feature Implementer**: Adds requested functionality guided by design documents and documentation
 - **Documentation Grounding Engine**: Provides real-time access to Mobile SDK documentation
 
@@ -885,21 +1052,25 @@ _Priority_: Critical for preventing API hallucination and ensuring generated cod
 
 ### Force iOS Integration
 
-- **Project Creation**: `forceios create` with template specification
-- **Configuration Management**: Automated info.plist and configuration updates
-- **Dependency Management**: CocoaPods and Swift Package Manager integration
+- **Project Generation**: `forceios create` generates boilerplate apps from Mobile SDK templates through keyword substitution
+- **Template Support**: `forceios createWithTemplate` enables custom template usage from GitHub repositories
+- **Configuration Substitution**: Automated parameter replacement in info.plist and project configuration files
+- **Dependency Setup**: Configures CocoaPods or Swift Package Manager dependencies from template specifications
+- **Ready-to-Build Output**: Generates Xcode-compatible projects ready for immediate compilation
 
 ### Force Android Integration
 
-- **Project Creation**: `forcedroid create` with template specification
-- **Gradle Configuration**: Automated build configuration and dependency management
-- **Manifest Updates**: AndroidManifest.xml configuration for mobile features
+- **Project Generation**: `forcedroid create` generates boilerplate apps from Mobile SDK templates through keyword substitution
+- **Template Support**: `forcedroid createWithTemplate` enables custom template usage from GitHub repositories
+- **Configuration Substitution**: Automated parameter replacement in Gradle configuration and AndroidManifest.xml files
+- **Dependency Setup**: Configures Gradle dependencies from template specifications
+- **Ready-to-Build Output**: Generates Android Studio-compatible projects ready for immediate compilation
 
 ## Workflow Orchestration
 
 ### State Management Between Phases
 
-- **Design Document Persistence**: Maintain design specifications across Execute phase tool calls
+- **Design Document Persistence**: Maintain design specifications across Design/Iterate phase tool calls
 - **Template Context**: Preserve template metadata and extension guidance throughout implementation
 - **Error Context**: Maintain error state and recovery guidance across workflow phases
 
@@ -1032,7 +1203,7 @@ This project adheres to security best practices established for MCP servers in t
 
 - **Generated Code Validation**: Automatic testing of generated mobile applications
 - **Template Regression Testing**: Continuous validation of template metadata and extension guidance
-- **End-to-End Workflow Testing**: Comprehensive testing of Plan → Design → Execute → Run workflows
+- **End-to-End Workflow Testing**: Comprehensive testing of Plan → Design/Iterate → Run workflows
 
 ### Error Recovery and Self-Healing
 
