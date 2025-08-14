@@ -12,7 +12,7 @@ export class DocumentScannerTool extends BaseTool {
   readonly title = 'Salesforce Mobile Document Scanner LWC Native Capability';
   public readonly toolId = 'sfmobile-web-document-scanner';
   public readonly description =
-    'Provides expert grounding to implement a Document Scanner feature in a Salesforce Lightning web component (LWC).';
+    'The MCP tool provides a comprehensive TypeScript-based API documentation for Salesforce LWC Document Scanner, laying the foundation for understanding mobile document scanner and offering expert-level guidance for implementing the Document Scanner feature in a Lightning Web Component (LWC).';
   protected readonly typeDefinitionPath = 'documentScanner/documentScanner.d.ts';
   public readonly serviceName = 'Document Scanner';
   protected readonly serviceDescription = `The following content provides grounding information for generating a Salesforce LWC that leverages document scanning facilities on mobile devices. Specifically, this context will cover the API types and methods available to leverage the document scanner API of the mobile device, within the LWC.`;
