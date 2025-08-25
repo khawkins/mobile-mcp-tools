@@ -17,6 +17,7 @@
     "build:all": "nx run-many --target=build && chmod +x packages/mobile-web/dist/index.js",
     "mobile-web:server:start": "npm run build:all && npx -y @salesforce/mobile-web-mcp-server",
     "inspect": "npm run build:all && npx @modelcontextprotocol/inspector node ./packages/mobile-web/dist/index.js",
+    "inspect:native": "npm run build:all && npx @modelcontextprotocol/inspector node ./packages/mobile-native-mcp-server/dist/index.js",
     "evaluate": "nx run @salesforce/mobile-mcp-tools-evaluation:evaluate --",
     "evaluate:all": "nx run @salesforce/mobile-mcp-tools-evaluation:evaluate --",
     "evaluate:component": "nx run @salesforce/mobile-mcp-tools-evaluation:evaluate:component --",
