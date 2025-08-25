@@ -212,20 +212,25 @@ By the end of each Design/Iterate phase, the user validates implemented features
 #### Template Selection
 
 - Determine optimal `sfdx-mobilesdk-plugin` project template based on user requirements
-- Templates sourced from existing SalesforceMobileSDK-Templates repo or new template collection
-- **CLI Enhancements Required**:
-  - Support for template collection URIs in `sfdx-mobilesdk-plugin`
-  - Collection-level metadata for template registry/directory
-  - Template-specific metadata for self-describing projects
+- **Primary Template Source**: Official [SalesforceMobileSDK-Templates](https://github.com/forcedotcom/SalesforceMobileSDK-Templates) repository via Git submodule, with architecture designed to support additional template sources in future iterations
+- **Template Repository Integration**:
+  - Git submodule at `<ServerRoot>/resources/SalesforceMobileSDK-Templates/` provides local access to official Salesforce templates as primary foundation
+  - `sfmobile-native-template-discovery` tool parses template metadata with extensible architecture for multiple template sources
+  - Platform-specific template filtering (iOS/Android) based on user requirements across all available template repositories
+  - Direct integration with `sfdx-mobilesdk-plugin` CLI using local template paths
 
 #### Template Metadata System
 
-- **Collection Metadata**: Descriptive directory enabling LLM template selection
-- **Template Metadata**: Rich project information including:
-  - Nature of implemented features
-  - Design and implementation considerations
-- **Local Access**: All templates and metadata available locally per documentation repository approach
-- _Note: Metadata system design details TBD_
+- **Primary Template Registry**: Leverages official template metadata accessed via `sfdx-mobilesdk-plugin` CLI commands with `--doc` and `--json` flags
+- **Rich Template Metadata**: Comprehensive project information including:
+  - Detailed descriptions and specific use case guidance
+  - Structured features arrays for precise capability matching
+  - Complexity ratings (simple, moderate, advanced) for appropriate template selection
+  - List of customization points with file-level modification instructions
+  - Platform-specific configuration and dependency information
+- **Local Access**: All templates and metadata available locally via Git submodule without network dependencies
+- **Extensible Architecture**: Template discovery system designed to accommodate additional template repositories and community-contributed templates in future releases
+- **Automatic Updates**: Submodule updates provide access to latest templates and improvements from Salesforce Mobile SDK team
 
 #### Connected App Configuration
 
@@ -543,8 +548,8 @@ mobile-native/
 │   │   └── run/       # Deployment, validation, live feedback
 │   ├── schemas/   # Zod schemas for tool inputs/outputs
 │   └── utils/     # Shared utilities and CLI integrations
-├── resources/     # Template metadata and documentation
-│   ├── templates/     # Mobile SDK template descriptions and extension guides
+├── resources/     # Template repository and documentation
+│   ├── SalesforceMobileSDK-Templates/  # Git submodule: Official Salesforce Mobile SDK Templates
 │   ├── setup-guides/ # Environment setup instructions
 │   └── api-docs/      # Mobile SDK API documentation excerpts
 ├── scripts/       # Project utilities and maintenance
@@ -601,7 +606,7 @@ Implemented contact list feature with search and detail navigation capabilities.
 ### Plan Phase Tools
 
 - **Environment Validation**: [`sfmobile-native-environment-validation`](#sfmobile-native-environment-validation) tool provides comprehensive development environment setup and validation, including Salesforce CLI installation, required plugin management, and third-party tool validation integration
-- **Template Discovery Assistant**: Gives LLM access to template metadata and selection criteria for choosing optimal `sfdx-mobilesdk-plugin` project templates based on user requirements and use cases
+- **Template Discovery**: [`sfmobile-native-template-discovery`](#sfmobile-native-template-discovery) tool provides comprehensive template discovery and selection guidance using official Salesforce Mobile SDK Templates repository
 - **Template Metadata Provider**: Delivers comprehensive template information to the LLM including feature descriptions, implementation considerations, and extension patterns for informed decision-making
 - **Connected App Configuration Guide**: Directs LLM through the process of gathering required Connected App Client ID and Callback URI, with setup instructions and validation steps
 - **Project Generation Guide**: Provides LLM with precise `sfdx-mobilesdk-plugin` CLI commands and parameter guidance for generating boilerplate projects from templates via keyword substitution
@@ -1566,6 +1571,137 @@ The `sfmobile-native-environment-validation` tool specified above represents the
 - **User Choice Preservation**: Maintain user agency in installation decisions with clear workflow termination options
 - **Error Transparency**: Surface all CLI output (stdout/stderr, exit codes) for LLM self-healing capabilities
 - **Platform Awareness**: Provide platform-specific guidance (macOS, Windows, Linux) based on user environment
+
+### MCP Server Tool Specification
+
+#### `sfmobile-native-template-discovery`
+
+**Purpose**: Provides comprehensive template discovery and selection guidance, primarily using official Salesforce Mobile SDK Templates repository with extensible architecture for additional template sources
+
+**Input Schema**:
+
+```typescript
+{
+  platform: 'iOS' | 'Android' | 'both';
+  featureKeywords?: string[]; // ["record-list", "contacts", "crud", "hybrid", "react-native"]
+  complexityPreference?: 'simple' | 'moderate' | 'advanced';
+  useCase?: string; // "Contact management", "Field service", "Sales automation"
+}
+```
+
+**Output**: Instruction-first template discovery guidance including:
+
+- CLI commands for comprehensive template discovery (`sf mobilesdk ios listtemplates --doc --json`)
+- Structured JSON parsing instructions for template metadata analysis
+- Template matching logic based on features, complexity, and use cases
+- Optional detailed template investigation commands (`sf mobilesdk ios listtemplate --doc --json`)
+- Customization point analysis for template adaptation requirements
+- Next steps for project generation with selected template
+
+**Example Output**:
+
+````markdown
+# Mobile Template Discovery Workflow
+
+## Step 1: Validate Template Repository Access
+
+First, verify access to the official Salesforce Mobile SDK Templates:
+
+```bash
+ls -la <ServerRoot>/resources/SalesforceMobileSDK-Templates/
+```
+
+**Expected**: Directory contains official Salesforce Mobile SDK template folders and `templates.json` metadata file.
+
+## Step 2: Discover Available Templates
+
+Use the `sfdx-mobilesdk-plugin` CLI to get comprehensive template information:
+
+```bash
+sf mobilesdk ios listtemplates --templatesource=<ServerRoot>/resources/SalesforceMobileSDK-Templates --doc --json
+```
+
+**Template Discovery:**
+
+- `--doc` flag provides detailed descriptions, use cases, features, and complexity ratings for each template
+- `--json` flag returns structured data perfect for LLM parsing and decision-making
+- Comprehensive metadata includes: description, useCase, features array, complexity level, and list of customization points
+- Platform-specific filtering automatically applied (iOS templates only)
+
+## Step 3: Template Analysis and Selection
+
+Parse the JSON output from the `listtemplates` command to match user requirements:
+
+**Expected JSON Structure** (from CLI output):
+
+```json
+[
+  {
+    "template": "iOSNativeSwiftTemplate",
+    "description": "A basic iOS native Swift application template using Salesforce Mobile SDK with MobileSync, SwiftUI, and Combine...",
+    "useCase": "Use this template when you need to create a basic iOS native app that integrates with Salesforce using Swift, SwiftUI, and Combine...",
+    "features": ["native-ios", "swift", "swiftui", "combine", "salesforce-sdk", "mobilesync", "authentication", "account-list", "contact-management", "smartstore", "offline-capability"],
+    "complexity": "simple",
+    "customizationPoints": [...]
+  },
+  {
+    "template": "MobileSyncExplorerSwift",
+    "description": "A comprehensive iOS Swift application template demonstrating advanced Salesforce Mobile SDK integration...",
+    "features": ["native-ios", "swift", "swiftui", "salesforce-sdk", "mobilesync", "offline-sync", "smartstore", "contact-management", "search-functionality", "split-view-navigation"],
+    "complexity": "moderate"
+  }
+]
+```
+
+**Template Matching Logic:**
+
+- Filter templates by required features: ["contact-management", "record-list", "crud"]
+- Match complexity preference: "simple" or "moderate"
+- Analyze customization points for required modifications
+- Consider `useCase` descriptions for alignment with user intent
+
+## Step 4: Detailed Template Investigation (Optional)
+
+For additional template details, use the new `listtemplate` command:
+
+```bash
+sf mobilesdk ios listtemplate --template=iOSNativeSwiftTemplate --templatesource=<ServerRoot>/resources/SalesforceMobileSDK-Templates --doc --json
+```
+
+**Template Details:**
+
+- Complete list of customization points with specific modification guidance
+- Detailed file-level instructions for common customization scenarios
+- Platform-specific configuration requirements
+- Dependencies and version compatibility information
+
+## Step 5: Validation and Next Steps
+
+**Selected Template**: iOSNativeSwiftTemplate
+**Template Path**: `<ServerRoot>/resources/SalesforceMobileSDK-Templates/iOSNativeSwiftTemplate/`
+
+**Next Step**: Proceed with `sfmobile-native-project-generation` using:
+
+- selectedTemplate: "iOSNativeSwiftTemplate"
+- templateSource: "<ServerRoot>/resources/SalesforceMobileSDK-Templates"
+
+**Template Customization Notes**:
+
+- Template includes placeholder configurations for Connected App setup
+- Default implementation uses Account objects - will need adaptation for Contact records
+- Includes standard iOS Mobile SDK authentication and API patterns
+````
+
+### Implementation Strategy
+
+The `sfmobile-native-template-discovery` tool leverages the Git submodule integration to provide reliable, local access to official Salesforce Mobile SDK templates while maintaining instruction-first principles and extensible architecture:
+
+- **Primary Submodule Integration**: Direct access to official Salesforce templates without network dependencies during development
+- **Extensible Metadata Parsing**: Intelligent interpretation of template metadata with architecture designed to support multiple template sources
+- **Platform Filtering**: Automatic filtering based on target mobile platform (iOS/Android) across all available template repositories
+- **Feature Matching**: Template recommendation based on user requirements and feature keywords from comprehensive template catalog
+- **CLI Integration**: Seamless integration with `sfdx-mobilesdk-plugin` commands using local template paths
+- **Future Template Sources**: Architecture designed to accommodate community templates, partner templates, and custom organizational template repositories
 
 ## Quality and Reliability Enhancement
 

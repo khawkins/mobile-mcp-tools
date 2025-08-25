@@ -1,8 +1,8 @@
-# Proof of Life: Contact List iOS App - Implementation Plan
+# Proof of Life: Contact List Mobile App - Implementation Plan
 
 ## Overview
 
-**This is a living document** that outlines the specific implementation requirements for our first technology preview iteration: an end-to-end workflow that transforms a user utterance into a functioning iOS mobile app displaying a list of Salesforce Contacts.
+**This is a living document** that outlines the specific implementation requirements for our first technology preview iteration: an end-to-end workflow that transforms a user utterance into a functioning mobile app displaying a list of Salesforce Contacts.
 
 **Current Iteration Scope**: This first iteration of the document represents a waypoint to define the basic scaffolding of a "happy path" end-to-end flow. It by no means fully defines the end deliverable for customers, but rather establishes the foundational workflow and tooling architecture.
 
@@ -16,7 +16,7 @@
 
 ## Success Criteria
 
-**User Journey**: From utterance _"I want an iOS mobile app that will show me a list of all of my Salesforce Contacts"_ to a running iOS app displaying Contacts in a simulator.
+**User Journey**: From utterance _"I want an iOS mobile app that will show me a list of all of my Salesforce Contacts"_ to a running mobile app displaying Contacts in a simulator/emulator.
 
 **Technical Validation**: Demonstrates instruction-first MCP tools successfully guiding an LLM through the complete Plan → Design/Iterate → Run workflow.
 
@@ -26,18 +26,18 @@
 
 ### Environment Assumptions (Happy Path Focus)
 
-- User is on a supported version of macOS
+- User is on a supported development platform (macOS for iOS development, macOS/Windows/Linux for Android development)
 - User is using Cursor IDE for agentic development
 - Pre-installed tools:
   - `@salesforce/mobile-native-mcp-server` MCP server
   - Salesforce CLI with `sfdx-mobilesdk-plugin`, `@salesforce/lwc-dev-mobile`, and `@salesforce/lwc-dev-mobile-core` plugins
-  - Supported version of Xcode
+  - Platform-specific development tools will be validated based on target platform (Xcode for iOS, Android Studio for Android)
 - User has a pre-configured Salesforce Connected App with known Client ID and Callback URI
 
 ### Resource Paths
 
 - `<ServerRoot>`: Filesystem path to `@salesforce/mobile-native-mcp-server` package contents
-- Templates located at: `<ServerRoot>/resources/iosTemplates/`
+- Templates located at: `<ServerRoot>/resources/SalesforceMobileSDK-Templates/` (Git submodule pointing to [SalesforceMobileSDK-Templates](https://github.com/forcedotcom/SalesforceMobileSDK-Templates))
 
 ---
 
@@ -76,7 +76,7 @@
 ```typescript
 {
   userRequest: string; // "I want an iOS mobile app that will show me a list of all of my Salesforce Contacts"
-  platform: 'iOS' | 'Android'; // "iOS"
+  platform: 'iOS' | 'Android'; // Platform specified by user request
 }
 ```
 
@@ -104,7 +104,7 @@ First, analyze the user request to identify key features:
 
 ### Phase 1: Plan
 
-1. **Template Discovery**: Call `sfmobile-native-template-discovery` with platform "iOS"
+1. **Template Discovery**: Call `sfmobile-native-template-discovery` with specified platform
    - Use identified features to filter templates by tags
    - Match user requirements to template capabilities
 2. **Project Generation**: Call `sfmobile-native-project-generation` with selected template
@@ -120,7 +120,7 @@ First, analyze the user request to identify key features:
 
 ### Phase 3: Run
 
-7. **Deployment**: Call `sfmobile-native-deployment` to launch on iOS simulator
+7. **Deployment**: Call `sfmobile-native-deployment` to launch on simulator/emulator
    → **Final Checkpoint**: User can interact with functioning app
 
 **Next Step**: Begin by analyzing the user request, then start with `sfmobile-native-template-discovery`
@@ -146,7 +146,7 @@ First, analyze the user request to identify key features:
 **Output**: Instruction-first guidance including:
 
 - Plugin verification: `sf plugins inspect sfdx-mobilesdk-plugin --json` (install with `sf plugins install sfdx-mobilesdk-plugin` if needed)
-- CLI command: `sf mobilesdk ios listtemplates --templatesource=<ServerRoot>/resources/iosTemplates --json`
+- Platform-specific CLI command: `sf mobilesdk ios|android listtemplates --templatesource=<ServerRoot>/resources/SalesforceMobileSDK-Templates --doc --json` (iOS example shown, Android follows same pattern)
 - Template metadata interpretation guidance
 - Selection criteria for Contact list requirements
 - Next steps for project generation
@@ -161,6 +161,7 @@ First, analyze the user request to identify key features:
 {
   selectedTemplate: string;     // "salesforce-record-list-ios"
   projectName: string;         // "ContactListApp"
+  platform: "iOS" | "Android"; // Platform for project generation
   connectedAppClientId?: string;
   connectedAppCallbackUri?: string;
 }
@@ -168,7 +169,7 @@ First, analyze the user request to identify key features:
 
 **Output**: Instruction-first guidance including:
 
-- CLI command: `sf mobilesdk ios createwithtemplate --templateSource=<ServerRoot>/resources/iosTemplates --template=<selectedTemplate> --projectname=<projectName>`
+- Platform-specific CLI command: `sf mobilesdk ios|android createwithtemplate --templateSource=<ServerRoot>/resources/SalesforceMobileSDK-Templates --template=<selectedTemplate> --projectname=<projectName>` (iOS example shown, Android follows same pattern)
 - Connected App configuration steps if credentials provided
 - File modification instructions for OAuth setup
 - Next steps for build validation
@@ -181,14 +182,15 @@ First, analyze the user request to identify key features:
 
 ```typescript
 {
-  projectPath: string; // Path to generated Xcode project
+  projectPath: string; // Path to generated project
+  platform: 'iOS' | 'Android'; // Platform for build validation
 }
 ```
 
 **Output**: Instruction-first guidance including:
 
-- CLI command: `xcodebuild -project <projectPath> -scheme <schemeName> -destination 'platform=iOS Simulator,name=iPhone 15' build`
-- Build output interpretation guidance
+- Platform-specific build commands: `xcodebuild` for iOS projects, `./gradlew build` for Android projects (iOS example shown, Android follows same pattern)
+- Build output interpretation guidance for platform-specific tools
 - Common build error troubleshooting steps
 - Success criteria for proceeding to Design/Iterate phase
 
@@ -205,15 +207,16 @@ First, analyze the user request to identify key features:
 ```typescript
 {
   projectPath: string;
+  platform: 'iOS' | 'Android'; // Platform for code analysis
   targetFeature: string; // "record-list"
 }
 ```
 
 **Output**: Instruction-first guidance including:
 
-- File exploration patterns for iOS project structure
+- Platform-specific file exploration patterns (iOS/Android project structures)
 - Key files to examine for record list implementation
-- Code reading strategies for Swift/iOS development
+- Platform-specific code reading strategies (Swift/iOS, Kotlin/Java/Android)
 - Understanding existing data model and service patterns
 
 #### `sfmobile-native-feature-modification`
@@ -225,6 +228,7 @@ First, analyze the user request to identify key features:
 ```typescript
 {
   projectPath: string;
+  platform: 'iOS' | 'Android'; // Platform for feature modification
   currentRecordType: string; // "Account" (from template)
   targetRecordType: string; // "Contact"
 }
@@ -244,101 +248,100 @@ First, analyze the user request to identify key features:
 
 #### `sfmobile-native-deployment`
 
-**Purpose**: Guides LLM through deploying app to iOS simulator
+**Purpose**: Guides LLM through deploying app to simulator/emulator
 
 **Input Schema**:
 
 ```typescript
 {
   projectPath: string;
-  simulatorDevice?: string; // "iPhone 15"
+  platform: "iOS" | "Android"; // Platform for deployment
+  targetDevice?: string; // "iPhone 15" for iOS, "Pixel_7_API_33" for Android
 }
 ```
 
 **Output**: Instruction-first guidance including:
 
-- CLI command: `@salesforce/lwc-dev-mobile` plugin usage for deployment
-- iOS simulator selection and management
+- Platform-specific CLI commands: `@salesforce/lwc-dev-mobile` plugin usage for deployment
+- Device selection and management (iOS simulator, Android emulator)
 - App launch verification steps
 - User interaction validation guidance
 
 ---
 
-## Template Metadata Requirements
+## Template Repository Integration
 
-### Tier 1: Templates Directory Metadata
+### Git Submodule Design
 
-**Location**: `<ServerRoot>/resources/iosTemplates/metadata.json`
+**Architecture Decision**: The `@salesforce/mobile-native-mcp-server` package includes the official [SalesforceMobileSDK-Templates](https://github.com/forcedotcom/SalesforceMobileSDK-Templates) repository as a Git submodule located at `<ServerRoot>/resources/SalesforceMobileSDK-Templates/`, serving as the primary template source with architecture designed to support additional template repositories in future iterations.
 
-**Structure**:
+**Template Discovery Process**:
 
-```json
-{
-  "templateRepositoryVersion": "1.0.0",
-  "description": "iOS native app templates for Salesforce Mobile SDK",
-  "lastUpdated": "2024-01-15",
-  "templates": [
-    {
-      "templateId": "salesforce-record-list-ios",
-      "displayName": "Salesforce Record List",
-      "description": "List view with search, detail navigation, and offline support",
-      "tags": ["record-list", "crud", "search", "offline", "contacts", "accounts", "leads"],
-      "complexity": "moderate",
-      "estimatedSetupTime": "15-30 minutes",
-      "supportedRecordTypes": ["Contact", "Account", "Lead", "Opportunity"]
-    }
-  ]
-}
+1. `sfmobile-native-template-discovery` tool uses `sfdx-mobilesdk-plugin` CLI commands
+2. Executes platform-specific commands: `sf mobilesdk ios|android listtemplates --templatesource=<ServerRoot>/resources/SalesforceMobileSDK-Templates --doc --json` for comprehensive template information
+3. Parses structured JSON output including descriptions, use cases, features arrays, complexity ratings, and list of customization points
+4. Optionally uses platform-specific commands: `sf mobilesdk ios|android listtemplate --template=<TemplateName> --doc --json` for detailed template investigation
+5. Returns template selection guidance to LLM with rich metadata and extensible architecture for future template repositories
+
+**Integration with CLI Tools**:
+
+- `sfdx-mobilesdk-plugin` CLI commands reference the local submodule path as template source
+- Templates are immediately available for project generation without additional downloads
+- Consistent with standard Mobile SDK development workflows
+
+---
+
+## Template Metadata Access
+
+### CLI-Delivered Metadata
+
+The `sfdx-mobilesdk-plugin` CLI provides comprehensive template metadata through its `--doc --json` flags, enabling LLMs to make informed template selection and customization decisions:
+
+#### Template Discovery Workflow
+
+**Comprehensive Template Listing**:
+
+```bash
+sf mobilesdk ios|android listtemplates --templatesource=<ServerRoot>/resources/SalesforceMobileSDK-Templates --doc --json
 ```
 
-### Tier 2: Individual Template Metadata
+- **Structured Output**: JSON format optimized for LLM parsing and decision-making
+- **Rich Descriptions**: Detailed use case guidance and feature explanations
+- **Feature Tagging**: Structured arrays for precise capability matching
+- **Complexity Assessment**: Ratings to guide appropriate template selection
+- **Platform Filtering**: Automatic filtering for target development platform
 
-**Location**: `<ServerRoot>/resources/iosTemplates/salesforce-record-list-ios/metadata.json`
+**Detailed Template Investigation**:
 
-**Structure**:
-
-```json
-{
-  "templateId": "salesforce-record-list-ios",
-  "version": "1.0.0",
-  "description": "iOS app with Salesforce record list view and basic CRUD operations",
-  "features": ["record-list", "search", "detail-view", "offline-sync"],
-  "defaultRecordType": "Account",
-  "customizationPoints": [
-    {
-      "feature": "record-list",
-      "description": "Change the record type displayed in the list",
-      "files": [
-        "ContactListApp/Services/RecordListService.swift",
-        "ContactListApp/Models/RecordModel.swift",
-        "ContactListApp/Views/RecordListViewController.swift"
-      ],
-      "instructions": [
-        "1. Modify SOQL query in RecordListService.swift line 23 to select from Contact instead of Account",
-        "2. Update RecordModel.swift properties to match Contact field schema (Name, Email, Phone)",
-        "3. Adjust table view cell configuration in RecordListViewController.swift to display Contact fields"
-      ]
-    },
-    {
-      "feature": "oauth-configuration",
-      "description": "Configure Connected App credentials for Salesforce authentication",
-      "files": ["ContactListApp/Supporting Files/Info.plist"],
-      "instructions": [
-        "1. Replace placeholder CLIENT_ID with actual Connected App Consumer Key",
-        "2. Replace placeholder CALLBACK_URI with actual Connected App Callback URL"
-      ]
-    }
-  ],
-  "complexity": "moderate",
-  "requiredXcodeVersion": "15.0+",
-  "targetiOSVersion": "17.0+",
-  "dependencies": {
-    "SalesforceSDKCore": "11.0+",
-    "SalesforceAnalytics": "11.0+",
-    "SalesforceSDKCommon": "11.0+"
-  }
-}
+```bash
+sf mobilesdk ios|android listtemplate --template=<TemplateName> --templatesource=<ServerRoot>/resources/SalesforceMobileSDK-Templates --doc --json
 ```
+
+- **Customization Points**: Comprehensive modification guidance with file-level instructions
+- **Implementation Patterns**: Proven approaches for common template adaptations
+- **Dependency Information**: Platform-specific requirements and version compatibility
+- **Configuration Examples**: Specific guidance for Connected App setup and OAuth integration
+
+### Metadata Content for LLM Decision-Making
+
+Templates provide LLMs with guidance on:
+
+- **Feature Capabilities**: Clear mapping between user requirements and template functionality
+- **Use Case Alignment**: Specific scenarios where each template excels
+- **Complexity Assessment**: Appropriate template selection based on project scope
+- **Customization Roadmap**: Step-by-step modification instructions for common adaptations
+- **Platform Requirements**: Tool versions, dependencies, and environment prerequisites
+- **Configuration Patterns**: Proven approaches for Salesforce integration and authentication setup
+
+### LLM Workflow Integration
+
+The CLI-delivered metadata enables LLMs to:
+
+1. **Match User Intent**: Compare user requirements against template capabilities and use cases
+2. **Assess Complexity**: Select templates appropriate for project scope and developer experience
+3. **Plan Customizations**: Identify specific modification points and required file changes
+4. **Validate Compatibility**: Ensure template requirements align with user environment and platform
+5. **Generate Instructions**: Provide concrete next steps for project generation and customization
 
 ---
 
@@ -373,16 +376,16 @@ Tools guide the LLM through:
 ### Phase 1: MCP Server Foundation
 
 1. **Workflow Orchestration Guide tool** with Contact list workflow template
-2. **Template Discovery tool** with Tier 1/Tier 2 metadata parsing
+2. **Template Discovery tool** with CLI-based metadata access and analysis
 3. **Project Generation tool** with Connected App configuration guidance
-4. **Build Validation tool** with Xcode build orchestration
+4. **Build Validation tool** with platform-specific build orchestration
 
 ### Phase 2: Template Infrastructure
 
-1. **iOS template directory structure** with sample "salesforce-record-list-ios" template
-2. **Tier 1 metadata file** for template repository
-3. **Tier 2 metadata file** for record list template with customization guidance
-4. **Template validation** ensuring buildable Xcode project
+1. **Git Submodule Integration**: Configure SalesforceMobileSDK-Templates as submodule in `<ServerRoot>/resources/SalesforceMobileSDK-Templates/`
+2. **CLI Integration**: Implement MCP tools that leverage `sfdx-mobilesdk-plugin` CLI commands for template metadata delivery
+3. **Platform-Specific Discovery**: Guide LLMs through platform-aware template discovery using CLI `--doc --json` output
+4. **Template Validation**: Verify template availability and CLI plugin functionality for comprehensive template access
 
 ### Phase 3: Feature Adaptation Tools
 
@@ -402,7 +405,7 @@ Tools guide the LLM through:
 
 ### Technical Metrics
 
-- **Time to Working App**: < 10 minutes from utterance to simulator
+- **Time to Working App**: < 10 minutes from utterance to simulator/emulator
 - **Build Success Rate**: 100% for happy path workflow
 - **Template Adaptation Accuracy**: Contact list displays actual Salesforce Contact records
 
@@ -416,7 +419,7 @@ Tools guide the LLM through:
 
 - **Minimal User Intervention**: Only Connected App credentials required from user
 - **Clear Progress Indicators**: User understands workflow progress at each checkpoint
-- **Functional End Result**: User can interact with Contact list in working iOS app
+- **Functional End Result**: User can interact with Contact list in working mobile app
 
 ---
 
@@ -430,7 +433,7 @@ Tools guide the LLM through:
 
 - **Salesforce CLI Installation Validation**: Automated detection and installation guidance for the Salesforce CLI itself, including platform-specific installation instructions and npm-based installation workflows
 - **Required Plugin Management**: Automated verification and installation of all required Salesforce CLI plugins (`sfdx-mobilesdk-plugin`, `@salesforce/lwc-dev-mobile`, `@salesforce/lwc-dev-mobile-core`)
-- **Third-Party Tool Validation**: Comprehensive environment checks for Xcode, Android Studio, Java, and other platform-specific development tools using existing `@salesforce/lwc-dev-mobile-core` capabilities
+- **Platform-Specific Tool Validation**: Comprehensive environment checks for required development tools (Xcode for iOS, Android Studio for Android, Java, etc.) using existing `@salesforce/lwc-dev-mobile-core` capabilities
 
 **Tool Specification**: Implemented via the [`sfmobile-native-environment-validation`](./5_mobile_native_app_generation.md#sfmobile-native-environment-validation) tool with comprehensive first-party CLI validation while maintaining instruction-first principles.
 
@@ -444,13 +447,14 @@ Tools guide the LLM through:
 
 - Comprehensive build error diagnosis and resolution
 - Template compatibility validation
-- Xcode version and dependency management
+- Platform-specific tool version and dependency management
 
 ### Extended Template Ecosystem _(Platform Expansion)_
 
-- Multiple iOS template options (dashboard, forms, etc.)
-- Android template support
-- Cross-platform project generation
+- Extended template catalog (dashboard, forms, etc.) for both platforms
+- Cross-platform project generation capabilities
+- **Additional Template Sources**: Community-contributed templates, partner templates, and custom organizational template repositories
+- **Template Marketplace Integration**: Discovery and integration of third-party template sources while maintaining quality and security standards
 
 ### Production Readiness Features _(Customer Deployment)_
 
