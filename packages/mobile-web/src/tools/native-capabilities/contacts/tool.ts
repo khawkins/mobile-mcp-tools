@@ -12,7 +12,7 @@ export class ContactsTool extends BaseTool {
   readonly title = 'Salesforce Mobile Contacts Service LWC Native Capability';
   public readonly toolId = 'sfmobile-web-contacts';
   public readonly description =
-    'Provides expert grounding to implement a Contacts feature in a Salesforce Lightning web component (LWC).';
+    'The MCP tool provides a comprehensive TypeScript-based API documentation for Salesforce LWC Contacts Service, laying the foundation for understanding mobile contacts and offering expert-level guidance for implementing the Contacts feature in a Lightning Web Component (LWC).';
   protected readonly typeDefinitionPath = 'contacts/contactsService.d.ts';
   public readonly serviceName = 'Contacts';
   protected readonly serviceDescription = `The following content provides grounding information for generating a Salesforce LWC that leverages contacts facilities on mobile devices. Specifically, this context will cover the API types and methods available to leverage the contacts API of the mobile device, within the LWC.`;

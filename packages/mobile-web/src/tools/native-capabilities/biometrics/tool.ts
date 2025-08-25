@@ -12,7 +12,7 @@ export class BiometricsTool extends BaseTool {
   readonly title = 'Salesforce Mobile Biometrics Service LWC Native Capability';
   public readonly toolId = 'sfmobile-web-biometrics';
   public readonly description =
-    'Provides expert grounding to implement a Biometrics feature in a Salesforce Lightning web component (LWC).';
+    'The MCP tool provides a comprehensive TypeScript-based API documentation for Salesforce LWC Biometrics Service, laying the foundation for understanding mobile biometrics and offering expert-level guidance for implementing the Biometrics feature in a Lightning Web Component (LWC).';
   protected readonly typeDefinitionPath = 'biometrics/biometricsService.d.ts';
   public readonly serviceName = 'Biometrics';
   protected readonly serviceDescription = `The following content provides grounding information for generating a Salesforce LWC that leverages biometrics scanning facilities on mobile devices. Specifically, this context will cover the API types and methods available to leverage the face recognition and the finger printing scanner of the mobile device to authorize the user, within the LWC.`;
