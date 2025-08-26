@@ -205,7 +205,7 @@ By the end of each Design/Iterate phase, the user validates implemented features
 
 #### Environment Setup
 
-- Validate required development tools for chosen mobile platform using `@salesforce/lwc-dev-mobile-core` CLI plugin
+- Validate required development tools for chosen mobile platform using `@salesforce/lwc-dev-mobile` CLI plugin
 - Leverage existing `sf force lightning local setup` command environment checks
 - _Note: CLI plugin requires updates to support structured JSON output via `--json` flag_
 
@@ -1318,8 +1318,7 @@ This project adheres to security best practices established for MCP servers in t
 **Plugin Requirements**: All Salesforce CLI plugins essential for mobile native development must be validated and installed:
 
 - `sfdx-mobilesdk-plugin`: iOS/Android project generation and management
-- `@salesforce/lwc-dev-mobile`: Deployment and device management
-- `@salesforce/lwc-dev-mobile-core`: Environment validation and core mobile development tools
+- `@salesforce/lwc-dev-mobile`: Deployment, device management, and environment validation
 
 **Installation Workflow**:
 
@@ -1332,7 +1331,7 @@ This project adheres to security best practices established for MCP servers in t
 
 **Coordination Strategy**: Seamlessly integrate Salesforce CLI validation with existing third-party tool validation capabilities:
 
-- **Pre-requisite Ordering**: Validate Salesforce CLI and plugins before invoking `@salesforce/lwc-dev-mobile-core` for third-party tool validation
+- **Pre-requisite Ordering**: Validate Salesforce CLI and plugins before invoking `@salesforce/lwc-dev-mobile` for third-party tool validation
 - **Unified Workflow**: Present environment validation as single cohesive process despite multiple validation layers
 - **Error Recovery**: Provide coordinated troubleshooting guidance across both first-party and third-party tool issues
 
@@ -1358,14 +1357,12 @@ This project adheres to security best practices established for MCP servers in t
 interface PluginVersionRequirements {
   'sfdx-mobilesdk-plugin': string; // e.g., "1.0.0"
   '@salesforce/lwc-dev-mobile': string; // e.g., "2.1.0"
-  '@salesforce/lwc-dev-mobile-core': string; // e.g., "1.5.0"
 }
 
 // Configurable within MCP server package
 const MINIMUM_PLUGIN_VERSIONS: PluginVersionRequirements = {
   'sfdx-mobilesdk-plugin': '1.0.0',
   '@salesforce/lwc-dev-mobile': '2.1.0',
-  '@salesforce/lwc-dev-mobile-core': '1.5.0',
 };
 ```
 
@@ -1481,19 +1478,18 @@ sf plugins inspect @salesforce/lwc-dev-mobile --json
 sf plugins install @salesforce/lwc-dev-mobile
 ```
 
-### Plugin 3: @salesforce/lwc-dev-mobile-core
+### Environment Validation Integration
+
+With both required plugins installed, proceed to third-party tool validation using `@salesforce/lwc-dev-mobile`:
 
 ```bash
-sf plugins inspect @salesforce/lwc-dev-mobile-core --json
+sf force lightning local setup --platform=ios
 ```
 
-**Version Validation**: Extract version from `response[0].manifest.version`
-**Required Minimum Version**: 1.5.0 (configurable in MCP server)
-
-**If Missing or Outdated**: Install/update with:
+**For Android target platforms**:
 
 ```bash
-sf plugins install @salesforce/lwc-dev-mobile-core
+sf force lightning local setup --platform=android
 ```
 
 ### Version Comparison Logic
@@ -1522,7 +1518,7 @@ For each plugin, compare installed version against minimum required version:
 
 ## Step 3: Third-Party Tool Validation
 
-With Salesforce CLI and plugins confirmed, proceed to third-party validation:
+With Salesforce CLI and plugins confirmed, proceed to third-party validation using `@salesforce/lwc-dev-mobile`:
 
 ```bash
 sf force lightning local setup --platform=ios
@@ -1540,7 +1536,7 @@ sf force lightning local setup --platform=android
 
 - ✅ Salesforce CLI installed and functional
 - ✅ All required plugins installed and meet minimum version requirements
-- ✅ Platform-specific tools validated (Xcode/Android Studio)
+- ✅ Platform-specific tools validated (Xcode/Android Studio) via `@salesforce/lwc-dev-mobile`
 
 **Next Step**: Proceed with `sfmobile-native-template-discovery`
 

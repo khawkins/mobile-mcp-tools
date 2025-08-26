@@ -30,7 +30,7 @@
 - User is using Cursor IDE for agentic development
 - Pre-installed tools:
   - `@salesforce/mobile-native-mcp-server` MCP server
-  - Salesforce CLI with `sfdx-mobilesdk-plugin`, `@salesforce/lwc-dev-mobile`, and `@salesforce/lwc-dev-mobile-core` plugins
+  - Salesforce CLI with `sfdx-mobilesdk-plugin` and `@salesforce/lwc-dev-mobile` plugins
   - Platform-specific development tools will be validated based on target platform (Xcode for iOS, Android Studio for Android)
 - User has a pre-configured Salesforce Connected App with known Client ID and Callback URI
 
@@ -432,8 +432,8 @@ Tools guide the LLM through:
 **Implementation Details**: See [Comprehensive Environment Setup and Validation](./5_mobile_native_app_generation.md#comprehensive-environment-setup-and-validation) in the main design document for detailed implementation specifications.
 
 - **Salesforce CLI Installation Validation**: Automated detection and installation guidance for the Salesforce CLI itself, including platform-specific installation instructions and npm-based installation workflows
-- **Required Plugin Management**: Automated verification and installation of all required Salesforce CLI plugins (`sfdx-mobilesdk-plugin`, `@salesforce/lwc-dev-mobile`, `@salesforce/lwc-dev-mobile-core`)
-- **Platform-Specific Tool Validation**: Comprehensive environment checks for required development tools (Xcode for iOS, Android Studio for Android, Java, etc.) using existing `@salesforce/lwc-dev-mobile-core` capabilities
+- **Required Plugin Management**: Automated verification and installation of all required Salesforce CLI plugins (`sfdx-mobilesdk-plugin`, `@salesforce/lwc-dev-mobile`)
+- **Platform-Specific Tool Validation**: Comprehensive environment checks for required development tools (Xcode for iOS, Android Studio for Android, Java, etc.) using existing `@salesforce/lwc-dev-mobile` capabilities
 
 **Tool Specification**: Implemented via the [`sfmobile-native-environment-validation`](./5_mobile_native_app_generation.md#sfmobile-native-environment-validation) tool with comprehensive first-party CLI validation while maintaining instruction-first principles.
 
