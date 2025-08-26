@@ -35,6 +35,16 @@ Our first MCP server providing comprehensive tooling support for Salesforce Mobi
 
 **Installation**: `npx -y @salesforce/mobile-web-mcp-server`
 
+### [@salesforce/mobile-native-mcp-server](./packages/mobile-native-mcp-server/)
+
+MCP server providing comprehensive tooling support for Salesforce Mobile Native development scenarios. Includes:
+
+- **Template Discovery**: Tools for discovering and selecting appropriate native mobile app templates for iOS and Android platforms
+- **Project Planning**: Guidance for template selection based on platform requirements and feature keywords
+- **SDK Integration**: Integration with Salesforce Mobile SDK plugin for native app development
+
+**Installation**: `npx -y @salesforce/mobile-native-mcp-server`
+
 ### [project-maintenance-utilities](./packages/project-maintenance-utilities/)
 
 TypeScript utilities for managing projects within the monorepo, including:
@@ -104,6 +114,7 @@ npm run prettier:fix     # Fix code formatting
 mobile-mcp-tools/
 ├── packages/
 │   ├── mobile-web/                     # @salesforce/mobile-web-mcp-server
+│   ├── mobile-native-mcp-server/       # @salesforce/mobile-native-mcp-server
 │   ├── evaluation/                     # Testing and evaluation utilities
 │   ├── github-actions-scripts/         # CI/CD automation (deprecated)
 │   └── project-maintenance-utilities/  # Project automation utilities
