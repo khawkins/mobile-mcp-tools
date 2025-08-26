@@ -10,6 +10,7 @@ import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { Tool } from '../../tool.js';
 
 // Input schema for the template discovery tool
 const TemplateDiscoveryInputSchema = z.object({
@@ -23,18 +24,6 @@ const TemplateDiscoveryInputSchema = z.object({
 });
 
 type TemplateDiscoveryInput = z.infer<typeof TemplateDiscoveryInputSchema>;
-
-export interface Tool {
-  readonly name: string;
-  readonly description: string;
-  readonly title: string;
-  readonly toolId: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly inputSchema: z.ZodType<any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly outputSchema?: z.ZodType<any>;
-  register(server: McpServer, annotations: ToolAnnotations): void;
-}
 
 export class SfmobileNativeTemplateDiscoveryTool implements Tool {
   public readonly name = 'Salesforce Mobile Native Template Discovery';
