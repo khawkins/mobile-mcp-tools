@@ -96,17 +96,27 @@ export class SfmobileNativeTemplateDiscoveryTool implements Tool {
 
 ## Step 1: Plugin Verification
 
-First, verify the Salesforce Mobile SDK plugin is available. ONLY run this command to verify the plugin is installed:
+First, verify the Salesforce Mobile SDK plugin is available and meets version requirements. ONLY run this command to verify the plugin is installed:
 
 \`\`\`bash
 sf plugins inspect sfdx-mobilesdk-plugin --json
 \`\`\`
+
+**Version Requirements:** The plugin must be version 13.1.0 or greater.
 
 If the plugin is not installed, install it:
 
 \`\`\`bash
 sf plugins install sfdx-mobilesdk-plugin
 \`\`\`
+
+If the plugin is installed but the version is less than 13.1.0, upgrade it:
+
+\`\`\`bash
+sf plugins update sfdx-mobilesdk-plugin
+\`\`\`
+
+Verify the updated version meets requirements before proceeding to template discovery.
 
 ## Step 2: Template Discovery
 
