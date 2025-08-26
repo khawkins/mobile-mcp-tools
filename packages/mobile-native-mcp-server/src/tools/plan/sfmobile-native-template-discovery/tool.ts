@@ -14,7 +14,12 @@ import { fileURLToPath } from 'url';
 // Input schema for the template discovery tool
 const TemplateDiscoveryInputSchema = z.object({
   platform: z.enum(['iOS', 'Android']).describe('Target mobile platform'),
-  featureKeywords: z.array(z.string()).optional().describe('Optional feature keywords to filter templates (e.g., ["record-list", "contacts", "crud"])'),
+  featureKeywords: z
+    .array(z.string())
+    .optional()
+    .describe(
+      'Optional feature keywords to filter templates (e.g., ["record-list", "contacts", "crud"])'
+    ),
 });
 
 type TemplateDiscoveryInput = z.infer<typeof TemplateDiscoveryInputSchema>;
@@ -24,7 +29,9 @@ export interface Tool {
   readonly description: string;
   readonly title: string;
   readonly toolId: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly inputSchema: z.ZodType<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly outputSchema?: z.ZodType<any>;
   register(server: McpServer, annotations: ToolAnnotations): void;
 }
@@ -33,7 +40,8 @@ export class SfmobileNativeTemplateDiscoveryTool implements Tool {
   public readonly name = 'Salesforce Mobile Native Template Discovery';
   public readonly title = 'Salesforce Mobile Native Template Discovery Guide';
   public readonly toolId = 'sfmobile-native-template-discovery';
-  public readonly description = 'Guides LLM through template discovery and selection for Salesforce mobile app development';
+  public readonly description =
+    'Guides LLM through template discovery and selection for Salesforce mobile app development';
   public readonly inputSchema = TemplateDiscoveryInputSchema;
 
   // Get the templates path relative to this package
@@ -64,7 +72,7 @@ export class SfmobileNativeTemplateDiscoveryTool implements Tool {
   private async handleRequest(input: TemplateDiscoveryInput) {
     try {
       const guidance = this.generateTemplateDiscoveryGuidance(input);
-      
+
       return {
         content: [
           {
@@ -88,7 +96,9 @@ export class SfmobileNativeTemplateDiscoveryTool implements Tool {
 
   private generateTemplateDiscoveryGuidance(input: TemplateDiscoveryInput): string {
     const platformLower = input.platform.toLowerCase();
-    const featureFilter = input.featureKeywords ? ` with features: ${input.featureKeywords.join(', ')}` : '';
+    const featureFilter = input.featureKeywords
+      ? ` with features: ${input.featureKeywords.join(', ')}`
+      : '';
 
     return `# Template Discovery Guidance for ${input.platform}${featureFilter}
 

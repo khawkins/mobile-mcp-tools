@@ -29,9 +29,7 @@ const annotations: ToolAnnotations = {
 };
 
 // Tools will be added here when implemented
-const tools = [
-  new SfmobileNativeTemplateDiscoveryTool(),
-];
+const tools = [new SfmobileNativeTemplateDiscoveryTool()];
 
 // Register all tools
 tools.forEach(tool => tool.register(server, annotations));
