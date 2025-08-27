@@ -22,6 +22,7 @@ export default tseslint.config(
       'packages/evaluation/dist/**',
       'packages/evaluation/node_modules/**',
       'packages/evaluation/coverage/**',
+      'packages/mobile-native-mcp-server/templates/**',
       '**/dist/*',
       '**/*.d.ts',
     ],
@@ -51,6 +52,7 @@ export default tseslint.config(
       'packages/mobile-web/src/**/*.ts',
       'packages/project-maintenance-utilities/src/**/*.ts',
       'packages/evaluation/src/**/*.ts',
+      'packages/mobile-native-mcp-server/src/**/*.ts',
     ],
     plugins: {
       prettier: prettier,
