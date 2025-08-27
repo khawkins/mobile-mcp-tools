@@ -12,7 +12,7 @@ export class ArSpaceCaptureTool extends BaseTool {
   readonly title = 'Salesforce Mobile AR Space Capture LWC Native Capability';
   public readonly toolId = 'sfmobile-web-ar-space-capture';
   public readonly description =
-    'Provides expert grounding to implement an AR Space Capture feature in a Salesforce Lightning web component (LWC).';
+    'The MCP tool provides a comprehensive TypeScript-based API documentation for Salesforce LWC AR Space Capture, laying the foundation for understanding mobile AR space capture and offering expert-level guidance for implementing the AR Space Capture feature in a Lightning Web Component (LWC).';
   protected readonly typeDefinitionPath = 'arSpaceCapture/arSpaceCapture.d.ts';
   public readonly serviceName = 'AR Space Capture';
   protected readonly serviceDescription = `The following content provides grounding information for generating a Salesforce LWC that leverages AR Space Capture facilities on mobile devices. Specifically, this context will cover the API types and methods available to leverage the AR Space Capture API of the mobile device, within the LWC.`;
