@@ -10,6 +10,7 @@ import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import dedent from 'dedent';
 import { Tool } from '../../tool.js';
 
 // Input schema for the template discovery tool
@@ -78,85 +79,100 @@ export class SfmobileNativeTemplateDiscoveryTool implements Tool {
   }
 
   private generateTemplateDiscoveryGuidance(input: TemplateDiscoveryInput): string {
+    return dedent`
+      # Template Discovery Guidance for ${input.platform}
+
+      You MUST follow the steps in this guide in order. Do not execute any commands that are not part of the steps in this guide.
+
+      ${this.generatePluginVerificationStep(1)}
+
+      ${this.generateTemplateDiscoveryStep(2, input)}
+
+      ${this.generateDetailedInvestigationStep(3, input)}
+
+      ${this.generateNextStepsSection()}
+    `;
+  }
+
+  private generatePluginVerificationStep(stepNumber: number): string {
+    return dedent`
+      ## Step ${stepNumber}: Plugin Verification
+
+      First, verify the Salesforce Mobile SDK plugin is available and meets version requirements. ONLY run this command to verify the plugin is installed:
+
+      \`\`\`bash
+      sf plugins inspect sfdx-mobilesdk-plugin --json
+      \`\`\`
+
+      **Version Requirements:** The plugin must be version 13.1.0 or greater.
+
+      If the plugin is not installed, install it:
+
+      \`\`\`bash
+      sf plugins install sfdx-mobilesdk-plugin
+      \`\`\`
+
+      If the plugin is installed but the version is less than 13.1.0, upgrade it:
+
+      \`\`\`bash
+      sf plugins update sfdx-mobilesdk-plugin
+      \`\`\`
+
+      Verify the updated version meets requirements before proceeding to template discovery.
+    `;
+  }
+
+  private generateTemplateDiscoveryStep(stepNumber: number, input: TemplateDiscoveryInput): string {
     const platformLower = input.platform.toLowerCase();
+    
+    return dedent`
+      ## Step ${stepNumber}: Template Discovery
 
-    return `# Template Discovery Guidance for ${input.platform}
+      Discover available ${input.platform} templates using:
 
-    You MUST follow the steps in this guide in order. Do not execute any commands that are not part of the steps in this guide.
+      \`\`\`bash
+      sf mobilesdk ${platformLower} listtemplates --templatesource=${this.templatesPath} --doc --json
+      \`\`\`
 
-## Step 1: Plugin Verification
+      You MUST use the --templatesource=${this.templatesPath} flag to specify the templates source, do not use any other source.
 
-First, verify the Salesforce Mobile SDK plugin is available and meets version requirements. ONLY run this command to verify the plugin is installed:
+      This will show all available templates with their:
+      - Template ID
+      - Description
+      - Features
+      - Use cases
 
-\`\`\`bash
-sf plugins inspect sfdx-mobilesdk-plugin --json
-\`\`\`
+      Inspect the JSON output from the template discovery command to identify templates that best match the user's requirements and filter the templates to the most promising candidates. Prioritize templates that match multiple keywords and have comprehensive documentation.
+    `;
+  }
 
-**Version Requirements:** The plugin must be version 13.1.0 or greater.
+  private generateDetailedInvestigationStep(stepNumber: number, input: TemplateDiscoveryInput): string {
+    const platformLower = input.platform.toLowerCase();
+    
+    return dedent`
+      ## Step ${stepNumber}: Detailed Template Investigation
 
-If the plugin is not installed, install it:
+      For each promising template, get detailed documentation:
 
-\`\`\`bash
-sf plugins install sfdx-mobilesdk-plugin
-\`\`\`
+      \`\`\`bash
+      sf mobilesdk ${platformLower} listtemplate --templatesource=${this.templatesPath} --template=<templateId> --doc --json
+      \`\`\`
 
-If the plugin is installed but the version is less than 13.1.0, upgrade it:
+       Choose the template that best matches:
+      - **Platform compatibility**: ${input.platform}
+      - **Feature requirements**: General mobile app needs
+      - **Use case alignment**: Record management, data display, CRUD operations
+      - **Complexity level**: Appropriate for the user's requirements
+    `;
+  }
 
-\`\`\`bash
-sf plugins update sfdx-mobilesdk-plugin
-\`\`\`
+  private generateNextStepsSection(): string {
+    return dedent`
+      ## Next Steps
 
-Verify the updated version meets requirements before proceeding to template discovery.
-
-## Step 2: Template Discovery
-
-Discover available ${input.platform} templates using:
-
-\`\`\`bash
-sf mobilesdk ${platformLower} listtemplates --templatesource=${this.templatesPath} --doc --json
-\`\`\`
-
-You MUST use the --templatesource=${this.templatesPath} flag to specify the templates source, do not use any other source.
-
-This will show all available templates with their:
-- Template ID
-- Description
-- Features
-- Use cases
-
-## Step 3: Template Filtering
-
-Inspect the JSON output from the template discovery command to identify templates that best match the user's requirements and filter the templates to the most promising candidates. Prioritize templates that match multiple keywords and have comprehensive documentation.
-
-## Step 4: Detailed Template Investigation
-
-For each promising template, get detailed documentation:
-
-\`\`\`bash
-sf mobilesdk ${platformLower} listtemplate --templatesource=${this.templatesPath} --template=<templateId> --doc --json
-\`\`\`
-
-## Step 5: Template Selection Criteria
-
-Choose the template that best matches:
-- **Platform compatibility**: ${input.platform}
-- **Feature requirements**: General mobile app needs
-- **Use case alignment**: Record management, data display, CRUD operations
-- **Complexity level**: Appropriate for the user's requirements
-
-## Next Steps
-
-Once you've identified the best template:
-1. Note the selected template ID
-2. Proceed to project generation using \`sfmobile-native-project-generation\`
-3. Provide the template ID and project configuration details
-
-## Expected Output
-
-You should identify:
-- **Selected Template ID**: The most suitable template
-- **Template Features**: Key capabilities it provides
-- **Rationale**: Why this template fits the user's requirements
-- **Next Action**: Ready to proceed with project generation`;
+      Once you've identified the best template:
+      1. Note the selected template ID
+      2. Proceed to project generation using \`sfmobile-native-project-generation\`
+    `;
   }
 }
