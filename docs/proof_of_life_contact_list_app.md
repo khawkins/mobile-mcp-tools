@@ -161,6 +161,9 @@ First, analyze the user request to identify key features:
 {
   selectedTemplate: string;     // "salesforce-record-list-ios"
   projectName: string;         // "ContactListApp"
+  packageName: string;         // "com.mycompany.contactlistapp"
+  organizationName: string;    // "My Company"
+  outputDirectory?: string;    // Optional, defaults to current directory
   platform: "iOS" | "Android"; // Platform for project generation
   connectedAppClientId?: string;
   connectedAppCallbackUri?: string;
@@ -169,7 +172,7 @@ First, analyze the user request to identify key features:
 
 **Output**: Instruction-first guidance including:
 
-- Platform-specific CLI command: `sf mobilesdk ios|android createwithtemplate --templateSource=<ServerRoot>/resources/SalesforceMobileSDK-Templates --template=<selectedTemplate> --projectname=<projectName>` (iOS example shown, Android follows same pattern)
+- Platform-specific CLI command: `sf mobilesdk ios|android createwithtemplate --templaterepouri=<ServerRoot>/resources/SalesforceMobileSDK-Templates/<selectedTemplate> --appname=<projectName> --packagename=<packageName> --organization=<organizationName> --outputdir=<outputDirectory>` (iOS example shown, Android follows same pattern)
 - Connected App configuration steps if credentials provided
 - File modification instructions for OAuth setup
 - Next steps for build validation
