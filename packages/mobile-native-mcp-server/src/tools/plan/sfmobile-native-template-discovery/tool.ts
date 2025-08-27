@@ -114,7 +114,7 @@ export class SfmobileNativeTemplateDiscoveryTool implements Tool {
 
   private generateTemplateDiscoveryStep(stepNumber: number, input: TemplateDiscoveryInput): string {
     const platformLower = input.platform.toLowerCase();
-    
+
     return dedent`
       ## Step ${stepNumber}: Template Discovery
 
@@ -136,9 +136,12 @@ export class SfmobileNativeTemplateDiscoveryTool implements Tool {
     `;
   }
 
-  private generateDetailedInvestigationStep(stepNumber: number, input: TemplateDiscoveryInput): string {
+  private generateDetailedInvestigationStep(
+    stepNumber: number,
+    input: TemplateDiscoveryInput
+  ): string {
     const platformLower = input.platform.toLowerCase();
-    
+
     return dedent`
       ## Step ${stepNumber}: Detailed Template Investigation
 
