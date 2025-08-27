@@ -29,7 +29,6 @@ describe('SfmobileNativeTemplateDiscoveryTool', () => {
     expect(schema).toBeDefined();
     expect(schema.shape).toBeDefined();
     expect(schema.shape.platform).toBeDefined();
-    expect(schema.shape.featureKeywords).toBeDefined();
   });
 
   it('should register with MCP server', () => {
@@ -86,16 +85,6 @@ describe('SfmobileNativeTemplateDiscoveryTool', () => {
     expect(result.content[0].text).toContain('sf mobilesdk android listtemplates');
   });
 
-  it('should include feature keywords in guidance when provided', async () => {
-    const input = {
-      platform: 'iOS' as const,
-      featureKeywords: ['record-list', 'contacts'],
-    };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = await (tool as any).handleRequest(input);
-
-    expect(result.content[0].text).toContain('with features: record-list, contacts');
-  });
 
   it('should handle errors gracefully', async () => {
     // Mock the generateTemplateDiscoveryGuidance to throw an error
