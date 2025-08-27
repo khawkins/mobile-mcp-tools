@@ -85,7 +85,6 @@ describe('SfmobileNativeTemplateDiscoveryTool', () => {
     expect(result.content[0].text).toContain('sf mobilesdk android listtemplates');
   });
 
-
   it('should handle errors gracefully', async () => {
     // Mock the generateTemplateDiscoveryGuidance to throw an error
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
