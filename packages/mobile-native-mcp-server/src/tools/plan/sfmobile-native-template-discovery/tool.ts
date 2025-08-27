@@ -15,12 +15,6 @@ import { Tool } from '../../tool.js';
 // Input schema for the template discovery tool
 const TemplateDiscoveryInputSchema = z.object({
   platform: z.enum(['iOS', 'Android']).describe('Target mobile platform'),
-  featureKeywords: z
-    .array(z.string())
-    .optional()
-    .describe(
-      'Optional feature keywords to filter templates (e.g., ["record-list", "contacts", "crud"])'
-    ),
 });
 
 type TemplateDiscoveryInput = z.infer<typeof TemplateDiscoveryInputSchema>;
@@ -85,11 +79,8 @@ export class SfmobileNativeTemplateDiscoveryTool implements Tool {
 
   private generateTemplateDiscoveryGuidance(input: TemplateDiscoveryInput): string {
     const platformLower = input.platform.toLowerCase();
-    const featureFilter = input.featureKeywords
-      ? ` with features: ${input.featureKeywords.join(', ')}`
-      : '';
 
-    return `# Template Discovery Guidance for ${input.platform}${featureFilter}
+    return `# Template Discovery Guidance for ${input.platform}
 
     You MUST follow the steps in this guide in order. Do not execute any commands that are not part of the steps in this guide.
 
@@ -149,7 +140,7 @@ sf mobilesdk ${platformLower} listtemplate --templatesource=${this.templatesPath
 
 Choose the template that best matches:
 - **Platform compatibility**: ${input.platform}
-- **Feature requirements**: ${input.featureKeywords?.join(', ') || 'General mobile app needs'}
+- **Feature requirements**: General mobile app needs
 - **Use case alignment**: Record management, data display, CRUD operations
 - **Complexity level**: Appropriate for the user's requirements
 

@@ -139,7 +139,6 @@ First, analyze the user request to identify key features:
 ```typescript
 {
   platform: "iOS" | "Android";
-  featureKeywords?: string[]; // ["record-list", "contacts", "crud"]
 }
 ```
 

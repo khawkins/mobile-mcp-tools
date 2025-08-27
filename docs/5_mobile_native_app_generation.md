@@ -1579,7 +1579,6 @@ The `sfmobile-native-environment-validation` tool specified above represents the
 ```typescript
 {
   platform: 'iOS' | 'Android' | 'both';
-  featureKeywords?: string[]; // ["record-list", "contacts", "crud", "hybrid", "react-native"]
   complexityPreference?: 'simple' | 'moderate' | 'advanced';
   useCase?: string; // "Contact management", "Field service", "Sales automation"
 }
