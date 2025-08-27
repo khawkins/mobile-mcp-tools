@@ -8,9 +8,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import dedent from 'dedent';
 import { Tool } from '../../tool.js';
 import { MOBILE_SDK_TEMPLATES_PATH } from '../../../constants.js';
+import dedent from 'dedent';
 
 // Input schema for the template discovery tool
 const TemplateDiscoveryInputSchema = z.object({
