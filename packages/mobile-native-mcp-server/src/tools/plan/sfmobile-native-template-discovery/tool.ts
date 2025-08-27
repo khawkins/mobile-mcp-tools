@@ -27,7 +27,6 @@ export class SfmobileNativeTemplateDiscoveryTool implements Tool {
     'Guides LLM through template discovery and selection for Salesforce mobile app development';
   public readonly inputSchema = TemplateDiscoveryInputSchema;
 
-
   public register(server: McpServer, annotations: ToolAnnotations): void {
     const enhancedAnnotations = {
       ...annotations,

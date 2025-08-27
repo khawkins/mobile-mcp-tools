@@ -19,9 +19,7 @@ const ProjectGenerationInputSchema = z.object({
   platform: z.enum(['iOS', 'Android']).describe('Target mobile platform'),
   packageName: z.string().describe('Package name for the mobile app (e.g., com.company.appname)'),
   organization: z.string().describe('Organization name for the mobile app project'),
-  connectedAppClientId: z
-    .string()
-    .describe('Connected App Client ID for OAuth configuration'),
+  connectedAppClientId: z.string().describe('Connected App Client ID for OAuth configuration'),
   connectedAppCallbackUri: z
     .string()
     .describe('Connected App Callback URI for OAuth configuration'),
@@ -123,7 +121,7 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
 
   private generateStepExecuteCliCommand(stepNumber: number, input: ProjectGenerationInput): string {
     const platformLower = input.platform.toLowerCase();
-    
+
     return dedent`
       ## Step ${stepNumber}: Execute Platform-Specific CLI Command
 
@@ -139,7 +137,10 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
     `;
   }
 
-  private generateStepVerifyProjectStructure(stepNumber: number, input: ProjectGenerationInput): string {
+  private generateStepVerifyProjectStructure(
+    stepNumber: number,
+    input: ProjectGenerationInput
+  ): string {
     return dedent`
       ## Step ${stepNumber}: Verify Project Structure
 
@@ -156,7 +157,7 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
 
   private generateStepConfigureOAuth(stepNumber: number, input: ProjectGenerationInput): string {
     const { connectedAppClientId, connectedAppCallbackUri, loginHost } = input;
-    
+
     return dedent`
       ## Step ${stepNumber}: Configure OAuth Settings
 
@@ -164,7 +165,9 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
 
       Find and modify the OAuth configuration files in your generated project:
 
-      ${input.platform === 'iOS' ? dedent`
+      ${
+        input.platform === 'iOS'
+          ? dedent`
         **For iOS:**
 
         **Expected Location**: \`${input.projectName}/${input.projectName}/Resources/bootconfig.plist\`
@@ -210,7 +213,9 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
                 </array>
             </dict>
         </array>
-        \`\`\`${loginHost ? dedent`
+        \`\`\`${
+          loginHost
+            ? dedent`
 
         ### Update iOS Login Host
 
@@ -220,8 +225,11 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
         <key>SFDCOAuthLoginHost</key>
         <string>${loginHost}</string>
         \`\`\`
-        ` : ''}
-      ` : dedent`
+        `
+            : ''
+        }
+      `
+          : dedent`
         **For Android:**
         \`\`\`bash
         # Locate the bootconfig.xml file
@@ -253,7 +261,8 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
             </intent-filter>
         </activity>
         \`\`\`
-      `}
+      `
+      }
 
       ### Verify OAuth Configuration
 
@@ -268,5 +277,4 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
       **Expected Outcome**: Your OAuth credentials should be found in the configuration files.
     `;
   }
-
 }
