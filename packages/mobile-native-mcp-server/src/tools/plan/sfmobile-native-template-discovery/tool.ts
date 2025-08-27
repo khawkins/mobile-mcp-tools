@@ -8,9 +8,8 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { Tool } from '../../tool.js';
+import { MOBILE_SDK_TEMPLATES_PATH } from '../../../constants.js';
 
 // Input schema for the template discovery tool
 const TemplateDiscoveryInputSchema = z.object({
@@ -27,15 +26,6 @@ export class SfmobileNativeTemplateDiscoveryTool implements Tool {
     'Guides LLM through template discovery and selection for Salesforce mobile app development';
   public readonly inputSchema = TemplateDiscoveryInputSchema;
 
-  // Get the templates path relative to this package
-  private readonly templatesPath = resolve(
-    dirname(fileURLToPath(import.meta.url)),
-    '..',
-    '..',
-    '..',
-    '..',
-    'templates'
-  );
 
   public register(server: McpServer, annotations: ToolAnnotations): void {
     const enhancedAnnotations = {
@@ -113,10 +103,10 @@ Verify the updated version meets requirements before proceeding to template disc
 Discover available ${input.platform} templates using:
 
 \`\`\`bash
-sf mobilesdk ${platformLower} listtemplates --templatesource=${this.templatesPath} --doc --json
+sf mobilesdk ${platformLower} listtemplates --templatesource=${MOBILE_SDK_TEMPLATES_PATH} --doc --json
 \`\`\`
 
-You MUST use the --templatesource=${this.templatesPath} flag to specify the templates source, do not use any other source.
+You MUST use the --templatesource=${MOBILE_SDK_TEMPLATES_PATH} flag to specify the templates source, do not use any other source.
 
 This will show all available templates with their:
 - Template ID
@@ -133,7 +123,7 @@ Inspect the JSON output from the template discovery command to identify template
 For each promising template, get detailed documentation:
 
 \`\`\`bash
-sf mobilesdk ${platformLower} listtemplate --templatesource=${this.templatesPath} --template=<templateId> --doc --json
+sf mobilesdk ${platformLower} listtemplate --templatesource=${MOBILE_SDK_TEMPLATES_PATH} --template=<templateId> --doc --json
 \`\`\`
 
 ## Step 5: Template Selection Criteria
