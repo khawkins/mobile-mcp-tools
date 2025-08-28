@@ -18,7 +18,7 @@ exports[`SfmobileNativeProjectGenerationTool > should extract URL scheme from ca
 Generate the project using the Salesforce Mobile SDK CLI:
 
 \`\`\`bash
-sf mobilesdk android createwithtemplate --templatesource="/Users/justin.horst/Repos/mobile-mcp-tools/packages/mobile-native-mcp-server/templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
+sf mobilesdk android createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
 **Expected Outcome**: A new Android project directory named "TestApp" will be created with the template structure.
@@ -118,7 +118,7 @@ exports[`SfmobileNativeProjectGenerationTool > should extract URL scheme from ca
 Generate the project using the Salesforce Mobile SDK CLI:
 
 \`\`\`bash
-sf mobilesdk ios createwithtemplate --templatesource="/Users/justin.horst/Repos/mobile-mcp-tools/packages/mobile-native-mcp-server/templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
+sf mobilesdk ios createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
 **Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure.
@@ -233,7 +233,7 @@ exports[`SfmobileNativeProjectGenerationTool > should generate guidance for Andr
 Generate the project using the Salesforce Mobile SDK CLI:
 
 \`\`\`bash
-sf mobilesdk android createwithtemplate --templatesource="/Users/justin.horst/Repos/mobile-mcp-tools/packages/mobile-native-mcp-server/templates" --template="MobileSyncExplorerKotlin" --appname="TestAndroidApp" --packagename="com.test.androidapp" --organization="Test Org"
+sf mobilesdk android createwithtemplate --templatesource="./templates" --template="MobileSyncExplorerKotlin" --appname="TestAndroidApp" --packagename="com.test.androidapp" --organization="Test Org"
 \`\`\`
 
 **Expected Outcome**: A new Android project directory named "TestAndroidApp" will be created with the template structure.
@@ -333,7 +333,7 @@ exports[`SfmobileNativeProjectGenerationTool > should generate guidance for iOS 
 Generate the project using the Salesforce Mobile SDK CLI:
 
 \`\`\`bash
-sf mobilesdk ios createwithtemplate --templatesource="/Users/justin.horst/Repos/mobile-mcp-tools/packages/mobile-native-mcp-server/templates" --template="MobileSyncExplorerSwift" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
+sf mobilesdk ios createwithtemplate --templatesource="./templates" --template="MobileSyncExplorerSwift" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
 **Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure.
@@ -455,7 +455,7 @@ exports[`SfmobileNativeProjectGenerationTool > should handle Android platform wi
 Generate the project using the Salesforce Mobile SDK CLI:
 
 \`\`\`bash
-sf mobilesdk android createwithtemplate --templatesource="/Users/justin.horst/Repos/mobile-mcp-tools/packages/mobile-native-mcp-server/templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
+sf mobilesdk android createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
 **Expected Outcome**: A new Android project directory named "TestApp" will be created with the template structure.
@@ -556,7 +556,7 @@ exports[`SfmobileNativeProjectGenerationTool > should handle missing callback UR
 Generate the project using the Salesforce Mobile SDK CLI:
 
 \`\`\`bash
-sf mobilesdk android createwithtemplate --templatesource="/Users/justin.horst/Repos/mobile-mcp-tools/packages/mobile-native-mcp-server/templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
+sf mobilesdk android createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
 **Expected Outcome**: A new Android project directory named "TestApp" will be created with the template structure.
@@ -656,7 +656,7 @@ exports[`SfmobileNativeProjectGenerationTool > should handle missing callback UR
 Generate the project using the Salesforce Mobile SDK CLI:
 
 \`\`\`bash
-sf mobilesdk ios createwithtemplate --templatesource="/Users/justin.horst/Repos/mobile-mcp-tools/packages/mobile-native-mcp-server/templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
+sf mobilesdk ios createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
 **Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure.
@@ -771,7 +771,7 @@ exports[`SfmobileNativeProjectGenerationTool > should handle missing client ID a
 Generate the project using the Salesforce Mobile SDK CLI:
 
 \`\`\`bash
-sf mobilesdk ios createwithtemplate --templatesource="/Users/justin.horst/Repos/mobile-mcp-tools/packages/mobile-native-mcp-server/templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
+sf mobilesdk ios createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
 **Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure.
@@ -886,7 +886,7 @@ exports[`SfmobileNativeProjectGenerationTool > should handle optional loginHost 
 Generate the project using the Salesforce Mobile SDK CLI:
 
 \`\`\`bash
-sf mobilesdk ios createwithtemplate --templatesource="/Users/justin.horst/Repos/mobile-mcp-tools/packages/mobile-native-mcp-server/templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
+sf mobilesdk ios createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
 **Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure.
@@ -1001,7 +1001,7 @@ exports[`SfmobileNativeProjectGenerationTool > should include build validation i
 Generate the project using the Salesforce Mobile SDK CLI:
 
 \`\`\`bash
-sf mobilesdk ios createwithtemplate --templatesource="/Users/justin.horst/Repos/mobile-mcp-tools/packages/mobile-native-mcp-server/templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
+sf mobilesdk ios createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
 **Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure.

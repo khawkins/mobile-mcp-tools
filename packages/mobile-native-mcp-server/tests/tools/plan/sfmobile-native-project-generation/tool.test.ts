@@ -8,6 +8,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SfmobileNativeProjectGenerationTool } from '../../../../src/tools/plan/sfmobile-native-project-generation/tool.js';
 
+// Mock the constants module to provide consistent paths for snapshots
+vi.mock('../../../../src/constants.js', () => ({
+  MOBILE_SDK_TEMPLATES_PATH: './templates'
+}));
+
 describe('SfmobileNativeProjectGenerationTool', () => {
   let tool: SfmobileNativeProjectGenerationTool;
 
