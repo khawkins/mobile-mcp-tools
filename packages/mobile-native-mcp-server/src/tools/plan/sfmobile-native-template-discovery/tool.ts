@@ -147,7 +147,7 @@ export class SfmobileNativeTemplateDiscoveryTool implements Tool {
       For each promising template, get detailed documentation:
 
       \`\`\`bash
-      sf mobilesdk ${platformLower} listtemplate --templatesource=${MOBILE_SDK_TEMPLATES_PATH} --template=<templateId> --doc --json
+      sf mobilesdk ${platformLower} describetemplate --templatesource=${MOBILE_SDK_TEMPLATES_PATH} --template=<templateId> --doc --json
       \`\`\`
 
        Choose the template that best matches:
