@@ -207,4 +207,109 @@ describe('SfmobileNativeProjectGenerationTool', () => {
 
     expect(result.content[0].text).toMatchSnapshot();
   });
+
+  it('should handle missing callback URI with fallback scheme for iOS', async () => {
+    const input = {
+      selectedTemplate: 'TestTemplate',
+      projectName: 'TestApp',
+      platform: 'iOS' as const,
+      packageName: 'com.test.app',
+      organization: 'Test Org',
+      connectedAppClientId: '3MVG9test123',
+      connectedAppCallbackUri: undefined,
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (tool as any).handleRequest(input);
+
+    expect(result.content[0].text).toContain('myapp');
+    expect(result.content[0].text).toMatchSnapshot();
+  });
+
+  it('should handle missing callback URI with fallback scheme for Android', async () => {
+    const input = {
+      selectedTemplate: 'TestTemplate',
+      projectName: 'TestApp',
+      platform: 'Android' as const,
+      packageName: 'com.test.app',
+      organization: 'Test Org',
+      connectedAppClientId: '3MVG9test123',
+      connectedAppCallbackUri: undefined,
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (tool as any).handleRequest(input);
+
+    expect(result.content[0].text).toContain('myapp');
+    expect(result.content[0].text).toMatchSnapshot();
+  });
+
+  it('should handle Android platform with loginHost', async () => {
+    const input = {
+      selectedTemplate: 'TestTemplate',
+      projectName: 'TestApp',
+      platform: 'Android' as const,
+      packageName: 'com.test.app',
+      organization: 'Test Org',
+      connectedAppClientId: '3MVG9test123',
+      connectedAppCallbackUri: 'testapp://oauth/callback',
+      loginHost: 'https://custom.salesforce.com',
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (tool as any).handleRequest(input);
+
+    expect(result.content[0].text).toContain('oauthLoginDomain');
+    expect(result.content[0].text).toContain('https://custom.salesforce.com');
+    expect(result.content[0].text).toMatchSnapshot();
+  });
+
+  it('should handle non-Error exception in error handling', async () => {
+    // Mock the generateProjectGenerationGuidance to throw a non-Error object
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const originalMethod = (tool as any).generateProjectGenerationGuidance;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (tool as any).generateProjectGenerationGuidance = () => {
+      throw 'String error'; // Non-Error object
+    };
+
+    const input = {
+      selectedTemplate: 'TestTemplate',
+      projectName: 'TestApp',
+      platform: 'iOS' as const,
+      packageName: 'com.test.app',
+      organization: 'Test Org',
+      connectedAppClientId: '3MVG9test123',
+      connectedAppCallbackUri: 'testapp://oauth/callback',
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (tool as any).handleRequest(input);
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('Error: Unknown error occurred');
+
+    // Restore original method
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (tool as any).generateProjectGenerationGuidance = originalMethod;
+  });
+
+  it('should handle missing client ID and callback URI in verification commands', async () => {
+    const input = {
+      selectedTemplate: 'TestTemplate',
+      projectName: 'TestApp',
+      platform: 'iOS' as const,
+      packageName: 'com.test.app',
+      organization: 'Test Org',
+      connectedAppClientId: undefined,
+      connectedAppCallbackUri: undefined,
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await (tool as any).handleRequest(input);
+
+    expect(result.content[0].text).toContain('CLIENT_ID');
+    expect(result.content[0].text).toContain('CALLBACK');
+    expect(result.content[0].text).toMatchSnapshot();
+  });
 });
