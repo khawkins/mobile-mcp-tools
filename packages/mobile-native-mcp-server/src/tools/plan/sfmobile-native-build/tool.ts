@@ -6,6 +6,7 @@ import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 
 const BuildInputSchema = z.object({
   platform: z.enum(['iOS', 'Android']).describe('Target mobile platform'),
+  projectPath: z.string().describe('Path to the project'),
 });
 
 type BuildInput = z.infer<typeof BuildInputSchema>;
@@ -53,7 +54,7 @@ export class SfmobileNativeBuildTool implements Tool {
 
       ${input.platform === 'iOS' ? this.msdkAppBuildRequirementsIOS() : this.msdkAppBuildRequirementsAndroid()}
 
-      ${input.platform === 'iOS' ? this.msdkAppBuildExecutionIOS() : this.msdkAppBuildExecutionAndroid()}
+      ${input.platform === 'iOS' ? this.msdkAppBuildExecutionIOS(input.projectPath) : this.msdkAppBuildExecutionAndroid(input.projectPath)}
 
       ${this.generateNextStepsSection()}
       
@@ -112,14 +113,13 @@ export class SfmobileNativeBuildTool implements Tool {
       \`\`\`
 
       Thirdly, verify Android Gradle plugin is defined in the project level build.gradle file.
-      
     `;
   }
 
-  private msdkAppBuildExecutionIOS() {
+  private msdkAppBuildExecutionIOS(projectPath: string) {
     return dedent`  
       ## Step 2: iOS Build Execution
-      Use the following command to build the MSDK iOS App:
+      Navigate to the ${projectPath} and use the following command to build the MSDK iOS App:
 
       \`\`\`bash
       xcodebuild -workspace msdk-app.xcworkspace -scheme msdk-app -destination simulator-destination clean build
@@ -132,10 +132,10 @@ export class SfmobileNativeBuildTool implements Tool {
     `;
   }
 
-  private msdkAppBuildExecutionAndroid() {
+  private msdkAppBuildExecutionAndroid(projectPath: string) {
     return dedent`  
       ## Step 2: Android Build Execution
-      Use the following command to build the MSDK Android App:
+      Navigate to the ${projectPath} and use the following command to build the MSDK Android App:
 
       \`\`\`bash
       ./gradlew build
