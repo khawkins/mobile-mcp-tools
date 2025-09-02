@@ -57,7 +57,7 @@ export class SfmobileNativeBuildTool implements Tool {
 
       You MUST follow the steps in this guide in order. Do not execute any commands that are not part of the steps in this guide.
 
-      ${input.platform === 'iOS' ? this.msdkAppBuildRequirementsIOS() : this.msdkAppBuildRequirementsAndroid()}
+      ${this.msdkEnvironmentCheck(input.platform, input.platform === 'iOS' ? '17.0.1' : '35')}
 
       ${input.platform === 'iOS' ? this.msdkAppBuildExecutionIOS(input.projectPath) : this.msdkAppBuildExecutionAndroid(input.projectPath)}
 
@@ -66,58 +66,18 @@ export class SfmobileNativeBuildTool implements Tool {
     `;
   }
 
-  private msdkAppBuildRequirementsIOS() {
+  private msdkEnvironmentCheck(platform: string, apiLevel: string) {
     return dedent`
-      ## Step 1: iOS Build Requirements
-      First, verify the XCode Command Line Tools are installed correctly. ONLY run this command to verify the XCode Command Line Tools are installed:
+      ## Step 1: Environment Check
+      First, verify the environment is set up correctly for the MSDK ${platform} App.
 
       \`\`\`bash
-      xcodebuild -version
+      sf force lightning local setup -p=${platform.toLowerCase()} -l=${apiLevel}
       \`\`\`
 
-      If the XCode Command Line Tools are not installed, install them:
+      If all items show as PASSED, the environment is set up correctly.
+      If any item shows as FAILED, the environment is not set up correctly. In that case, resolve the issues before continuing with the build.
 
-      \`\`\`bash
-      xcode-select --install
-      \`\`\`
-
-      Secondly, verify that deployment target is set to iOS 17.0 or greater for the MSDK iOS App. ONLY run this command to verify the deployment target is set to iOS 17.0 or greater:
-
-      \`\`\`bash
-      xcodebuild -showBuildSettings | grep -A 1 'IPHONEOS_DEPLOYMENT_TARGET'
-      \`\`\`
-
-      Third, confirm that a list of simulators is available as build destinations, with at least one running iOS 17.0 or greater. Run this command only for verification purposes:
-
-      \`\`\`bash
-      sf force lightning local device list -p ios
-      \`\`\`
-
-      If no iOS 17.0 or greater simulator is present, run this command to install the simulators:
-
-      \`\`\`bash
-       sf force lightning local device create -p ios -n device-name -d device-model
-      \`\`\`
-      
-    `;
-  }
-
-  private msdkAppBuildRequirementsAndroid() {
-    return dedent`  
-      ## Step 1: Android Build Requirements
-      First, verify JDK is installed correctly. ONLY run this command to verify the JDK is installed:
-
-      \`\`\`bash
-      java -version
-      \`\`\`
-
-      Secondly, confirm that the Android SDK is installed correctly.The SDK Build-Tools version must match the version required by the MSDK Android App. Use the following command only to verify the Android SDK installation:
-
-      \`\`\`bash
-      echo $ANDROID_HOME
-      \`\`\`
-
-      Thirdly, verify Android Gradle plugin is defined in the project level build.gradle file.
     `;
   }
 
@@ -156,7 +116,7 @@ export class SfmobileNativeBuildTool implements Tool {
       ## Next Steps
 
       Once you've build successfully:
-      1. Call the \`sfmobile-native-deployment\` tool to deploy the app to the target platform. If the target is iOS, be sure to use the simulator/emulator ID from step 1.
+      1. Call the \`sfmobile-native-deployment\` tool to deploy the app to the target platform. For iOS, make sure to use the simulator type identifier or UDID from step 1.
     `;
   }
 }
