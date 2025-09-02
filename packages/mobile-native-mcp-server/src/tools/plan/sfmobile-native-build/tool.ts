@@ -57,7 +57,7 @@ export class SfmobileNativeBuildTool implements Tool {
 
       You MUST follow the steps in this guide in order. Do not execute any commands that are not part of the steps in this guide.
 
-      ${this.msdkEnvironmentCheck(input.platform, input.platform === 'iOS' ? '17.0.1' : '35')}
+      ${this.msdkEnvironmentCheck(input.platform, input.platform === 'iOS' ? '17.0' : '35')}
 
       ${input.platform === 'iOS' ? this.msdkAppBuildExecutionIOS(input.projectPath) : this.msdkAppBuildExecutionAndroid(input.projectPath)}
 

@@ -71,13 +71,13 @@ describe('SfmobileNativeBuildTool', () => {
 
     // Check main title
     expect(guidance).toContain('Salesforce Mobile App Build Guidance for iOS');
-    
+
     // Check environment check step
     expect(guidance).toContain('Step 1: Environment Check');
-    expect(guidance).toContain('sf force lightning local setup -p=ios -l=17.0.1');
+    expect(guidance).toContain('sf force lightning local setup -p=ios -l=17.0');
     expect(guidance).toContain('PASSED');
     expect(guidance).toContain('FAILED');
-    
+
     // Check iOS build execution step
     expect(guidance).toContain('Step 2: iOS Build Execution');
     expect(guidance).toContain('Navigate to the /path/to/ios/project directory');
@@ -87,7 +87,7 @@ describe('SfmobileNativeBuildTool', () => {
     expect(guidance).toContain('<simulator-destination>');
     expect(guidance).toContain('BUILD SUCCEEDED');
     expect(guidance).toContain('iOS 17.0 or greater');
-    
+
     // Check next steps
     expect(guidance).toContain('Next Steps');
     expect(guidance).toContain('sfmobile-native-deployment');
@@ -104,20 +104,20 @@ describe('SfmobileNativeBuildTool', () => {
 
     // Check main title
     expect(guidance).toContain('Salesforce Mobile App Build Guidance for Android');
-    
+
     // Check environment check step
     expect(guidance).toContain('Step 1: Environment Check');
     expect(guidance).toContain('sf force lightning local setup -p=android -l=35');
     expect(guidance).toContain('PASSED');
     expect(guidance).toContain('FAILED');
-    
+
     // Check Android build execution step
     expect(guidance).toContain('Step 2: Android Build Execution');
     expect(guidance).toContain('Navigate to the /path/to/android/project directory');
     expect(guidance).toContain('./gradlew build');
     expect(guidance).toContain('BUILD SUCCESSFUL');
     expect(guidance).toContain('FAILURE:Build failed');
-    
+
     // Check next steps
     expect(guidance).toContain('Next Steps');
     expect(guidance).toContain('sfmobile-native-deployment');
@@ -146,7 +146,7 @@ describe('SfmobileNativeBuildTool', () => {
     const iOSInput = { platform: 'iOS' as const, projectPath: '/ios/path' };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const iOSResult = await (tool as any).handleRequest(iOSInput);
-    expect(iOSResult.content[0].text).toContain('-l=17.0.1');
+    expect(iOSResult.content[0].text).toContain('-l=17.0');
 
     // Test Android API level
     const androidInput = { platform: 'Android' as const, projectPath: '/android/path' };
@@ -161,7 +161,7 @@ describe('SfmobileNativeBuildTool', () => {
     const result = await (tool as any).handleRequest(input);
 
     const guidance = result.content[0].text;
-    
+
     // Check that it has proper markdown structure
     expect(guidance).toContain('##');
     expect(guidance).toContain('```bash');
@@ -181,9 +181,9 @@ describe('SfmobileNativeBuildTool', () => {
   it('should test individual method behaviors', () => {
     // Test msdkEnvironmentCheck method
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const envCheckResult = (tool as any).msdkEnvironmentCheck('iOS', '17.0.1');
+    const envCheckResult = (tool as any).msdkEnvironmentCheck('iOS', '17.0');
     expect(envCheckResult).toContain('Step 1: Environment Check');
-    expect(envCheckResult).toContain('sf force lightning local setup -p=ios -l=17.0.1');
+    expect(envCheckResult).toContain('sf force lightning local setup -p=ios -l=17.0');
 
     // Test msdkAppBuildExecutionIOS method
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
