@@ -86,7 +86,7 @@ describe('UtilsXcodeAddFilesTool', () => {
 
     beforeEach(() => {
       // Mock project.pbxproj file exists
-      mockFs.existsSync.mockImplementation((filePath) => {
+      mockFs.existsSync.mockImplementation(filePath => {
         return filePath === '/path/to/project/MyApp.xcodeproj/project.pbxproj';
       });
     });
@@ -97,7 +97,7 @@ describe('UtilsXcodeAddFilesTool', () => {
 
       expect(result.content).toBeDefined();
       expect(result.content[0].type).toBe('text');
-      
+
       const parsedResult = JSON.parse(result.content[0].text);
       expect(parsedResult.success).toBe(true);
       expect(parsedResult.command).toContain('ruby -e');
@@ -105,7 +105,7 @@ describe('UtilsXcodeAddFilesTool', () => {
       expect(parsedResult.projectPath).toBe('/path/to/project/MyApp.xcodeproj');
       expect(parsedResult.filePaths).toEqual([
         '/path/to/project/ContactManager.swift',
-        '/path/to/project/ContactView.swift'
+        '/path/to/project/ContactView.swift',
       ]);
       expect(parsedResult.targetName).toBe('MyApp');
       expect(parsedResult.message).toBe('Generated command to add 2 files to Xcode project');
@@ -119,12 +119,12 @@ describe('UtilsXcodeAddFilesTool', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(inputWithAbsolutePaths);
-      
+
       const parsedResult = JSON.parse(result.content[0].text);
       expect(parsedResult.success).toBe(true);
       expect(parsedResult.filePaths).toEqual([
         '/absolute/path/ContactManager.swift',
-        '/path/to/project/relative/ContactView.swift'
+        '/path/to/project/relative/ContactView.swift',
       ]);
     });
 
@@ -137,7 +137,7 @@ describe('UtilsXcodeAddFilesTool', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(inputWithoutTarget);
-      
+
       const parsedResult = JSON.parse(result.content[0].text);
       expect(parsedResult.success).toBe(true);
       expect(parsedResult.targetName).toBeUndefined();
@@ -160,7 +160,7 @@ describe('UtilsXcodeAddFilesTool', () => {
     it('should generate Ruby command with proper structure', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(validInput);
-      
+
       const parsedResult = JSON.parse(result.content[0].text);
       const command = parsedResult.command;
 
@@ -183,7 +183,7 @@ describe('UtilsXcodeAddFilesTool', () => {
     it('should include file type detection logic', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(validInput);
-      
+
       const parsedResult = JSON.parse(result.content[0].text);
       const command = parsedResult.command;
 
@@ -198,16 +198,16 @@ describe('UtilsXcodeAddFilesTool', () => {
     it('should handle string escaping in Ruby command', async () => {
       const inputWithSpecialChars = {
         ...validInput,
-        projectPath: "/path/with'quotes/and\"double",
+        projectPath: '/path/with\'quotes/and"double',
         newFilePaths: ["File'With'Quotes.swift"],
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(inputWithSpecialChars);
-      
+
       const parsedResult = JSON.parse(result.content[0].text);
       expect(parsedResult.success).toBe(true);
-      
+
       const command = parsedResult.command;
       expect(command).toContain("\\'"); // Escaped single quotes
       expect(command).toContain('\\"'); // Escaped double quotes
@@ -268,7 +268,7 @@ describe('UtilsXcodeAddFilesTool', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(input);
-      
+
       const parsedResult = JSON.parse(result.content[0].text);
       expect(parsedResult.projectPath).toBe('/base/project/subdir/MyApp.xcodeproj');
     });
@@ -281,13 +281,13 @@ describe('UtilsXcodeAddFilesTool', () => {
       };
 
       // Mock the absolute path exists
-      mockFs.existsSync.mockImplementation((filePath) => {
+      mockFs.existsSync.mockImplementation(filePath => {
         return filePath === '/absolute/path/MyApp.xcodeproj/project.pbxproj';
       });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(input);
-      
+
       const parsedResult = JSON.parse(result.content[0].text);
       expect(parsedResult.projectPath).toBe('/absolute/path/MyApp.xcodeproj');
     });
