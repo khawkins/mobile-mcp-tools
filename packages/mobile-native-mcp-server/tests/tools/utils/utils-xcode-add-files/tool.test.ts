@@ -87,7 +87,13 @@ describe('UtilsXcodeAddFilesTool', () => {
 
     beforeEach(() => {
       // Mock project.pbxproj file exists
-      const expectedPath = path.resolve('path', 'to', 'project', 'MyApp.xcodeproj', 'project.pbxproj');
+      const expectedPath = path.resolve(
+        'path',
+        'to',
+        'project',
+        'MyApp.xcodeproj',
+        'project.pbxproj'
+      );
       mockFs.existsSync.mockImplementation(filePath => {
         return path.resolve(filePath as string) === expectedPath;
       });
@@ -104,7 +110,9 @@ describe('UtilsXcodeAddFilesTool', () => {
       expect(parsedResult.success).toBe(true);
       expect(parsedResult.command).toContain('ruby -e');
       expect(parsedResult.command).toContain("require 'xcodeproj'");
-      expect(path.resolve(parsedResult.projectPath)).toBe(path.resolve('path', 'to', 'project', 'MyApp.xcodeproj'));
+      expect(path.resolve(parsedResult.projectPath)).toBe(
+        path.resolve('path', 'to', 'project', 'MyApp.xcodeproj')
+      );
       expect(parsedResult.filePaths.map((p: string) => path.resolve(p))).toEqual([
         path.resolve('path', 'to', 'project', 'ContactManager.swift'),
         path.resolve('path', 'to', 'project', 'ContactView.swift'),
@@ -116,7 +124,10 @@ describe('UtilsXcodeAddFilesTool', () => {
     it('should handle absolute file paths', async () => {
       const inputWithAbsolutePaths = {
         ...validInput,
-        newFilePaths: [path.resolve('absolute', 'path', 'ContactManager.swift'), 'relative/ContactView.swift'],
+        newFilePaths: [
+          path.resolve('absolute', 'path', 'ContactManager.swift'),
+          'relative/ContactView.swift',
+        ],
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -200,7 +211,7 @@ describe('UtilsXcodeAddFilesTool', () => {
     it('should handle string escaping in Ruby command', async () => {
       const inputWithSpecialChars = {
         ...validInput,
-        projectPath: path.resolve('path', 'with\'quotes', 'and"double'),
+        projectPath: path.resolve('path', "with'quotes", 'and"double'),
         newFilePaths: ["File'With'Quotes.swift"],
       };
 
@@ -272,7 +283,9 @@ describe('UtilsXcodeAddFilesTool', () => {
       const result = await (tool as any).handleRequest(input);
 
       const parsedResult = JSON.parse(result.content[0].text);
-      expect(path.resolve(parsedResult.projectPath)).toBe(path.resolve('base', 'project', 'subdir', 'MyApp.xcodeproj'));
+      expect(path.resolve(parsedResult.projectPath)).toBe(
+        path.resolve('base', 'project', 'subdir', 'MyApp.xcodeproj')
+      );
     });
 
     it('should handle absolute xcodeproj path', async () => {
