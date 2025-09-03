@@ -17,8 +17,13 @@ import dedent from 'dedent';
 const XcodeAddFilesInputSchema = z.object({
   projectPath: z.string().describe('Absolute path to the Xcode project directory'),
   xcodeProjectPath: z.string().describe('Path to the .xcodeproj file (e.g., "MyApp.xcodeproj")'),
-  newFilePaths: z.array(z.string()).describe('Array of newly created file paths relative to project root'),
-  targetName: z.string().optional().describe('Optional: specific target to add files to (defaults to main app target)'),
+  newFilePaths: z
+    .array(z.string())
+    .describe('Array of newly created file paths relative to project root'),
+  targetName: z
+    .string()
+    .optional()
+    .describe('Optional: specific target to add files to (defaults to main app target)'),
 });
 
 type XcodeAddFilesInput = z.infer<typeof XcodeAddFilesInputSchema>;
@@ -92,7 +97,7 @@ export class UtilsXcodeAddFilesTool implements Tool {
 
   private async addFilesToXcodeProject(input: XcodeAddFilesInput): Promise<XcodeAddFilesResult> {
     const { projectPath, xcodeProjectPath, newFilePaths, targetName } = input;
-    
+
     // Construct full path to xcodeproj file
     const fullXcodeProjectPath = path.resolve(projectPath, xcodeProjectPath);
     const pbxprojPath = path.join(fullXcodeProjectPath, 'project.pbxproj');
@@ -103,28 +108,32 @@ export class UtilsXcodeAddFilesTool implements Tool {
     }
 
     // Prepare arguments
-    const absoluteFilePaths = newFilePaths.map(filePath => 
+    const absoluteFilePaths = newFilePaths.map(filePath =>
       path.isAbsolute(filePath) ? filePath : path.resolve(projectPath, filePath)
     );
 
     // Build the inline Ruby command using xcodeproj gem
     const rubyCode = this.buildInlineRubyCode(fullXcodeProjectPath, targetName, absoluteFilePaths);
     const command = `ruby -e "${rubyCode}"`;
-    
+
     return {
       success: true,
       command,
       projectPath: fullXcodeProjectPath,
       filePaths: absoluteFilePaths,
       targetName,
-      message: `Generated command to add ${newFilePaths.length} files to Xcode project`
+      message: `Generated command to add ${newFilePaths.length} files to Xcode project`,
     };
   }
 
-  private buildInlineRubyCode(projectPath: string, targetName: string | undefined, filePaths: string[]): string {
+  private buildInlineRubyCode(
+    projectPath: string,
+    targetName: string | undefined,
+    filePaths: string[]
+  ): string {
     // Escape strings for shell
     const escapeForShell = (str: string) => str.replace(/"/g, '\\"').replace(/'/g, "\\'");
-    
+
     const escapedProjectPath = escapeForShell(projectPath);
     const escapedTargetName = targetName ? `'${escapeForShell(targetName)}'` : 'nil';
     const escapedFilePaths = filePaths.map(fp => `'${escapeForShell(fp)}'`).join(', ');

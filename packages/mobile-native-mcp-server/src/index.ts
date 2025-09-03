@@ -30,7 +30,7 @@ const readOnlyAnnotations: ToolAnnotations = {
 };
 
 // Tools will be added here when implemented
-const tools = [new SfmobileNativeTemplateDiscoveryTool(), new UtilsXcodeAddFilesTool(),];
+const tools = [new SfmobileNativeTemplateDiscoveryTool(), new UtilsXcodeAddFilesTool()];
 
 // Register all tools with appropriate annotations
 tools.forEach(tool => tool.register(server, readOnlyAnnotations));
