@@ -9,19 +9,20 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { SfmobileNativeTemplateDiscoveryTool } from './tools/plan/sfmobile-native-template-discovery/tool.js';
+import { UtilsXcodeAddFilesTool } from './tools/utils/utils-xcode-add-files/tool.js';
+
 import packageJson from '../package.json' with { type: 'json' };
 const version = packageJson.version;
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
-
-import { SfmobileNativeTemplateDiscoveryTool } from './tools/plan/sfmobile-native-template-discovery/tool.js';
 
 const server = new McpServer({
   name: 'sfdc-mobile-native-mcp-server',
   version,
 });
 
-// Define annotations
-const annotations: ToolAnnotations = {
+// Define annotations for read-only tools
+const readOnlyAnnotations: ToolAnnotations = {
   readOnlyHint: true,
   destructiveHint: false,
   idempotentHint: true,
@@ -29,10 +30,10 @@ const annotations: ToolAnnotations = {
 };
 
 // Tools will be added here when implemented
-const tools = [new SfmobileNativeTemplateDiscoveryTool()];
+const tools = [new SfmobileNativeTemplateDiscoveryTool(), new UtilsXcodeAddFilesTool(),];
 
-// Register all tools
-tools.forEach(tool => tool.register(server, annotations));
+// Register all tools with appropriate annotations
+tools.forEach(tool => tool.register(server, readOnlyAnnotations));
 
 export default server;
 
