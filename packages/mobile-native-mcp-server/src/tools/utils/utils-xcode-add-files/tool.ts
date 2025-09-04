@@ -76,7 +76,7 @@ export class UtilsXcodeAddFilesTool implements Tool {
   private async handleRequest(input: XcodeAddFilesInput) {
     try {
       const result = await this.addFilesToXcodeProject(input);
-      
+
       // Validate the result against the output schema
       const validatedResult = this.outputSchema.parse(result);
 
