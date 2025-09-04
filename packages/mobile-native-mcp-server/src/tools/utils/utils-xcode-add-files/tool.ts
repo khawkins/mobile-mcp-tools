@@ -28,6 +28,17 @@ const XcodeAddFilesInputSchema = z.object({
 
 type XcodeAddFilesInput = z.infer<typeof XcodeAddFilesInputSchema>;
 
+// Output schema for the Xcode file addition tool
+const XcodeAddFilesOutputSchema = z.object({
+  success: z.boolean().describe('Whether the command generation was successful'),
+  command: z.string().describe('The Ruby command to execute using xcodeproj gem'),
+  projectPath: z.string().describe('The project path that was processed'),
+  filePaths: z.array(z.string()).describe('Array of file paths that were processed'),
+  targetName: z.string().optional().describe('Target name if specified'),
+  message: z.string().describe('Success or informational message'),
+  error: z.string().optional().describe('Error message if operation failed'),
+});
+
 interface XcodeAddFilesResult {
   success: boolean;
   command: string;
@@ -45,6 +56,7 @@ export class UtilsXcodeAddFilesTool implements Tool {
   public readonly description =
     'Generates a Ruby command using the xcodeproj gem to add files to Xcode projects';
   public readonly inputSchema = XcodeAddFilesInputSchema;
+  public readonly outputSchema = XcodeAddFilesOutputSchema;
 
   public register(server: McpServer, annotations: ToolAnnotations): void {
     const enhancedAnnotations = {
@@ -64,12 +76,15 @@ export class UtilsXcodeAddFilesTool implements Tool {
   private async handleRequest(input: XcodeAddFilesInput) {
     try {
       const result = await this.addFilesToXcodeProject(input);
+      
+      // Validate the result against the output schema
+      const validatedResult = this.outputSchema.parse(result);
 
       return {
         content: [
           {
             type: 'text' as const,
-            text: JSON.stringify(result, null, 2),
+            text: JSON.stringify(validatedResult, null, 2),
           },
         ],
       };
@@ -83,12 +98,15 @@ export class UtilsXcodeAddFilesTool implements Tool {
         error: error instanceof Error ? error.message : 'Unknown error occurred',
       };
 
+      // Validate the error result against the output schema
+      const validatedErrorResult = this.outputSchema.parse(errorResult);
+
       return {
         isError: true,
         content: [
           {
             type: 'text' as const,
-            text: JSON.stringify(errorResult, null, 2),
+            text: JSON.stringify(validatedErrorResult, null, 2),
           },
         ],
       };
