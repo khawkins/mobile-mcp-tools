@@ -19,8 +19,6 @@ import packageJson from '../package.json' with { type: 'json' };
 const version = packageJson.version;
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 
-
-
 const server = new McpServer({
   name: 'sfdc-mobile-native-mcp-server',
   version,
