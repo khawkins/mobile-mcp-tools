@@ -39,6 +39,7 @@ export default defineConfig({
         '**/index.ts',
         '**/coverage/',
         '**/update-type-declarations.ts',
+        '**/tools/tool.ts', // Interface-only file with no executable code
       ],
 
       // Files to include in coverage reporting
