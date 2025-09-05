@@ -13,6 +13,7 @@ import { SfmobileNativeTemplateDiscoveryTool } from './tools/plan/sfmobile-nativ
 import { UtilsXcodeAddFilesTool } from './tools/utils/utils-xcode-add-files/tool.js';
 import { SfmobileNativeDeploymentTool } from './tools/run/sfmobile-native-deployment/tool.js';
 import { SfmobileNativeBuildTool } from './tools/plan/sfmobile-native-build/tool.js';
+import { SfmobileNativeProjectGenerationTool } from './tools/plan/sfmobile-native-project-generation/tool.js';
 
 import packageJson from '../package.json' with { type: 'json' };
 const version = packageJson.version;
@@ -34,6 +35,7 @@ const readOnlyAnnotations: ToolAnnotations = {
 // Tools will be added here when implemented
 const tools = [
   new SfmobileNativeTemplateDiscoveryTool(),
+  new SfmobileNativeProjectGenerationTool(),
   new SfmobileNativeBuildTool(),
   new SfmobileNativeDeploymentTool(),
   new UtilsXcodeAddFilesTool(),
