@@ -131,7 +131,7 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
       sf mobilesdk ${platformLower} createwithtemplate --templatesource="${MOBILE_SDK_TEMPLATES_PATH}" --template="${input.selectedTemplate}" --appname="${input.projectName}" --packagename="${input.packageName}" --organization="${input.organization}"
       \`\`\`
 
-      **Expected Outcome**: A new ${input.platform} project directory named "${input.projectName}" will be created with the template structure.
+      **Expected Outcome**: A new ${input.platform} project directory named "${input.projectName}" will be created with the template structure. The output of the command will indicate the location of the bootconfig.plist file, take note of this for oauth configuration!
 
       NOTE: it is VERY IMPORTANT to use the above command EXACTLY to generate the project. Do not use any other configuration method to generate the project. If the above command fails do not try to generate the project using any other method. Instead report back error to the user.
     `;
@@ -163,14 +163,14 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
 
       ### Locate OAuth Configuration Files
 
-      Find and modify the OAuth configuration files in your generated project:
+      Find and modify the OAuth configuration files in your generated project. The location of this file was provided when the project was generated.
 
       ${
         input.platform === 'iOS'
           ? dedent`
         **For iOS:**
 
-        **Expected Location**: \`${input.projectName}/${input.projectName}/Resources/bootconfig.plist\`
+        **File Name**: \`bootconfig.plist\`
 
         ### Update iOS OAuth Configuration
 
@@ -231,12 +231,8 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
       `
           : dedent`
         **For Android:**
-        \`\`\`bash
-        # Locate the bootconfig.xml file
-        find . -name "bootconfig.xml" -type f
-        \`\`\`
 
-        **Expected Location**: Usually in \`app/src/main/res/values/bootconfig.xml\` or similar path.
+        **Expected File Name**: bootconfig.xml.
 
         ### Update Android OAuth Configuration
 
