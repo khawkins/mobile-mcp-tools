@@ -21,7 +21,7 @@ Generate the project using the Salesforce Mobile SDK CLI:
 sf mobilesdk android createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
-**Expected Outcome**: A new Android project directory named "TestApp" will be created with the template structure.
+**Expected Outcome**: A new Android project directory named "TestApp" will be created with the template structure. The output of the command will indicate the location of the bootconfig.plist file, take note of this for oauth configuration!
 
 NOTE: it is VERY IMPORTANT to use the above command EXACTLY to generate the project. Do not use any other configuration method to generate the project. If the above command fails do not try to generate the project using any other method. Instead report back error to the user.
 
@@ -40,15 +40,11 @@ ls -la
 
 ### Locate OAuth Configuration Files
 
-Find and modify the OAuth configuration files in your generated project:
+Find and modify the OAuth configuration files in your generated project. The location of this file was provided when the project was generated.
 
 **For Android:**
-\`\`\`bash
-# Locate the bootconfig.xml file
-find . -name "bootconfig.xml" -type f
-\`\`\`
 
-**Expected Location**: Usually in \`app/src/main/res/values/bootconfig.xml\` or similar path.
+**Expected File Name**: bootconfig.xml.
 
 ### Update Android OAuth Configuration
 
@@ -121,7 +117,7 @@ Generate the project using the Salesforce Mobile SDK CLI:
 sf mobilesdk ios createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
-**Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure.
+**Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure. The output of the command will indicate the location of the bootconfig.plist file, take note of this for oauth configuration!
 
 NOTE: it is VERY IMPORTANT to use the above command EXACTLY to generate the project. Do not use any other configuration method to generate the project. If the above command fails do not try to generate the project using any other method. Instead report back error to the user.
 
@@ -140,11 +136,11 @@ ls -la
 
 ### Locate OAuth Configuration Files
 
-Find and modify the OAuth configuration files in your generated project:
+Find and modify the OAuth configuration files in your generated project. The location of this file was provided when the project was generated.
 
 **For iOS:**
 
-**Expected Location**: \`TestApp/TestApp/Resources/bootconfig.plist\`
+**File Name**: \`bootconfig.plist\`
 
 ### Update iOS OAuth Configuration
 
@@ -236,7 +232,7 @@ Generate the project using the Salesforce Mobile SDK CLI:
 sf mobilesdk android createwithtemplate --templatesource="./templates" --template="MobileSyncExplorerKotlin" --appname="TestAndroidApp" --packagename="com.test.androidapp" --organization="Test Org"
 \`\`\`
 
-**Expected Outcome**: A new Android project directory named "TestAndroidApp" will be created with the template structure.
+**Expected Outcome**: A new Android project directory named "TestAndroidApp" will be created with the template structure. The output of the command will indicate the location of the bootconfig.plist file, take note of this for oauth configuration!
 
 NOTE: it is VERY IMPORTANT to use the above command EXACTLY to generate the project. Do not use any other configuration method to generate the project. If the above command fails do not try to generate the project using any other method. Instead report back error to the user.
 
@@ -255,15 +251,11 @@ ls -la
 
 ### Locate OAuth Configuration Files
 
-Find and modify the OAuth configuration files in your generated project:
+Find and modify the OAuth configuration files in your generated project. The location of this file was provided when the project was generated.
 
 **For Android:**
-\`\`\`bash
-# Locate the bootconfig.xml file
-find . -name "bootconfig.xml" -type f
-\`\`\`
 
-**Expected Location**: Usually in \`app/src/main/res/values/bootconfig.xml\` or similar path.
+**Expected File Name**: bootconfig.xml.
 
 ### Update Android OAuth Configuration
 
@@ -336,7 +328,7 @@ Generate the project using the Salesforce Mobile SDK CLI:
 sf mobilesdk ios createwithtemplate --templatesource="./templates" --template="MobileSyncExplorerSwift" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
-**Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure.
+**Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure. The output of the command will indicate the location of the bootconfig.plist file, take note of this for oauth configuration!
 
 NOTE: it is VERY IMPORTANT to use the above command EXACTLY to generate the project. Do not use any other configuration method to generate the project. If the above command fails do not try to generate the project using any other method. Instead report back error to the user.
 
@@ -355,11 +347,11 @@ ls -la
 
 ### Locate OAuth Configuration Files
 
-Find and modify the OAuth configuration files in your generated project:
+Find and modify the OAuth configuration files in your generated project. The location of this file was provided when the project was generated.
 
 **For iOS:**
 
-**Expected Location**: \`TestApp/TestApp/Resources/bootconfig.plist\`
+**File Name**: \`bootconfig.plist\`
 
 ### Update iOS OAuth Configuration
 
@@ -458,7 +450,7 @@ Generate the project using the Salesforce Mobile SDK CLI:
 sf mobilesdk android createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
-**Expected Outcome**: A new Android project directory named "TestApp" will be created with the template structure.
+**Expected Outcome**: A new Android project directory named "TestApp" will be created with the template structure. The output of the command will indicate the location of the bootconfig.plist file, take note of this for oauth configuration!
 
 NOTE: it is VERY IMPORTANT to use the above command EXACTLY to generate the project. Do not use any other configuration method to generate the project. If the above command fails do not try to generate the project using any other method. Instead report back error to the user.
 
@@ -477,15 +469,11 @@ ls -la
 
 ### Locate OAuth Configuration Files
 
-Find and modify the OAuth configuration files in your generated project:
+Find and modify the OAuth configuration files in your generated project. The location of this file was provided when the project was generated.
 
 **For Android:**
-\`\`\`bash
-# Locate the bootconfig.xml file
-find . -name "bootconfig.xml" -type f
-\`\`\`
 
-**Expected Location**: Usually in \`app/src/main/res/values/bootconfig.xml\` or similar path.
+**Expected File Name**: bootconfig.xml.
 
 ### Update Android OAuth Configuration
 
@@ -559,7 +547,7 @@ Generate the project using the Salesforce Mobile SDK CLI:
 sf mobilesdk android createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
-**Expected Outcome**: A new Android project directory named "TestApp" will be created with the template structure.
+**Expected Outcome**: A new Android project directory named "TestApp" will be created with the template structure. The output of the command will indicate the location of the bootconfig.plist file, take note of this for oauth configuration!
 
 NOTE: it is VERY IMPORTANT to use the above command EXACTLY to generate the project. Do not use any other configuration method to generate the project. If the above command fails do not try to generate the project using any other method. Instead report back error to the user.
 
@@ -578,15 +566,11 @@ ls -la
 
 ### Locate OAuth Configuration Files
 
-Find and modify the OAuth configuration files in your generated project:
+Find and modify the OAuth configuration files in your generated project. The location of this file was provided when the project was generated.
 
 **For Android:**
-\`\`\`bash
-# Locate the bootconfig.xml file
-find . -name "bootconfig.xml" -type f
-\`\`\`
 
-**Expected Location**: Usually in \`app/src/main/res/values/bootconfig.xml\` or similar path.
+**Expected File Name**: bootconfig.xml.
 
 ### Update Android OAuth Configuration
 
@@ -659,7 +643,7 @@ Generate the project using the Salesforce Mobile SDK CLI:
 sf mobilesdk ios createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
-**Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure.
+**Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure. The output of the command will indicate the location of the bootconfig.plist file, take note of this for oauth configuration!
 
 NOTE: it is VERY IMPORTANT to use the above command EXACTLY to generate the project. Do not use any other configuration method to generate the project. If the above command fails do not try to generate the project using any other method. Instead report back error to the user.
 
@@ -678,11 +662,11 @@ ls -la
 
 ### Locate OAuth Configuration Files
 
-Find and modify the OAuth configuration files in your generated project:
+Find and modify the OAuth configuration files in your generated project. The location of this file was provided when the project was generated.
 
 **For iOS:**
 
-**Expected Location**: \`TestApp/TestApp/Resources/bootconfig.plist\`
+**File Name**: \`bootconfig.plist\`
 
 ### Update iOS OAuth Configuration
 
@@ -774,7 +758,7 @@ Generate the project using the Salesforce Mobile SDK CLI:
 sf mobilesdk ios createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
-**Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure.
+**Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure. The output of the command will indicate the location of the bootconfig.plist file, take note of this for oauth configuration!
 
 NOTE: it is VERY IMPORTANT to use the above command EXACTLY to generate the project. Do not use any other configuration method to generate the project. If the above command fails do not try to generate the project using any other method. Instead report back error to the user.
 
@@ -793,11 +777,11 @@ ls -la
 
 ### Locate OAuth Configuration Files
 
-Find and modify the OAuth configuration files in your generated project:
+Find and modify the OAuth configuration files in your generated project. The location of this file was provided when the project was generated.
 
 **For iOS:**
 
-**Expected Location**: \`TestApp/TestApp/Resources/bootconfig.plist\`
+**File Name**: \`bootconfig.plist\`
 
 ### Update iOS OAuth Configuration
 
@@ -889,7 +873,7 @@ Generate the project using the Salesforce Mobile SDK CLI:
 sf mobilesdk ios createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
-**Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure.
+**Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure. The output of the command will indicate the location of the bootconfig.plist file, take note of this for oauth configuration!
 
 NOTE: it is VERY IMPORTANT to use the above command EXACTLY to generate the project. Do not use any other configuration method to generate the project. If the above command fails do not try to generate the project using any other method. Instead report back error to the user.
 
@@ -908,11 +892,11 @@ ls -la
 
 ### Locate OAuth Configuration Files
 
-Find and modify the OAuth configuration files in your generated project:
+Find and modify the OAuth configuration files in your generated project. The location of this file was provided when the project was generated.
 
 **For iOS:**
 
-**Expected Location**: \`TestApp/TestApp/Resources/bootconfig.plist\`
+**File Name**: \`bootconfig.plist\`
 
 ### Update iOS OAuth Configuration
 
@@ -1004,7 +988,7 @@ Generate the project using the Salesforce Mobile SDK CLI:
 sf mobilesdk ios createwithtemplate --templatesource="./templates" --template="TestTemplate" --appname="TestApp" --packagename="com.test.app" --organization="Test Org"
 \`\`\`
 
-**Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure.
+**Expected Outcome**: A new iOS project directory named "TestApp" will be created with the template structure. The output of the command will indicate the location of the bootconfig.plist file, take note of this for oauth configuration!
 
 NOTE: it is VERY IMPORTANT to use the above command EXACTLY to generate the project. Do not use any other configuration method to generate the project. If the above command fails do not try to generate the project using any other method. Instead report back error to the user.
 
@@ -1023,11 +1007,11 @@ ls -la
 
 ### Locate OAuth Configuration Files
 
-Find and modify the OAuth configuration files in your generated project:
+Find and modify the OAuth configuration files in your generated project. The location of this file was provided when the project was generated.
 
 **For iOS:**
 
-**Expected Location**: \`TestApp/TestApp/Resources/bootconfig.plist\`
+**File Name**: \`bootconfig.plist\`
 
 ### Update iOS OAuth Configuration
 
