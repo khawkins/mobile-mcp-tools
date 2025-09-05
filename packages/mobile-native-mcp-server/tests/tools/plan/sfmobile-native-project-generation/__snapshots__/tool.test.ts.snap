@@ -86,14 +86,7 @@ grep -r "customscheme" .
 
     ✅ Project generated successfully from template "TestTemplate"
     ✅ Project structure verified
-    ✅ OAuth configuration completed with provided credentials
-    ✅ Ready for build validation using the sfmobile-native-build-validation tool
-
-    Once the project is successfully generated and OAuth is configured, proceed to the next stage:
-
-    **Use the sfmobile-native-build-validation tool** to validate that the project builds successfully and is ready for development. 
-    
-    VERY IMPORTANT:If this tool is not available, DO NOT proceed to the next stage. Instead report back to the user with next steps."
+    ✅ OAuth configuration completed with provided credentials"
 `;
 
 exports[`SfmobileNativeProjectGenerationTool > should extract URL scheme from callback URI for iOS 1`] = `
@@ -201,14 +194,7 @@ grep -r "customscheme" .
 
     ✅ Project generated successfully from template "TestTemplate"
     ✅ Project structure verified
-    ✅ OAuth configuration completed with provided credentials
-    ✅ Ready for build validation using the sfmobile-native-build-validation tool
-
-    Once the project is successfully generated and OAuth is configured, proceed to the next stage:
-
-    **Use the sfmobile-native-build-validation tool** to validate that the project builds successfully and is ready for development. 
-    
-    VERY IMPORTANT:If this tool is not available, DO NOT proceed to the next stage. Instead report back to the user with next steps."
+    ✅ OAuth configuration completed with provided credentials"
 `;
 
 exports[`SfmobileNativeProjectGenerationTool > should generate guidance for Android platform 1`] = `
@@ -297,14 +283,7 @@ grep -r "androidapp" .
 
     ✅ Project generated successfully from template "MobileSyncExplorerKotlin"
     ✅ Project structure verified
-    ✅ OAuth configuration completed with provided credentials
-    ✅ Ready for build validation using the sfmobile-native-build-validation tool
-
-    Once the project is successfully generated and OAuth is configured, proceed to the next stage:
-
-    **Use the sfmobile-native-build-validation tool** to validate that the project builds successfully and is ready for development. 
-    
-    VERY IMPORTANT:If this tool is not available, DO NOT proceed to the next stage. Instead report back to the user with next steps."
+    ✅ OAuth configuration completed with provided credentials"
 `;
 
 exports[`SfmobileNativeProjectGenerationTool > should generate guidance for iOS platform 1`] = `
@@ -419,14 +398,7 @@ grep -r "testapp" .
 
     ✅ Project generated successfully from template "MobileSyncExplorerSwift"
     ✅ Project structure verified
-    ✅ OAuth configuration completed with provided credentials
-    ✅ Ready for build validation using the sfmobile-native-build-validation tool
-
-    Once the project is successfully generated and OAuth is configured, proceed to the next stage:
-
-    **Use the sfmobile-native-build-validation tool** to validate that the project builds successfully and is ready for development. 
-    
-    VERY IMPORTANT:If this tool is not available, DO NOT proceed to the next stage. Instead report back to the user with next steps."
+    ✅ OAuth configuration completed with provided credentials"
 `;
 
 exports[`SfmobileNativeProjectGenerationTool > should handle Android platform with loginHost 1`] = `
@@ -516,14 +488,7 @@ grep -r "testapp" .
 
     ✅ Project generated successfully from template "TestTemplate"
     ✅ Project structure verified
-    ✅ OAuth configuration completed with provided credentials
-    ✅ Ready for build validation using the sfmobile-native-build-validation tool
-
-    Once the project is successfully generated and OAuth is configured, proceed to the next stage:
-
-    **Use the sfmobile-native-build-validation tool** to validate that the project builds successfully and is ready for development. 
-    
-    VERY IMPORTANT:If this tool is not available, DO NOT proceed to the next stage. Instead report back to the user with next steps."
+    ✅ OAuth configuration completed with provided credentials"
 `;
 
 exports[`SfmobileNativeProjectGenerationTool > should handle missing callback URI with fallback scheme for Android 1`] = `
@@ -612,14 +577,7 @@ grep -r "CALLBACK" .
 
     ✅ Project generated successfully from template "TestTemplate"
     ✅ Project structure verified
-    ✅ OAuth configuration completed with provided credentials
-    ✅ Ready for build validation using the sfmobile-native-build-validation tool
-
-    Once the project is successfully generated and OAuth is configured, proceed to the next stage:
-
-    **Use the sfmobile-native-build-validation tool** to validate that the project builds successfully and is ready for development. 
-    
-    VERY IMPORTANT:If this tool is not available, DO NOT proceed to the next stage. Instead report back to the user with next steps."
+    ✅ OAuth configuration completed with provided credentials"
 `;
 
 exports[`SfmobileNativeProjectGenerationTool > should handle missing callback URI with fallback scheme for iOS 1`] = `
@@ -727,14 +685,7 @@ grep -r "CALLBACK" .
 
     ✅ Project generated successfully from template "TestTemplate"
     ✅ Project structure verified
-    ✅ OAuth configuration completed with provided credentials
-    ✅ Ready for build validation using the sfmobile-native-build-validation tool
-
-    Once the project is successfully generated and OAuth is configured, proceed to the next stage:
-
-    **Use the sfmobile-native-build-validation tool** to validate that the project builds successfully and is ready for development. 
-    
-    VERY IMPORTANT:If this tool is not available, DO NOT proceed to the next stage. Instead report back to the user with next steps."
+    ✅ OAuth configuration completed with provided credentials"
 `;
 
 exports[`SfmobileNativeProjectGenerationTool > should handle missing client ID and callback URI in verification commands 1`] = `
@@ -842,14 +793,7 @@ grep -r "CALLBACK" .
 
     ✅ Project generated successfully from template "TestTemplate"
     ✅ Project structure verified
-    ✅ OAuth configuration completed with provided credentials
-    ✅ Ready for build validation using the sfmobile-native-build-validation tool
-
-    Once the project is successfully generated and OAuth is configured, proceed to the next stage:
-
-    **Use the sfmobile-native-build-validation tool** to validate that the project builds successfully and is ready for development. 
-    
-    VERY IMPORTANT:If this tool is not available, DO NOT proceed to the next stage. Instead report back to the user with next steps."
+    ✅ OAuth configuration completed with provided credentials"
 `;
 
 exports[`SfmobileNativeProjectGenerationTool > should handle optional loginHost parameter 1`] = `
@@ -957,14 +901,7 @@ grep -r "testapp" .
 
     ✅ Project generated successfully from template "TestTemplate"
     ✅ Project structure verified
-    ✅ OAuth configuration completed with provided credentials
-    ✅ Ready for build validation using the sfmobile-native-build-validation tool
-
-    Once the project is successfully generated and OAuth is configured, proceed to the next stage:
-
-    **Use the sfmobile-native-build-validation tool** to validate that the project builds successfully and is ready for development. 
-    
-    VERY IMPORTANT:If this tool is not available, DO NOT proceed to the next stage. Instead report back to the user with next steps."
+    ✅ OAuth configuration completed with provided credentials"
 `;
 
 exports[`SfmobileNativeProjectGenerationTool > should include build validation integration 1`] = `
@@ -1072,12 +1009,5 @@ grep -r "testapp" .
 
     ✅ Project generated successfully from template "TestTemplate"
     ✅ Project structure verified
-    ✅ OAuth configuration completed with provided credentials
-    ✅ Ready for build validation using the sfmobile-native-build-validation tool
-
-    Once the project is successfully generated and OAuth is configured, proceed to the next stage:
-
-    **Use the sfmobile-native-build-validation tool** to validate that the project builds successfully and is ready for development. 
-    
-    VERY IMPORTANT:If this tool is not available, DO NOT proceed to the next stage. Instead report back to the user with next steps."
+    ✅ OAuth configuration completed with provided credentials"
 `;

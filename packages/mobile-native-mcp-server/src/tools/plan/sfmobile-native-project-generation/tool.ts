@@ -108,14 +108,6 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
       ✅ Project generated successfully from template "${input.selectedTemplate}"
       ✅ Project structure verified
       ✅ OAuth configuration completed with provided credentials
-      ✅ Ready for build validation using the sfmobile-native-build-validation tool
-
-      Once the project is successfully generated and OAuth is configured, proceed to the next stage:
-
-      **Use the sfmobile-native-build-validation tool** to validate that the project builds successfully and is ready for development. 
-      
-      VERY IMPORTANT:If this tool is not available, DO NOT proceed to the next stage. Instead report back to the user with next steps.
-
     `;
   }
 
