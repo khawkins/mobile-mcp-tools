@@ -544,10 +544,17 @@ const ENVIRONMENT_VALIDATION_TOOL_METADATA: WorkflowToolMetadata<
 
 **Well-Known Directory Structure**: The `.magen/` directory serves as a well-known location for storing project artifacts and state information:
 
-- **Purpose**: Centralized storage for workflow state, tool artifacts, and other persistent project data
+- **Purpose**: Centralized storage for workflow state, tool artifacts, logging data, and other persistent project data
 - **Scope**: Project-specific (relative to current working directory where tools are invoked)
 - **Future Extensibility**: Designed to accommodate additional artifacts such as configuration files, cached metadata, and tool-specific state
 - **Convention**: Hidden directory (dot-prefixed) to avoid workspace clutter while remaining accessible for debugging
+
+**Logging Architecture**: All workflow orchestration and MCP tool interactions are logged to `.magen/workflow_logs.json` for comprehensive debugging and audit capabilities:
+
+- **Structured Logging**: JSON-formatted log entries with structured metadata for workflow sessions, tool invocations, and error tracking
+- **Persistent Debugging**: Log files preserved across sessions for comprehensive workflow analysis and troubleshooting
+- **Component Identification**: All log entries include component names and workflow session identifiers for precise debugging
+- **Production Focus**: Workflow logging emphasizes production debugging needs while maintaining development-friendly structured output
 
 ### Checkpointing Strategy
 
@@ -1353,7 +1360,8 @@ mobile-app-project/
 ```
 development-workspace/          # User's Cursor project/workspace directory
 ├── .magen/
-│   └── workflow-state.db      # SQLite database for workflow state persistence (created at runtime)
+│   ├── workflow-state.db      # SQLite database for workflow state persistence (created at runtime)
+│   └── workflow_logs.json     # Structured JSON logs for workflow orchestration and MCP tool interactions
 ├── mobile-app-project/        # Generated native mobile app projects
 │   ├── ContactListApp/
 │   ├── AnotherMobileApp/
