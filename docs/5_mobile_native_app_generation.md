@@ -540,6 +540,15 @@ const ENVIRONMENT_VALIDATION_TOOL_METADATA: WorkflowToolMetadata<
 
 ## Workflow State Persistence
 
+### Project Artifact Management
+
+**Well-Known Directory Structure**: The `.magen/` directory serves as a well-known location for storing project artifacts and state information:
+
+- **Purpose**: Centralized storage for workflow state, tool artifacts, and other persistent project data
+- **Scope**: Project-specific (relative to current working directory where tools are invoked)
+- **Future Extensibility**: Designed to accommodate additional artifacts such as configuration files, cached metadata, and tool-specific state
+- **Convention**: Hidden directory (dot-prefixed) to avoid workspace clutter while remaining accessible for debugging
+
 ### Checkpointing Strategy
 
 The workflow uses [LangGraph persistence](https://langchain-ai.github.io/langgraphjs/concepts/persistence/) to maintain state across tool invocations and workflow session boundaries.
@@ -555,7 +564,7 @@ import { SqliteSaver } from '@langchain/langgraph/checkpoint/sqlite';
 const checkpointer = new SqliteSaver({
   // SQLite database will be created automatically via better-sqlite3
   // No external SQLite installation required
-  connectionString: path.join(process.cwd(), 'workflow-state.db'),
+  connectionString: path.join(process.cwd(), '.magen', 'workflow-state.db'),
 });
 
 const workflow = workflowGraph.compile({
@@ -563,7 +572,7 @@ const workflow = workflowGraph.compile({
 });
 ```
 
-**Storage Location**: Workflow state persisted in `./workflow-state.db` relative to current working directory, ensuring:
+**Storage Location**: Workflow state persisted in `./.magen/workflow-state.db` relative to current working directory, ensuring:
 
 - Long-lived reference data remains accessible across sessions
 - Project-specific workflow history and replay capabilities
@@ -587,7 +596,7 @@ const executeWorkflow = async (userInput: string, workflowStateData?: WorkflowSt
   // Initialize SQLite checkpointer for server-side persistence
   // Database stored in the user's development workspace (where MCP tools were launched)
   const checkpointer = new SqliteSaver({
-    connectionString: path.join(process.cwd(), 'workflow-state.db'),
+    connectionString: path.join(process.cwd(), '.magen', 'workflow-state.db'),
   });
 
   // Compile workflow with persistent state
@@ -1343,7 +1352,8 @@ mobile-app-project/
 
 ```
 development-workspace/          # User's Cursor project/workspace directory
-├── workflow-state.db          # SQLite database for workflow state persistence (created at runtime)
+├── .magen/
+│   └── workflow-state.db      # SQLite database for workflow state persistence (created at runtime)
 ├── mobile-app-project/        # Generated native mobile app projects
 │   ├── ContactListApp/
 │   ├── AnotherMobileApp/

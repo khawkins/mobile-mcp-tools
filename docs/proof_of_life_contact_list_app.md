@@ -378,7 +378,7 @@ Tools guide the LLM through:
 
 ### Phase 1: MCP Server Foundation
 
-1. **Orchestrator**: `sfmobile-native-project-manager` with LangGraph StateGraph and SQLite checkpointing
+1. **Orchestrator**: `sfmobile-native-project-manager` with LangGraph StateGraph and SQLite checkpointing (workflow state persisted in `./.magen/workflow-state.db` within the well-known project artifacts directory)
 2. **Template Discovery tool** with CLI-based metadata access and analysis
 3. **Project Generation tool** with Connected App configuration guidance
 4. **Build Validation tool** with platform-specific build orchestration
@@ -479,7 +479,7 @@ Tools guide the LLM through:
 
 **Potential Implementation Approaches**:
 
-- **File-System Workflow Status**: Maintain quasi-ephemeral documented workflow status on the file system that each tool refers to for status validation and updates with execution results. Benefits: Avoids polluting input/output schemas, provides persistent state across tool calls, enables debugging and workflow introspection.
+- **File-System Workflow Status**: Maintain quasi-ephemeral documented workflow status in the `./.magen/` well-known project artifacts directory that each tool refers to for status validation and updates with execution results. Benefits: Avoids polluting input/output schemas, provides persistent state across tool calls, enables debugging and workflow introspection, and leverages the established project artifact management structure.
 - **Data Structure State Passing**: Represent orchestration status as a data structure passed from tool input to output. Benefits: Explicit state management, no file system dependencies. Concerns: Schema pollution, complexity in tool interfaces.
 - **Hybrid Approach**: Combination of file-system state with selective data structure passing for critical workflow checkpoints.
 
