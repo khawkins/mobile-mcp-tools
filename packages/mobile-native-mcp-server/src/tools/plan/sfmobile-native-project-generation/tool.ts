@@ -10,25 +10,27 @@ import dedent from 'dedent';
 import { AbstractTool } from '../../base/abstractTool.js';
 import { MOBILE_SDK_TEMPLATES_PATH } from '../../../constants.js';
 import { Logger } from '../../../logging/index.js';
-import { PROJECT_GENERATION_TOOL } from '../../../registry/toolRegistry.js';
-import { type ProjectGenerationInput } from '../../../schemas/toolSchemas.js';
+import {
+  PROJECT_GENERATION_TOOL,
+  type ToolInputType,
+  type ToolInputShape,
+} from '../../../registry/toolRegistry.js';
 
-// Use the centralized schema directly
-const ProjectGenerationInputSchema = PROJECT_GENERATION_TOOL.inputSchema;
-
-export class SfmobileNativeProjectGenerationTool extends AbstractTool {
+export class SfmobileNativeProjectGenerationTool extends AbstractTool<
+  ToolInputShape<typeof PROJECT_GENERATION_TOOL>
+> {
   public readonly toolId = PROJECT_GENERATION_TOOL.toolId;
   public readonly name = PROJECT_GENERATION_TOOL.name;
   public readonly title = PROJECT_GENERATION_TOOL.title;
   public readonly description = PROJECT_GENERATION_TOOL.description;
-  public readonly inputSchema = ProjectGenerationInputSchema;
+  public readonly inputSchema = PROJECT_GENERATION_TOOL.inputSchema;
   public readonly outputSchema = undefined; // No specific output schema defined
 
   constructor(server: McpServer, logger?: Logger) {
     super(server, 'ProjectGenerationTool', logger);
   }
 
-  protected async handleRequest(input: ProjectGenerationInput) {
+  protected async handleRequest(input: ToolInputType<typeof PROJECT_GENERATION_TOOL>) {
     try {
       const guidance = this.generateProjectGenerationGuidance(input);
 
@@ -53,7 +55,9 @@ export class SfmobileNativeProjectGenerationTool extends AbstractTool {
     }
   }
 
-  private generateProjectGenerationGuidance(input: ProjectGenerationInput): string {
+  private generateProjectGenerationGuidance(
+    input: ToolInputType<typeof PROJECT_GENERATION_TOOL>
+  ): string {
     return dedent`
       # Mobile App Project Generation Guide
 
@@ -81,7 +85,10 @@ export class SfmobileNativeProjectGenerationTool extends AbstractTool {
     `;
   }
 
-  private generateStepExecuteCliCommand(stepNumber: number, input: ProjectGenerationInput): string {
+  private generateStepExecuteCliCommand(
+    stepNumber: number,
+    input: ToolInputType<typeof PROJECT_GENERATION_TOOL>
+  ): string {
     const platformLower = input.platform.toLowerCase();
 
     return dedent`
@@ -101,7 +108,7 @@ export class SfmobileNativeProjectGenerationTool extends AbstractTool {
 
   private generateStepVerifyProjectStructure(
     stepNumber: number,
-    input: ProjectGenerationInput
+    input: ToolInputType<typeof PROJECT_GENERATION_TOOL>
   ): string {
     return dedent`
       ## Step ${stepNumber}: Verify Project Structure
@@ -117,7 +124,10 @@ export class SfmobileNativeProjectGenerationTool extends AbstractTool {
     `;
   }
 
-  private generateStepConfigureOAuth(stepNumber: number, input: ProjectGenerationInput): string {
+  private generateStepConfigureOAuth(
+    stepNumber: number,
+    input: ToolInputType<typeof PROJECT_GENERATION_TOOL>
+  ): string {
     const { connectedAppClientId, connectedAppCallbackUri, loginHost } = input;
 
     return dedent`

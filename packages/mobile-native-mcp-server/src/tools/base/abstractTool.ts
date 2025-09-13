@@ -7,9 +7,11 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations, CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ZodRawShape, ZodObject, z, ZodTypeAny } from 'zod';
+import z from 'zod';
 import { Logger, createToolLogger } from '../../logging/index.js';
-import { WorkflowStateData } from '../../workflow/schemas.js';
+import { WORKFLOW_PROPERTY_NAMES, WorkflowStateData } from '../../schemas/index.js';
+import { ORCHESTRATOR_TOOL } from '../../registry/toolRegistry.js';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 /**
  * Abstract base class for ALL MCP tools in the mobile native server
@@ -26,8 +28,8 @@ import { WorkflowStateData } from '../../workflow/schemas.js';
  * @template OutputArgs - Zod schema shape for tool output
  */
 export abstract class AbstractTool<
-  InputArgs extends ZodRawShape = ZodRawShape,
-  OutputArgs extends ZodRawShape = ZodRawShape,
+  InputArgs extends z.ZodRawShape = z.ZodRawShape,
+  OutputArgs extends z.ZodRawShape = z.ZodRawShape,
 > {
   protected readonly logger: Logger;
 
@@ -44,10 +46,8 @@ export abstract class AbstractTool<
   abstract readonly title: string;
   abstract readonly description: string;
   abstract readonly toolId: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  abstract readonly inputSchema: ZodObject<InputArgs, any, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  abstract readonly outputSchema?: ZodObject<OutputArgs, any, any>;
+  abstract readonly inputSchema: z.ZodObject<InputArgs>;
+  abstract readonly outputSchema?: z.ZodObject<OutputArgs>;
 
   /**
    * Register the tool with the MCP server
@@ -81,7 +81,7 @@ export abstract class AbstractTool<
    * Return: CallToolResult | Promise<CallToolResult>
    */
   protected abstract handleRequest(
-    input: z.objectOutputType<InputArgs, ZodTypeAny>
+    input: z.objectOutputType<InputArgs, z.ZodTypeAny>
   ): Promise<CallToolResult>;
 
   /**
@@ -132,13 +132,23 @@ export abstract class AbstractTool<
 
 # Post-Tool-Invocation Instructions
 
-After this prompt has been processed, you MUST initiate the following actions to proceed with the in-progress workflow:
+After this prompt has been processed, you MUST initiate the following actions to proceed with the in-progress workflow.
 
-- Invoke the \`sfmobile-native-project-manager\` tool with the following input:
-  - \`userInput\`: ${toolOutputDescription}
-  - \`workflowStateData\`: ${JSON.stringify(workflowStateData || {})}
+## Prerequisite: Expected Input Schema of \`${WORKFLOW_PROPERTY_NAMES.userInput}\` Parameter
 
-This will continue the workflow orchestration process.`;
+The following JSON schema is the expected input schema for the \`${WORKFLOW_PROPERTY_NAMES.userInput}\`
+parameter, which you will populate based on the instructions below:
+
+${JSON.stringify(zodToJsonSchema(workflowStateData?.expectedInputSchema))}
+
+## Invoke the \`${ORCHESTRATOR_TOOL.toolId}\` Tool
+
+- Invoke the \`${ORCHESTRATOR_TOOL.toolId}\` tool with the following input:
+  - \`${WORKFLOW_PROPERTY_NAMES.userInput}\`: ${toolOutputDescription}
+  - \`${WORKFLOW_PROPERTY_NAMES.workflowStateData}\`: ${JSON.stringify(workflowStateData || {})}
+
+This will continue the workflow orchestration process.
+`;
 
     return prompt + postInstructions;
   }

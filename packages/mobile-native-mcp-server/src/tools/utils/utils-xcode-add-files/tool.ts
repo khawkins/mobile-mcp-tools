@@ -11,15 +11,14 @@ import * as path from 'path';
 import dedent from 'dedent';
 import { AbstractTool } from '../../base/abstractTool.js';
 import { Logger } from '../../../logging/index.js';
-import { XCODE_ADD_FILES_TOOL } from '../../../registry/toolRegistry.js';
 import {
-  XCODE_ADD_FILES_OUTPUT_SCHEMA,
-  type XcodeAddFilesInput,
-  type XcodeAddFilesOutput,
-} from '../../../schemas/toolSchemas.js';
+  XCODE_ADD_FILES_TOOL,
+  type ToolInputType,
+  type ToolInputShape,
+} from '../../../registry/toolRegistry.js';
+import { XCODE_ADD_FILES_OUTPUT_SCHEMA } from '../../../schemas/index.js';
 
 // Use the centralized schemas directly
-const XcodeAddFilesInputSchema = XCODE_ADD_FILES_TOOL.inputSchema;
 const XcodeAddFilesOutputSchema = XCODE_ADD_FILES_OUTPUT_SCHEMA;
 
 interface XcodeAddFilesResult {
@@ -32,19 +31,22 @@ interface XcodeAddFilesResult {
   error?: string;
 }
 
-export class UtilsXcodeAddFilesTool extends AbstractTool {
+export class UtilsXcodeAddFilesTool extends AbstractTool<
+  ToolInputShape<typeof XCODE_ADD_FILES_TOOL>,
+  typeof XcodeAddFilesOutputSchema.shape
+> {
   public readonly toolId = XCODE_ADD_FILES_TOOL.toolId;
   public readonly name = XCODE_ADD_FILES_TOOL.name;
   public readonly title = XCODE_ADD_FILES_TOOL.title;
   public readonly description = XCODE_ADD_FILES_TOOL.description;
-  public readonly inputSchema = XcodeAddFilesInputSchema;
+  public readonly inputSchema = XCODE_ADD_FILES_TOOL.inputSchema;
   public readonly outputSchema = XcodeAddFilesOutputSchema;
 
   constructor(server: McpServer, logger?: Logger) {
     super(server, 'XcodeAddFilesTool', logger);
   }
 
-  protected async handleRequest(input: XcodeAddFilesInput) {
+  protected async handleRequest(input: ToolInputType<typeof XCODE_ADD_FILES_TOOL>) {
     try {
       const result = await this.addFilesToXcodeProject(input);
 
@@ -84,7 +86,9 @@ export class UtilsXcodeAddFilesTool extends AbstractTool {
     }
   }
 
-  private async addFilesToXcodeProject(input: XcodeAddFilesInput): Promise<XcodeAddFilesResult> {
+  private async addFilesToXcodeProject(
+    input: ToolInputType<typeof XCODE_ADD_FILES_TOOL>
+  ): Promise<XcodeAddFilesResult> {
     const { projectPath, xcodeProjectPath, newFilePaths, targetName } = input;
 
     // Construct full path to xcodeproj file

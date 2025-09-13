@@ -1,5 +1,15 @@
 import { Annotation, END, START, interrupt, StateGraph } from '@langchain/langgraph';
-import { MCPToolInvocationData } from './schemas.js';
+import {
+  MCPToolInvocationData,
+  type TemplateDiscoveryInput,
+  type ProjectGenerationInput,
+  type BuildInput,
+  type DeploymentInput,
+  TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA,
+  PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA,
+  BUILD_WORKFLOW_INPUT_SCHEMA,
+  DEPLOYMENT_WORKFLOW_INPUT_SCHEMA,
+} from '../schemas/index.js';
 import {
   TEMPLATE_DISCOVERY_TOOL,
   PROJECT_GENERATION_TOOL,
@@ -13,8 +23,8 @@ import {
  */
 export const MobileNativeWorkflowState = Annotation.Root({
   // Core workflow data
-  userInput: Annotation<string>,
-  platform: Annotation<string>,
+  userInput: Annotation<unknown>,
+  platform: Annotation<'iOS' | 'Android'>,
 
   // Plan phase state
   environmentValidated: Annotation<boolean>,
@@ -29,7 +39,7 @@ export const MobileNativeWorkflowState = Annotation.Root({
   currentPhase: Annotation<string>,
 });
 
-type State = typeof MobileNativeWorkflowState.State;
+export type State = typeof MobileNativeWorkflowState.State;
 
 /**
  * Node names for the workflow graph
@@ -60,7 +70,10 @@ function environmentValidationNode(_state: State): Partial<State> {
 function templateDiscoveryNode(state: State): Partial<State> {
   const platform = extractPlatformFromUserInput(state.userInput);
 
-  const interruptState: MCPToolInvocationData = {
+  const interruptState: MCPToolInvocationData<
+    typeof TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA.shape,
+    TemplateDiscoveryInput
+  > = {
     llmMetadata: TEMPLATE_DISCOVERY_TOOL,
     input: {
       platform,
@@ -69,6 +82,11 @@ function templateDiscoveryNode(state: State): Partial<State> {
   };
 
   interrupt(interruptState);
+
+  // TODO: Post-interrupt validation will be implemented here
+  // const validatedResult = validateTemplateDiscoveryResult(state.userInput);
+  // This would parse and validate the structured result from the MCP tool
+  // and extract the selectedTemplate for the next workflow step
 
   return {
     platform,
@@ -84,12 +102,20 @@ function projectGenerationNode(state: State): Partial<State> {
   const selectedTemplate = extractTemplateFromResult(state.userInput);
   const projectDetails = extractProjectDetailsFromUserInput();
 
-  const interruptState: MCPToolInvocationData = {
+  const interruptState: MCPToolInvocationData<
+    typeof PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA.shape,
+    ProjectGenerationInput
+  > = {
     llmMetadata: PROJECT_GENERATION_TOOL,
     input: {
       selectedTemplate,
-      ...projectDetails,
+      projectName: projectDetails.projectName!,
       platform: state.platform,
+      packageName: projectDetails.packageName!,
+      organization: projectDetails.organizationName!,
+      connectedAppClientId: projectDetails.connectedAppClientId!,
+      connectedAppCallbackUri: projectDetails.connectedAppCallbackUri!,
+      loginHost: projectDetails.loginHost,
     },
     isComplete: false,
   };
@@ -107,7 +133,10 @@ function projectGenerationNode(state: State): Partial<State> {
  * Build Validation Node - Phase 1: Plan
  */
 function buildValidationNode(state: State): Partial<State> {
-  const interruptState: MCPToolInvocationData = {
+  const interruptState: MCPToolInvocationData<
+    typeof BUILD_WORKFLOW_INPUT_SCHEMA.shape,
+    BuildInput
+  > = {
     llmMetadata: BUILD_TOOL,
     input: {
       projectPath: state.projectPath,
@@ -128,11 +157,16 @@ function buildValidationNode(state: State): Partial<State> {
  * Deployment Node - Phase 3: Run
  */
 function deploymentNode(state: State): Partial<State> {
-  const interruptState: MCPToolInvocationData = {
+  const interruptState: MCPToolInvocationData<
+    typeof DEPLOYMENT_WORKFLOW_INPUT_SCHEMA.shape,
+    DeploymentInput
+  > = {
     llmMetadata: DEPLOYMENT_TOOL,
     input: {
       projectPath: state.projectPath,
       platform: state.platform,
+      buildType: 'debug' as const,
+      targetDevice: undefined,
     },
     isComplete: false,
   };
@@ -168,9 +202,15 @@ function finishNode(_state: State): Partial<State> {
 /**
  * Helper function to extract platform from user input
  */
-function extractPlatformFromUserInput(userInput: string): string {
-  // Simple extraction logic for steel thread
-  if (userInput.toLowerCase().includes('android')) {
+function extractPlatformFromUserInput(userInput: any): 'iOS' | 'Android' {
+  // Handle structured input
+  if (typeof userInput === 'object' && userInput && userInput.platform) {
+    return userInput.platform as 'iOS' | 'Android';
+  }
+
+  // Handle string input - simple extraction logic for steel thread
+  const inputStr = typeof userInput === 'string' ? userInput : JSON.stringify(userInput);
+  if (inputStr.toLowerCase().includes('android')) {
     return 'Android';
   }
   // Default to iOS for proof of life
@@ -180,11 +220,17 @@ function extractPlatformFromUserInput(userInput: string): string {
 /**
  * Helper function to extract template from discovery result
  */
-function extractTemplateFromResult(_result: string): string {
-  // This would parse the LLM's template selection from the discovery result
+function extractTemplateFromResult(_result: any): string {
+  // Handle structured input
+  if (typeof _result === 'object' && _result && _result.selectedTemplate) {
+    return _result.selectedTemplate as string;
+  }
+
+  // Handle string input - parse the LLM's template selection from the discovery result
   // For steel thread, we'll use a default template name
   // In production, this would parse structured output from the discovery tool
-  const match = _result.match(/template[:\s]+([^\s\n,]+)/i);
+  const resultStr = typeof _result === 'string' ? _result : JSON.stringify(_result);
+  const match = resultStr.match(/template[:\s]+([^\s\n,]+)/i);
   return match?.[1] || 'iOSNativeSwiftTemplate';
 }
 
@@ -192,11 +238,12 @@ function extractTemplateFromResult(_result: string): string {
  * Helper function to extract project details from user input
  */
 function extractProjectDetailsFromUserInput(): {
-  projectName?: string;
-  packageName?: string;
-  organizationName?: string;
-  connectedAppClientId?: string;
-  connectedAppCallbackUri?: string;
+  projectName: string;
+  packageName: string;
+  organizationName: string;
+  connectedAppClientId: string;
+  connectedAppCallbackUri: string;
+  loginHost?: string;
   outputDirectory?: string;
 } {
   // For steel thread, return sensible defaults
@@ -205,6 +252,8 @@ function extractProjectDetailsFromUserInput(): {
     projectName: 'ContactListApp',
     packageName: 'com.mycompany.contactlistapp',
     organizationName: 'My Company',
+    connectedAppClientId: 'your_connected_app_client_id',
+    connectedAppCallbackUri: 'myapp://oauth/callback',
     outputDirectory: './ContactListApp',
   };
 }

@@ -2,15 +2,20 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SqliteSaver } from '@langchain/langgraph-checkpoint-sqlite';
 import { BaseCheckpointSaver, Command } from '@langchain/langgraph';
 import { getWorkflowStateDatabasePath } from '../utils/wellKnownDirectory.js';
-import { ORCHESTRATOR_TOOL } from '../registry/toolRegistry.js';
+import {
+  ORCHESTRATOR_TOOL,
+  type ToolInputType,
+  type ToolInputShape,
+} from '../registry/toolRegistry.js';
 import {
   ORCHESTRATOR_OUTPUT_SCHEMA,
   OrchestratorOutput,
   OrchestratorInput,
   MCPToolInvocationData,
   WorkflowStateData,
-} from './schemas.js';
-import { mobileNativeWorkflow, MobileNativeWorkflowState } from './graph.js';
+  WORKFLOW_PROPERTY_NAMES,
+} from '../schemas/index.js';
+import { mobileNativeWorkflow, State } from './graph.js';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { AbstractTool } from '../tools/base/abstractTool.js';
 
@@ -47,7 +52,10 @@ function createCheckpointer(useMemoryForTesting = false): BaseCheckpointSaver {
  * mobile app generation workflow using LangGraph.js for deterministic state management
  * and human-in-the-loop patterns for agentic task execution.
  */
-export class MobileNativeOrchestrator extends AbstractTool {
+export class MobileNativeOrchestrator extends AbstractTool<
+  ToolInputShape<typeof ORCHESTRATOR_TOOL>,
+  typeof ORCHESTRATOR_OUTPUT_SCHEMA.shape
+> {
   public readonly toolId = ORCHESTRATOR_TOOL.toolId;
   public readonly name = ORCHESTRATOR_TOOL.name;
   public readonly title = ORCHESTRATOR_TOOL.title;
@@ -67,7 +75,7 @@ export class MobileNativeOrchestrator extends AbstractTool {
   /**
    * Handle orchestrator requests - manages workflow state and execution
    */
-  protected async handleRequest(input: OrchestratorInput) {
+  protected async handleRequest(input: ToolInputType<typeof ORCHESTRATOR_TOOL>) {
     this.logger.debug('Orchestrator tool called with input', input);
     try {
       const result = await this.processRequest(input);
@@ -113,7 +121,7 @@ export class MobileNativeOrchestrator extends AbstractTool {
     const graphState = await compiledWorkflow.getState(threadConfig);
     const interruptedTask = graphState.tasks.find(task => task.interrupts.length > 0);
 
-    let result: typeof MobileNativeWorkflowState.State;
+    let result: State;
     if (interruptedTask) {
       this.logger.info('Resuming interrupted workflow', {
         taskId: interruptedTask.id,
@@ -138,37 +146,44 @@ export class MobileNativeOrchestrator extends AbstractTool {
     }
 
     this.logger.debug('Processing workflow result');
-    const interruptState: MCPToolInvocationData | undefined =
+    const mcpToolInvocationData: MCPToolInvocationData | undefined =
       '__interrupt__' in result
         ? (result.__interrupt__ as Array<{ value: MCPToolInvocationData }>)[0].value
         : undefined;
 
-    if (!interruptState) {
-      this.logger.error('Workflow completed without expected interrupt state');
+    if (!mcpToolInvocationData) {
+      this.logger.error('Workflow completed without expected MCP tool invocation.');
       throw new Error('FATAL: Unexpected workflow state without an interrupt');
     }
 
     this.logger.info('Workflow execution completed', {
-      isComplete: interruptState.isComplete,
-      toolName: interruptState.llmMetadata?.name,
+      isComplete: mcpToolInvocationData.isComplete,
+      toolName: mcpToolInvocationData.llmMetadata?.name,
     });
 
     // Create orchestration prompt or completion message
-    const orchestrationPrompt = interruptState.isComplete
+    const orchestrationPrompt = mcpToolInvocationData.isComplete
       ? 'The workflow has completed successfully. Your Contact list mobile app is now ready!'
-      : this.createOrchestrationPrompt(interruptState, workflowStateData);
+      : this.createOrchestrationPrompt(mcpToolInvocationData, workflowStateData);
 
     return {
       orchestrationInstructionsPrompt: orchestrationPrompt,
-      isComplete: interruptState.isComplete,
+      isComplete: mcpToolInvocationData.isComplete,
     };
   }
 
   /**
    * Extract platform from user input (simple implementation for steel thread)
    */
-  private extractPlatform(userInput: string): string {
-    if (userInput.toLowerCase().includes('android')) {
+  private extractPlatform(userInput: any): 'iOS' | 'Android' {
+    // Handle structured input
+    if (typeof userInput === 'object' && userInput && userInput.platform) {
+      return userInput.platform as 'iOS' | 'Android';
+    }
+
+    // Handle string input
+    const inputStr = typeof userInput === 'string' ? userInput : JSON.stringify(userInput);
+    if (inputStr.toLowerCase().includes('android')) {
       return 'Android';
     }
     return 'iOS'; // Default for proof of life
@@ -178,39 +193,47 @@ export class MobileNativeOrchestrator extends AbstractTool {
    * Create orchestration prompt for LLM with embedded tool invocation data and workflow state
    */
   private createOrchestrationPrompt(
-    interruptData: MCPToolInvocationData,
+    mcpToolInvocationData: MCPToolInvocationData,
     workflowStateData: WorkflowStateData
   ): string {
     return `
 # Your Role
 
-You are participating in a workflow orchestration process. The current (\`sfmobile-native-project-manager\`) MCP server tool is the orchestrator, and is sending you instructions on what to do next. These instructions describe the next participating MCP server tool to invoke, along with its input schema and input values.
+You are participating in a workflow orchestration process. The current (\`${this.toolId}\`) MCP
+server tool is the orchestrator, and is sending you instructions on what to do next. These
+instructions describe the next participating MCP server tool to invoke, along with its input schema
+and input values.
 
 # Your Task
 
-- Invoke the following MCP server tool:
+Invoke the following MCP server tool:
 
-**MCP Server Tool Name**: ${interruptData.llmMetadata?.name}
+**MCP Server Tool Name**: ${mcpToolInvocationData.llmMetadata?.name}
 **MCP Server Tool Input Schema**:
 \`\`\`json
-${JSON.stringify(zodToJsonSchema(interruptData.llmMetadata?.inputSchema), null, 2)}
+${JSON.stringify(zodToJsonSchema(mcpToolInvocationData.llmMetadata?.inputSchema))}
 \`\`\`
 **MCP Server Tool Input Values**:
 \`\`\`json
-${JSON.stringify(interruptData.input, null, 2)}
+${JSON.stringify(mcpToolInvocationData.input)}
 \`\`\`
 
-## Additional Input: \`workflowStateData\`
+## Additional Input: \`${WORKFLOW_PROPERTY_NAMES.workflowStateData}\`
 
-\`workflowStateData\` is an additional input parameter that is specified in the input schema above, and should be passed to the next MCP server tool invocation, with the following object value:
+\`${WORKFLOW_PROPERTY_NAMES.workflowStateData}\` is an additional input parameter that is specified
+in the input schema above, and should be passed to the next MCP server tool invocation, with the
+following object value:
 
 \`\`\`json
 ${JSON.stringify(workflowStateData)}
 \`\`\`
 
-This represents opaque workflow state data that should be round-tripped back to the \`${this.toolId}\` MCP server tool orchestrator at the completion of the next MCP server tool invocation, without modification. These instructions will be further specified by the next MCP server tool invocation.
+This represents opaque workflow state data that should be round-tripped back to the \`${this.toolId}\`
+MCP server tool orchestrator at the completion of the next MCP server tool invocation, without
+modification. These instructions will be further specified by the next MCP server tool invocation.
 
-- The MCP server tool you invoke will respond with its output, along with further instructions for continuing the workflow.
-    `.trim();
+The MCP server tool you invoke will respond with its output, along with further instructions for
+continuing the workflow.
+`;
   }
 }

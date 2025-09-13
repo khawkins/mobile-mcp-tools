@@ -1,30 +1,27 @@
-import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import dedent from 'dedent';
 import { AbstractTool } from '../../base/abstractTool.js';
-import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA } from '../../../workflow/schemas.js';
+import { BUILD_OUTPUT_SCHEMA } from '../../../schemas/index.js';
 import { Logger } from '../../../logging/index.js';
-import { BUILD_TOOL } from '../../../registry/toolRegistry.js';
-import { BUILD_OUTPUT_SCHEMA, type BuildInput } from '../../../schemas/toolSchemas.js';
+import {
+  BUILD_TOOL,
+  type ToolInputType,
+  type ToolInputShape,
+} from '../../../registry/toolRegistry.js';
 
-// Extend the centralized schema with workflow support
-const BuildInputSchema = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.extend(BUILD_TOOL.inputSchema.shape);
-
-type ExtendedBuildInput = z.infer<typeof BuildInputSchema>;
-
-export class SfmobileNativeBuildTool extends AbstractTool {
+export class SfmobileNativeBuildTool extends AbstractTool<ToolInputShape<typeof BUILD_TOOL>> {
   public readonly toolId = BUILD_TOOL.toolId;
   public readonly name = BUILD_TOOL.name;
   public readonly title = BUILD_TOOL.title;
   public readonly description = BUILD_TOOL.description;
-  public readonly inputSchema = BuildInputSchema;
+  public readonly inputSchema = BUILD_TOOL.inputSchema;
   public readonly outputSchema = BUILD_OUTPUT_SCHEMA;
 
   constructor(server: McpServer, logger?: Logger) {
     super(server, 'BuildTool', logger);
   }
 
-  protected async handleRequest(input: ExtendedBuildInput) {
+  protected async handleRequest(input: ToolInputType<typeof BUILD_TOOL>) {
     const guidance = this.generateBuildGuidance(input);
 
     // Add workflow round-tripping instructions if this is part of a workflow
@@ -46,7 +43,7 @@ export class SfmobileNativeBuildTool extends AbstractTool {
     };
   }
 
-  private generateBuildGuidance(input: BuildInput) {
+  private generateBuildGuidance(input: ToolInputType<typeof BUILD_TOOL>) {
     return dedent`
      You are a tech-adept agent acting on behalf of a user who is not familiar with the technical details of MSDK development. 
      Carry out the steps in the following guideline for them, and share the key outcomes they need to know.

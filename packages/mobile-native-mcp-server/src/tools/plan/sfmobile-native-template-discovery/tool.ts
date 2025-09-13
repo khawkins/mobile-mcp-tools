@@ -6,35 +6,31 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { z } from 'zod';
 import { AbstractTool } from '../../base/abstractTool.js';
 import { MOBILE_SDK_TEMPLATES_PATH } from '../../../constants.js';
-import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA } from '../../../workflow/schemas.js';
 import { Logger } from '../../../logging/index.js';
-import { TEMPLATE_DISCOVERY_TOOL } from '../../../registry/toolRegistry.js';
-import { type TemplateDiscoveryInput } from '../../../schemas/toolSchemas.js';
+import {
+  TEMPLATE_DISCOVERY_TOOL,
+  type ToolInputType,
+  type ToolInputShape,
+} from '../../../registry/toolRegistry.js';
 import dedent from 'dedent';
 
-// Extend the centralized schema with workflow support
-const TemplateDiscoveryInputSchema = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.extend(
-  TEMPLATE_DISCOVERY_TOOL.inputSchema.shape
-);
-
-type ExtendedTemplateDiscoveryInput = z.infer<typeof TemplateDiscoveryInputSchema>;
-
-export class SfmobileNativeTemplateDiscoveryTool extends AbstractTool {
+export class SfmobileNativeTemplateDiscoveryTool extends AbstractTool<
+  ToolInputShape<typeof TEMPLATE_DISCOVERY_TOOL>
+> {
   public readonly toolId = TEMPLATE_DISCOVERY_TOOL.toolId;
   public readonly name = TEMPLATE_DISCOVERY_TOOL.name;
   public readonly title = TEMPLATE_DISCOVERY_TOOL.title;
   public readonly description = TEMPLATE_DISCOVERY_TOOL.description;
-  public readonly inputSchema = TemplateDiscoveryInputSchema;
+  public readonly inputSchema = TEMPLATE_DISCOVERY_TOOL.inputSchema;
   public readonly outputSchema = undefined; // No specific output schema defined
 
   constructor(server: McpServer, logger?: Logger) {
     super(server, 'TemplateDiscoveryTool', logger);
   }
 
-  protected async handleRequest(input: ExtendedTemplateDiscoveryInput) {
+  protected async handleRequest(input: ToolInputType<typeof TEMPLATE_DISCOVERY_TOOL>) {
     try {
       const guidance = this.generateTemplateDiscoveryGuidance(input);
 
@@ -68,7 +64,9 @@ export class SfmobileNativeTemplateDiscoveryTool extends AbstractTool {
     }
   }
 
-  private generateTemplateDiscoveryGuidance(input: TemplateDiscoveryInput): string {
+  private generateTemplateDiscoveryGuidance(
+    input: ToolInputType<typeof TEMPLATE_DISCOVERY_TOOL>
+  ): string {
     return dedent`
       # Template Discovery Guidance for ${input.platform}
 
@@ -112,7 +110,10 @@ export class SfmobileNativeTemplateDiscoveryTool extends AbstractTool {
     `;
   }
 
-  private generateTemplateDiscoveryStep(stepNumber: number, input: TemplateDiscoveryInput): string {
+  private generateTemplateDiscoveryStep(
+    stepNumber: number,
+    input: ToolInputType<typeof TEMPLATE_DISCOVERY_TOOL>
+  ): string {
     const platformLower = input.platform.toLowerCase();
 
     return dedent`
@@ -138,7 +139,7 @@ export class SfmobileNativeTemplateDiscoveryTool extends AbstractTool {
 
   private generateDetailedInvestigationStep(
     stepNumber: number,
-    input: TemplateDiscoveryInput
+    input: ToolInputType<typeof TEMPLATE_DISCOVERY_TOOL>
   ): string {
     const platformLower = input.platform.toLowerCase();
 
