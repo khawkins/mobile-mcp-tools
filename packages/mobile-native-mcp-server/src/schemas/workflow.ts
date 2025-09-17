@@ -7,7 +7,6 @@
 
 import { z } from 'zod';
 import dedent from 'dedent';
-import { ORCHESTRATOR_TOOL } from '../registry/toolRegistry.js';
 
 /**
  * Workflow state data schema for round-tripping session identity
@@ -45,18 +44,18 @@ export const WORKFLOW_TOOL_BASE_INPUT_SCHEMA = z.object({
  * MCP tool invocation data structure used in LangGraph interrupts
  * Contains all information needed for the orchestrator to create tool invocation instructions
  *
- * @template TWorkflowInput - The full workflow input schema shape (includes workflowStateData)
+ * @template TWorkflowInputSchema - The full workflow input schema (includes workflowStateData)
  * @template TBusinessInput - The business logic input data type (excludes workflowStateData)
  */
 export interface MCPToolInvocationData<
-  TWorkflowInput extends z.ZodRawShape = z.ZodRawShape,
+  TWorkflowInputSchema extends z.ZodObject<z.ZodRawShape> = z.ZodObject<z.ZodRawShape>,
   TBusinessInput = Record<string, unknown>,
 > {
   /** Metadata about the tool to invoke - uses full workflow schema for orchestration prompt */
   llmMetadata: {
     name: string;
     description: string;
-    inputSchema: z.ZodObject<TWorkflowInput>;
+    inputSchema: TWorkflowInputSchema;
   };
   /** Input parameters for the tool invocation - typed to business logic schema only */
   input: TBusinessInput;

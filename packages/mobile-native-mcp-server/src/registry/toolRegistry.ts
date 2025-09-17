@@ -18,7 +18,9 @@ import {
 /**
  * Tool metadata interface - defines the structure for tool information
  */
-export interface ToolMetadata<TInputSchema extends z.ZodRawShape = z.ZodRawShape> {
+export interface ToolMetadata<
+  TInputSchema extends z.ZodObject<z.ZodRawShape> = z.ZodObject<z.ZodRawShape>,
+> {
   /** Unique tool identifier used for MCP registration and workflow orchestration */
   readonly toolId: string;
 
@@ -32,26 +34,29 @@ export interface ToolMetadata<TInputSchema extends z.ZodRawShape = z.ZodRawShape
   readonly description: string;
 
   /** Zod input schema for validation */
-  readonly inputSchema: z.ZodObject<TInputSchema>;
+  readonly inputSchema: TInputSchema;
 }
 
 /**
  * Utility type to extract the input type from a ToolMetadata
  * Usage: ToolInputType<typeof DEPLOYMENT_TOOL>
  */
-export type ToolInputType<T extends ToolMetadata<z.ZodRawShape>> = z.infer<T['inputSchema']>;
+export type ToolInputType<T extends ToolMetadata<z.ZodObject<z.ZodRawShape>>> = z.infer<
+  T['inputSchema']
+>;
 
 /**
  * Utility type to extract the input schema shape from a ToolMetadata
  * Usage: ToolInputShape<typeof DEPLOYMENT_TOOL>
  */
-export type ToolInputShape<T extends ToolMetadata<z.ZodRawShape>> = T['inputSchema']['shape'];
+export type ToolInputShape<T extends ToolMetadata<z.ZodObject<z.ZodRawShape>>> =
+  T['inputSchema']['shape'];
 
 /**
  * Template Discovery Tool Metadata
  */
 export const TEMPLATE_DISCOVERY_TOOL: ToolMetadata<
-  typeof TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA.shape
+  typeof TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA
 > = {
   toolId: 'sfmobile-native-template-discovery',
   name: 'Salesforce Mobile Native Template Discovery',
@@ -65,7 +70,7 @@ export const TEMPLATE_DISCOVERY_TOOL: ToolMetadata<
  * Project Generation Tool Metadata
  */
 export const PROJECT_GENERATION_TOOL: ToolMetadata<
-  typeof PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA.shape
+  typeof PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA
 > = {
   toolId: 'sfmobile-native-project-generation',
   name: 'Salesforce Mobile Native Project Generation',
@@ -78,7 +83,7 @@ export const PROJECT_GENERATION_TOOL: ToolMetadata<
 /**
  * Build Tool Metadata
  */
-export const BUILD_TOOL: ToolMetadata<typeof BUILD_WORKFLOW_INPUT_SCHEMA.shape> = {
+export const BUILD_TOOL: ToolMetadata<typeof BUILD_WORKFLOW_INPUT_SCHEMA> = {
   toolId: 'sfmobile-native-build',
   name: 'Salesforce Mobile App Build Tool',
   title: 'Salesforce Mobile app build guide',
@@ -90,7 +95,7 @@ export const BUILD_TOOL: ToolMetadata<typeof BUILD_WORKFLOW_INPUT_SCHEMA.shape> 
 /**
  * Deployment Tool Metadata
  */
-export const DEPLOYMENT_TOOL: ToolMetadata<typeof DEPLOYMENT_WORKFLOW_INPUT_SCHEMA.shape> = {
+export const DEPLOYMENT_TOOL: ToolMetadata<typeof DEPLOYMENT_WORKFLOW_INPUT_SCHEMA> = {
   toolId: 'sfmobile-native-deployment',
   name: 'Salesforce Mobile Native Deployment',
   title: 'Salesforce Mobile Native Deployment Guide',
@@ -102,9 +107,7 @@ export const DEPLOYMENT_TOOL: ToolMetadata<typeof DEPLOYMENT_WORKFLOW_INPUT_SCHE
 /**
  * Xcode Add Files Utility Tool Metadata
  */
-export const XCODE_ADD_FILES_TOOL: ToolMetadata<
-  typeof XCODE_ADD_FILES_WORKFLOW_INPUT_SCHEMA.shape
-> = {
+export const XCODE_ADD_FILES_TOOL: ToolMetadata<typeof XCODE_ADD_FILES_WORKFLOW_INPUT_SCHEMA> = {
   toolId: 'utils-xcode-add-files',
   name: 'Utils Xcode Add Files',
   title: 'Xcode Project File Addition Utility',
@@ -115,7 +118,7 @@ export const XCODE_ADD_FILES_TOOL: ToolMetadata<
 /**
  * Orchestrator Tool Metadata
  */
-export const ORCHESTRATOR_TOOL: ToolMetadata<typeof ORCHESTRATOR_INPUT_SCHEMA.shape> = {
+export const ORCHESTRATOR_TOOL: ToolMetadata<typeof ORCHESTRATOR_INPUT_SCHEMA> = {
   toolId: 'sfmobile-native-project-manager',
   name: 'Salesforce Mobile Native Project Manager',
   title: 'Salesforce Mobile Native Project Manager Orchestrator',

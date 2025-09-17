@@ -51,6 +51,9 @@ const BUILD_VALIDATION_NODE_NAME = 'validateBuild';
 const DEPLOYMENT_NODE_NAME = 'deployApp';
 const FINISH_NODE_NAME = 'finish';
 
+// TODO: Implement initial input node
+// function initialInputNode(state: State): Partial<State> {}
+
 /**
  * Environment Validation Node - Phase 1: Plan
  * Note: For steel thread, we'll assume environment is validated
@@ -71,7 +74,7 @@ function templateDiscoveryNode(state: State): Partial<State> {
   const platform = extractPlatformFromUserInput(state.userInput);
 
   const interruptState: MCPToolInvocationData<
-    typeof TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA.shape,
+    typeof TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA,
     TemplateDiscoveryInput
   > = {
     llmMetadata: TEMPLATE_DISCOVERY_TOOL,
@@ -103,7 +106,7 @@ function projectGenerationNode(state: State): Partial<State> {
   const projectDetails = extractProjectDetailsFromUserInput();
 
   const interruptState: MCPToolInvocationData<
-    typeof PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA.shape,
+    typeof PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA,
     ProjectGenerationInput
   > = {
     llmMetadata: PROJECT_GENERATION_TOOL,
@@ -133,10 +136,7 @@ function projectGenerationNode(state: State): Partial<State> {
  * Build Validation Node - Phase 1: Plan
  */
 function buildValidationNode(state: State): Partial<State> {
-  const interruptState: MCPToolInvocationData<
-    typeof BUILD_WORKFLOW_INPUT_SCHEMA.shape,
-    BuildInput
-  > = {
+  const interruptState: MCPToolInvocationData<typeof BUILD_WORKFLOW_INPUT_SCHEMA, BuildInput> = {
     llmMetadata: BUILD_TOOL,
     input: {
       projectPath: state.projectPath,
@@ -158,7 +158,7 @@ function buildValidationNode(state: State): Partial<State> {
  */
 function deploymentNode(state: State): Partial<State> {
   const interruptState: MCPToolInvocationData<
-    typeof DEPLOYMENT_WORKFLOW_INPUT_SCHEMA.shape,
+    typeof DEPLOYMENT_WORKFLOW_INPUT_SCHEMA,
     DeploymentInput
   > = {
     llmMetadata: DEPLOYMENT_TOOL,

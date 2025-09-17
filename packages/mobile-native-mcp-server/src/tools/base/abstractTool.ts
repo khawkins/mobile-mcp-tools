@@ -11,7 +11,6 @@ import z from 'zod';
 import { Logger, createToolLogger } from '../../logging/index.js';
 import { WORKFLOW_PROPERTY_NAMES, WorkflowStateData } from '../../schemas/index.js';
 import { ORCHESTRATOR_TOOL } from '../../registry/toolRegistry.js';
-import { zodToJsonSchema } from 'zod-to-json-schema';
 
 /**
  * Abstract base class for ALL MCP tools in the mobile native server
@@ -139,7 +138,7 @@ After this prompt has been processed, you MUST initiate the following actions to
 The following JSON schema is the expected input schema for the \`${WORKFLOW_PROPERTY_NAMES.userInput}\`
 parameter, which you will populate based on the instructions below:
 
-${JSON.stringify(zodToJsonSchema(workflowStateData?.expectedInputSchema))}
+${/* TODO: interpolate new output schema -- JSON.stringify(zodToJsonSchema(workflowStateData?.expectedInputSchema)) */ ''}
 
 ## Invoke the \`${ORCHESTRATOR_TOOL.toolId}\` Tool
 
