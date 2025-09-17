@@ -186,19 +186,19 @@ function deploymentNode(state: State): Partial<State> {
 /**
  * Finish Node - Complete the workflow
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function finishNode(_state: State): Partial<State> {
-  const completionInterrupt: MCPToolInvocationData = {
-    llmMetadata: {
-      name: 'workflow-complete',
-      inputSchema: TEMPLATE_DISCOVERY_TOOL.inputSchema, // Placeholder
-      description: 'Workflow completed successfully',
-    },
-    input: {},
-    isComplete: true,
-  };
+  // TODO: Determine this node's implementation details.
+  // const completionInterrupt: MCPToolInvocationData = {
+  //   llmMetadata: {
+  //     name: 'workflow-complete',
+  //     inputSchema: TEMPLATE_DISCOVERY_TOOL.inputSchema, // Placeholder
+  //     description: 'Workflow completed successfully',
+  //   },
+  //   input: {},
+  //   isComplete: true,
+  // };
 
-  interrupt(completionInterrupt);
+  // interrupt(completionInterrupt);
 
   return {};
 }

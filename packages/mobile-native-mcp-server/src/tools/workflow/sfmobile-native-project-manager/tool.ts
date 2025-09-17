@@ -1,3 +1,4 @@
+import z from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SqliteSaver } from '@langchain/langgraph-checkpoint-sqlite';
@@ -144,9 +145,13 @@ export class MobileNativeOrchestrator extends AbstractTool<
     }
 
     this.logger.debug('Processing workflow result');
-    const mcpToolInvocationData: MCPToolInvocationData | undefined =
+    const mcpToolInvocationData: MCPToolInvocationData<z.ZodObject<z.ZodRawShape>> | undefined =
       '__interrupt__' in result
-        ? (result.__interrupt__ as Array<{ value: MCPToolInvocationData }>)[0].value
+        ? (
+            result.__interrupt__ as Array<{
+              value: MCPToolInvocationData<z.ZodObject<z.ZodRawShape>>;
+            }>
+          )[0].value
         : undefined;
 
     if (!mcpToolInvocationData) {
@@ -191,7 +196,7 @@ export class MobileNativeOrchestrator extends AbstractTool<
    * Create orchestration prompt for LLM with embedded tool invocation data and workflow state
    */
   private createOrchestrationPrompt(
-    mcpToolInvocationData: MCPToolInvocationData,
+    mcpToolInvocationData: MCPToolInvocationData<z.ZodObject<z.ZodRawShape>>,
     workflowStateData: WorkflowStateData
   ): string {
     return `

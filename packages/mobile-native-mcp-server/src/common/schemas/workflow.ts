@@ -47,7 +47,7 @@ export const WORKFLOW_TOOL_BASE_INPUT_SCHEMA = z.object({
  * @template TBusinessInput - The business logic input data type (excludes workflowStateData)
  */
 export interface MCPToolInvocationData<
-  TWorkflowInputSchema extends z.ZodObject<z.ZodRawShape> = z.ZodObject<z.ZodRawShape>,
+  TWorkflowInputSchema extends z.ZodObject<z.ZodRawShape>,
   TBusinessInput = Record<string, unknown>,
 > {
   /** Metadata about the tool to invoke - uses full workflow schema for orchestration prompt */

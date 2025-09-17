@@ -7,7 +7,6 @@ import {
   createLogger,
   createComponentLogger,
   createWorkflowLogger,
-  createToolLogger,
 } from '../../src/logging/logger.js';
 
 describe('Logging Module Exports', () => {
@@ -21,11 +20,6 @@ describe('Logging Module Exports', () => {
     expect(createLogger).toBeDefined();
     expect(createComponentLogger).toBeDefined();
     expect(createWorkflowLogger).toBeDefined();
-    expect(createToolLogger).toBeDefined();
-  });
-
-  it('should provide createToolLogger as alias for createComponentLogger', () => {
-    expect(createToolLogger).toBe(createComponentLogger);
   });
 
   it('should create consistent loggers across different factories', () => {
@@ -47,8 +41,8 @@ describe('Logging Module Exports', () => {
 
   it('should support MCP tool usage patterns', () => {
     // Simulate how a tool would create a logger
-    const toolLogger = createToolLogger('TemplateDiscovery', 'test');
-    
+    const toolLogger = createComponentLogger('TemplateDiscovery', 'test');
+
     expect(() => {
       toolLogger.info('Tool initialized');
       toolLogger.debug('Processing template request', { platform: 'iOS' });
@@ -66,7 +60,7 @@ describe('Logging Module Exports', () => {
   it('should support workflow logging patterns', () => {
     // Simulate workflow logging usage
     const workflowLogger = createWorkflowLogger('TestWorkflow', 'debug');
-    
+
     expect(() => {
       workflowLogger.info('Workflow started', { threadId: 'test-123' });
       workflowLogger.debug('Processing step', { step: 'template-discovery' });

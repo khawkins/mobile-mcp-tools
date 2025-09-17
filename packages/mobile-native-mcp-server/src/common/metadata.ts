@@ -3,9 +3,7 @@ import z from 'zod';
 /**
  * Tool metadata interface - defines the structure for tool information
  */
-export interface ToolMetadata<
-  TInputSchema extends z.ZodObject<z.ZodRawShape> = z.ZodObject<z.ZodRawShape>,
-> {
+export interface ToolMetadata<TInputSchema extends z.ZodObject<z.ZodRawShape>> {
   /** Unique tool identifier used for MCP registration and workflow orchestration */
   readonly toolId: string;
 

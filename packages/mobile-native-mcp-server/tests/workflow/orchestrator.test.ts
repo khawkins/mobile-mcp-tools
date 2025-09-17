@@ -1,5 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { MobileNativeOrchestrator } from '../../src/tools/workflow/sfmobile-native-project-manager/tool.js';
 import { Logger } from '../../src/logging/logger.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
@@ -29,6 +28,7 @@ class MockLogger implements Logger {
     MockLogger.globalLogs.push({ level: 'warn', message, data });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   child(bindings: Record<string, unknown>): Logger {
     // Return a new instance that shares the same global logs array
     return new MockLogger();
@@ -43,10 +43,14 @@ class MockLogger implements Logger {
 class MockMcpServer {
   public readonly registeredTools: Array<{
     toolId: string;
+    // TODO: This MockMcpServer probably needs some work. Get rid of all the 'any's.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     config: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handler: any;
   }> = [];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   registerTool(toolId: string, config: any, handler: any): void {
     this.registeredTools.push({ toolId, config, handler });
   }
@@ -65,6 +69,7 @@ describe('MobileNativeOrchestrator', () => {
   beforeEach(() => {
     mockServer = new MockMcpServer();
     mockLogger = new MockLogger();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     orchestrator = new MobileNativeOrchestrator(mockServer as any, mockLogger, true);
     annotations = {
       readOnlyHint: false,

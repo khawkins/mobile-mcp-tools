@@ -8,7 +8,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations, CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import z from 'zod';
-import { Logger, createToolLogger } from '../../logging/logger.js';
+import { Logger, createComponentLogger } from '../../logging/logger.js';
 import { WORKFLOW_PROPERTY_NAMES, WorkflowStateData } from '../../common/schemas/workflow.js';
 import { ORCHESTRATOR_TOOL } from '../workflow/sfmobile-native-project-manager/metadata.js';
 
@@ -37,7 +37,7 @@ export abstract class AbstractTool<
     componentName?: string,
     logger?: Logger
   ) {
-    this.logger = logger || createToolLogger(componentName || this.constructor.name);
+    this.logger = logger || createComponentLogger(componentName || this.constructor.name);
   }
 
   // Abstract properties that implementing tools must define
