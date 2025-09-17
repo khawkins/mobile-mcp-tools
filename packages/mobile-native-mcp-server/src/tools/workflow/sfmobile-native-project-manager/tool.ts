@@ -1,25 +1,23 @@
+import { zodToJsonSchema } from 'zod-to-json-schema';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SqliteSaver } from '@langchain/langgraph-checkpoint-sqlite';
 import { BaseCheckpointSaver, Command } from '@langchain/langgraph';
-import { getWorkflowStateDatabasePath } from '../utils/wellKnownDirectory.js';
-import {
-  ORCHESTRATOR_TOOL,
-  type ToolInputType,
-  type ToolInputShape,
-} from '../registry/toolRegistry.js';
+import { getWorkflowStateDatabasePath } from '../../../utils/wellKnownDirectory.js';
 import {
   ORCHESTRATOR_OUTPUT_SCHEMA,
-  OrchestratorOutput,
+  ORCHESTRATOR_TOOL,
   OrchestratorInput,
+  OrchestratorOutput,
+} from './metadata.js';
+import { type ToolInputType, type ToolInputShape } from '../../../common/metadata.js';
+import { Logger, createWorkflowLogger } from '../../../logging/logger.js';
+import { AbstractTool } from '../../base/abstractTool.js';
+import {
   MCPToolInvocationData,
-  WorkflowStateData,
   WORKFLOW_PROPERTY_NAMES,
-} from '../schemas/index.js';
-import { mobileNativeWorkflow, State } from './graph.js';
-import { zodToJsonSchema } from 'zod-to-json-schema';
-import { AbstractTool } from '../tools/base/abstractTool.js';
-
-import { Logger, createWorkflowLogger } from '../logging/index.js';
+  WorkflowStateData,
+} from '../../../common/schemas/workflow.js';
+import { mobileNativeWorkflow, State } from '../../../workflow/graph.js';
 
 /**
  * Generate unique thread ID for workflow sessions

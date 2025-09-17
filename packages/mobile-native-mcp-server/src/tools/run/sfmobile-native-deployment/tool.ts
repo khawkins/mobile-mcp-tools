@@ -8,12 +8,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import dedent from 'dedent';
 import { AbstractTool } from '../../base/abstractTool.js';
-import { Logger } from '../../../logging/index.js';
-import {
-  DEPLOYMENT_TOOL,
-  type ToolInputType,
-  type ToolInputShape,
-} from '../../../registry/toolRegistry.js';
+import { Logger } from '../../../logging/logger.js';
+import { ToolInputShape, ToolInputType } from '../../../common/metadata.js';
+import { DEPLOYMENT_TOOL } from './metadata.js';
 
 export class SfmobileNativeDeploymentTool extends AbstractTool<
   ToolInputShape<typeof DEPLOYMENT_TOOL>

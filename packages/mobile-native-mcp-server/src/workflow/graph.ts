@@ -1,21 +1,25 @@
 import { Annotation, END, START, interrupt, StateGraph } from '@langchain/langgraph';
-import {
-  MCPToolInvocationData,
-  type TemplateDiscoveryInput,
-  type ProjectGenerationInput,
-  type BuildInput,
-  type DeploymentInput,
-  TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA,
-  PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA,
-  BUILD_WORKFLOW_INPUT_SCHEMA,
-  DEPLOYMENT_WORKFLOW_INPUT_SCHEMA,
-} from '../schemas/index.js';
+import { MCPToolInvocationData } from '../common/schemas/workflow.js';
 import {
   TEMPLATE_DISCOVERY_TOOL,
+  TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA,
+  TemplateDiscoveryInput,
+} from '../tools/plan/sfmobile-native-template-discovery/metadata.js';
+import {
   PROJECT_GENERATION_TOOL,
+  PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA,
+  ProjectGenerationInput,
+} from '../tools/plan/sfmobile-native-project-generation/metadata.js';
+import {
   BUILD_TOOL,
+  BUILD_WORKFLOW_INPUT_SCHEMA,
+  BuildInput,
+} from '../tools/plan/sfmobile-native-build/metadata.js';
+import {
   DEPLOYMENT_TOOL,
-} from '../registry/toolRegistry.js';
+  DEPLOYMENT_WORKFLOW_INPUT_SCHEMA,
+  DeploymentInput,
+} from '../tools/run/sfmobile-native-deployment/metadata.js';
 
 /**
  * Workflow state annotation for LangGraph

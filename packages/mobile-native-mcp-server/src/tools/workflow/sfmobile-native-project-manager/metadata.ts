@@ -1,11 +1,6 @@
-/**
- * Orchestrator Tool Schemas
- *
- * Input and output schemas for the workflow orchestrator tool.
- */
-
-import { z } from 'zod';
-import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA } from '../workflow.js';
+import z from 'zod';
+import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA } from '../../../common/schemas/workflow.js';
+import { ToolMetadata } from '../../../common/metadata.js';
 
 /**
  * Orchestrator input schema - simplified to single userInput parameter
@@ -34,3 +29,14 @@ export const ORCHESTRATOR_OUTPUT_SCHEMA = z.object({
 });
 
 export type OrchestratorOutput = z.infer<typeof ORCHESTRATOR_OUTPUT_SCHEMA>;
+
+/**
+ * Orchestrator Tool Metadata
+ */
+export const ORCHESTRATOR_TOOL: ToolMetadata<typeof ORCHESTRATOR_INPUT_SCHEMA> = {
+  toolId: 'sfmobile-native-project-manager',
+  name: 'Salesforce Mobile Native Project Manager',
+  title: 'Salesforce Mobile Native Project Manager Orchestrator',
+  description: 'Orchestrates the end-to-end workflow for generating Salesforce native mobile apps.',
+  inputSchema: ORCHESTRATOR_INPUT_SCHEMA,
+} as const;

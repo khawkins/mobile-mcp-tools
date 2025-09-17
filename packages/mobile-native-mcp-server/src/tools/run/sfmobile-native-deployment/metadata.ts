@@ -1,12 +1,10 @@
-/**
- * Deployment Tool Schemas
- *
- * Input and output schemas for the deployment tool.
- */
-
-import { z } from 'zod';
-import { PLATFORM_ENUM, PROJECT_PATH_FIELD } from '../common.js';
-import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA, MCP_TOOL_OUTPUT_SCHEMA } from '../workflow.js';
+import z from 'zod';
+import { PLATFORM_ENUM, PROJECT_PATH_FIELD } from '../../../common/schemas/common.js';
+import {
+  WORKFLOW_TOOL_BASE_INPUT_SCHEMA,
+  MCP_TOOL_OUTPUT_SCHEMA,
+} from '../../../common/schemas/workflow.js';
+import { ToolMetadata } from '../../../common/metadata.js';
 
 /**
  * Deployment Tool Input Schema
@@ -35,3 +33,15 @@ export const DEPLOYMENT_OUTPUT_SCHEMA = MCP_TOOL_OUTPUT_SCHEMA.extend({
 });
 
 export type DeploymentOutput = z.infer<typeof DEPLOYMENT_OUTPUT_SCHEMA>;
+
+/**
+ * Deployment Tool Metadata
+ */
+export const DEPLOYMENT_TOOL: ToolMetadata<typeof DEPLOYMENT_WORKFLOW_INPUT_SCHEMA> = {
+  toolId: 'sfmobile-native-deployment',
+  name: 'Salesforce Mobile Native Deployment',
+  title: 'Salesforce Mobile Native Deployment Guide',
+  description:
+    'Guides LLM through deploying Salesforce mobile native apps to devices or simulators',
+  inputSchema: DEPLOYMENT_WORKFLOW_INPUT_SCHEMA,
+} as const;

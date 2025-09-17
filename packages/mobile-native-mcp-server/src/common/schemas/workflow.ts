@@ -6,7 +6,6 @@
  */
 
 import { z } from 'zod';
-import dedent from 'dedent';
 
 /**
  * Workflow state data schema for round-tripping session identity
@@ -71,32 +70,3 @@ export const MCP_TOOL_OUTPUT_SCHEMA = z.object({
     .string()
     .describe('Complete prompt with instructions and post-processing guidance'),
 });
-
-/**
- * Post-invocation instructions template for workflow round-tripping
- * This template is used by all workflow tools to guide the LLM back to the orchestrator
- */
-export const POST_INVOCATION_INSTRUCTIONS_TEMPLATE = dedent`
-  # Post-Tool-Invocation Instructions
-
-  After this prompt has been processed, you MUST initiate the following actions to proceed with the in-progress workflow:
-
-  - Invoke the \`${ORCHESTRATOR_TOOL.toolId}\` tool, with the following input schema:
-
-  \`\`\`json
-  {ORCHESTRATOR_INPUT_SCHEMA_JSON}
-  \`\`\`
-
-  - The value for the \`${WORKFLOW_PROPERTY_NAMES.userInput}\` parameter should be {toolOutputDescription}
-  - The \`${WORKFLOW_PROPERTY_NAMES.workflowStateData}\` parameter should be passed with the following object value:
-
-  \`\`\`json
-  {WORKFLOW_STATE_DATA_JSON}
-  \`\`\`
-
-  This represents opaque workflow state data that should be round-tripped back to the \`${ORCHESTRATOR_TOOL.toolId}\`
-  MCP server tool orchestrator at the completion of the next MCP server tool invocation, without modification. These
-  instructions will be further specified by the next MCP server tool invocation.
-
-  - The MCP server tool you invoke will respond with its output, along with further instructions for continuing the workflow.
-`;

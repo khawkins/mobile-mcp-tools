@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { MobileNativeOrchestrator } from '../../src/workflow/orchestrator.js';
-import { Logger } from '../../src/logging/index.js';
+import { MobileNativeOrchestrator } from '../../src/tools/workflow/sfmobile-native-project-manager/tool.js';
+import { Logger } from '../../src/logging/logger.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 
 // Mock logger implementation for testing - compatible with updated Logger interface

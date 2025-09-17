@@ -9,12 +9,9 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import dedent from 'dedent';
 import { AbstractTool } from '../../base/abstractTool.js';
 import { MOBILE_SDK_TEMPLATES_PATH } from '../../../constants.js';
-import { Logger } from '../../../logging/index.js';
-import {
-  PROJECT_GENERATION_TOOL,
-  type ToolInputType,
-  type ToolInputShape,
-} from '../../../registry/toolRegistry.js';
+import { Logger } from '../../../logging/logger.js';
+import { ToolInputShape, ToolInputType } from '../../../common/metadata.js';
+import { PROJECT_GENERATION_TOOL } from './metadata.js';
 
 export class SfmobileNativeProjectGenerationTool extends AbstractTool<
   ToolInputShape<typeof PROJECT_GENERATION_TOOL>

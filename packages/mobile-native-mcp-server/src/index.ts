@@ -14,7 +14,7 @@ import { UtilsXcodeAddFilesTool } from './tools/utils/utils-xcode-add-files/tool
 import { SfmobileNativeDeploymentTool } from './tools/run/sfmobile-native-deployment/tool.js';
 import { SfmobileNativeBuildTool } from './tools/plan/sfmobile-native-build/tool.js';
 import { SfmobileNativeProjectGenerationTool } from './tools/plan/sfmobile-native-project-generation/tool.js';
-import { MobileNativeOrchestrator } from './workflow/orchestrator.js';
+import { MobileNativeOrchestrator } from './tools/workflow/sfmobile-native-project-manager/tool.js';
 
 import packageJson from '../package.json' with { type: 'json' };
 const version = packageJson.version;

@@ -7,7 +7,7 @@ import {
   createTestLogger,
   createLogger,
   createComponentLogger,
-} from '../../src/logging/index.js';
+} from '../../src/logging/logger.js';
 import pino from 'pino';
 
 describe('Logger Implementation', () => {

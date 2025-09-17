@@ -10,13 +10,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import dedent from 'dedent';
 import { AbstractTool } from '../../base/abstractTool.js';
-import { Logger } from '../../../logging/index.js';
-import {
-  XCODE_ADD_FILES_TOOL,
-  type ToolInputType,
-  type ToolInputShape,
-} from '../../../registry/toolRegistry.js';
-import { XCODE_ADD_FILES_OUTPUT_SCHEMA } from '../../../schemas/index.js';
+import { Logger } from '../../../logging/logger.js';
+import { XCODE_ADD_FILES_OUTPUT_SCHEMA, XCODE_ADD_FILES_TOOL } from './metadata.js';
+import { ToolInputShape, ToolInputType } from '../../../common/metadata.js';
 
 // Use the centralized schemas directly
 const XcodeAddFilesOutputSchema = XCODE_ADD_FILES_OUTPUT_SCHEMA;

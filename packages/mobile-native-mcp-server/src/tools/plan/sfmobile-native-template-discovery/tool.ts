@@ -6,15 +6,12 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import dedent from 'dedent';
 import { AbstractTool } from '../../base/abstractTool.js';
 import { MOBILE_SDK_TEMPLATES_PATH } from '../../../constants.js';
-import { Logger } from '../../../logging/index.js';
-import {
-  TEMPLATE_DISCOVERY_TOOL,
-  type ToolInputType,
-  type ToolInputShape,
-} from '../../../registry/toolRegistry.js';
-import dedent from 'dedent';
+import { Logger } from '../../../logging/logger.js';
+import { ToolInputShape, ToolInputType } from '../../../common/metadata.js';
+import { TEMPLATE_DISCOVERY_TOOL } from './metadata.js';
 
 export class SfmobileNativeTemplateDiscoveryTool extends AbstractTool<
   ToolInputShape<typeof TEMPLATE_DISCOVERY_TOOL>

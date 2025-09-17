@@ -8,9 +8,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations, CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import z from 'zod';
-import { Logger, createToolLogger } from '../../logging/index.js';
-import { WORKFLOW_PROPERTY_NAMES, WorkflowStateData } from '../../schemas/index.js';
-import { ORCHESTRATOR_TOOL } from '../../registry/toolRegistry.js';
+import { Logger, createToolLogger } from '../../logging/logger.js';
+import { WORKFLOW_PROPERTY_NAMES, WorkflowStateData } from '../../common/schemas/workflow.js';
+import { ORCHESTRATOR_TOOL } from '../workflow/sfmobile-native-project-manager/metadata.js';
 
 /**
  * Abstract base class for ALL MCP tools in the mobile native server

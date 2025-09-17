@@ -1,12 +1,8 @@
-/**
- * Project Generation Tool Schemas
- *
- * Input and output schemas for the project generation tool.
- */
-
-import { z } from 'zod';
-import { PLATFORM_ENUM } from '../common.js';
-import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA, MCP_TOOL_OUTPUT_SCHEMA } from '../workflow.js';
+import z from 'zod';
+import { PLATFORM_ENUM } from '../../../common/schemas/common.js';
+import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA } from '../../../common/schemas/workflow.js';
+import { MCP_TOOL_OUTPUT_SCHEMA } from '../../../common/schemas/workflow.js';
+import { ToolMetadata } from '../../../common/metadata.js';
 
 /**
  * Project Generation Tool Input Schema
@@ -42,3 +38,17 @@ export const PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT
 export const PROJECT_GENERATION_OUTPUT_SCHEMA = MCP_TOOL_OUTPUT_SCHEMA;
 
 export type ProjectGenerationOutput = z.infer<typeof PROJECT_GENERATION_OUTPUT_SCHEMA>;
+
+/**
+ * Project Generation Tool Metadata
+ */
+export const PROJECT_GENERATION_TOOL: ToolMetadata<
+  typeof PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA
+> = {
+  toolId: 'sfmobile-native-project-generation',
+  name: 'Salesforce Mobile Native Project Generation',
+  title: 'Salesforce Mobile Native Project Generation Guide',
+  description:
+    'Provides LLM instructions for generating a mobile app project from a selected template with OAuth configuration',
+  inputSchema: PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA,
+} as const;

@@ -196,3 +196,6 @@ export function createWorkflowLogger(componentName: string, level: string = 'inf
     workflowSession: true,
   });
 }
+
+// Re-export commonly used utilities for convenience
+export { createComponentLogger as createToolLogger };

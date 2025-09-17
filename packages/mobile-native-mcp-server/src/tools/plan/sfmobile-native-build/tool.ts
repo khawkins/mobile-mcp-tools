@@ -1,13 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import dedent from 'dedent';
 import { AbstractTool } from '../../base/abstractTool.js';
-import { BUILD_OUTPUT_SCHEMA } from '../../../schemas/index.js';
-import { Logger } from '../../../logging/index.js';
-import {
-  BUILD_TOOL,
-  type ToolInputType,
-  type ToolInputShape,
-} from '../../../registry/toolRegistry.js';
+import { Logger } from '../../../logging/logger.js';
+import { ToolInputShape, ToolInputType } from '../../../common/metadata.js';
+import { BUILD_OUTPUT_SCHEMA, BUILD_TOOL } from './metadata.js';
 
 export class SfmobileNativeBuildTool extends AbstractTool<ToolInputShape<typeof BUILD_TOOL>> {
   public readonly toolId = BUILD_TOOL.toolId;

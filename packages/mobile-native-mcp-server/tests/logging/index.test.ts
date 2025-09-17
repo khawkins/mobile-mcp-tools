@@ -8,7 +8,7 @@ import {
   createComponentLogger,
   createWorkflowLogger,
   createToolLogger,
-} from '../../src/logging/index.js';
+} from '../../src/logging/logger.js';
 
 describe('Logging Module Exports', () => {
   it('should export all logger types and factories', () => {

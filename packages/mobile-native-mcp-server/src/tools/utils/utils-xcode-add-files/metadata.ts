@@ -1,11 +1,6 @@
-/**
- * Xcode Add Files Tool Schemas
- *
- * Input and output schemas for the Xcode file addition utility tool.
- */
-
-import { z } from 'zod';
-import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA } from '../workflow.js';
+import z from 'zod';
+import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA } from '../../../common/schemas/workflow.js';
+import { ToolMetadata } from '../../../common/metadata.js';
 
 /**
  * Xcode Add Files Tool Input Schema
@@ -45,3 +40,14 @@ export const XCODE_ADD_FILES_OUTPUT_SCHEMA = z.object({
 });
 
 export type XcodeAddFilesOutput = z.infer<typeof XCODE_ADD_FILES_OUTPUT_SCHEMA>;
+
+/**
+ * Xcode Add Files Utility Tool Metadata
+ */
+export const XCODE_ADD_FILES_TOOL: ToolMetadata<typeof XCODE_ADD_FILES_WORKFLOW_INPUT_SCHEMA> = {
+  toolId: 'utils-xcode-add-files',
+  name: 'Utils Xcode Add Files',
+  title: 'Xcode Project File Addition Utility',
+  description: 'Generates a Ruby command using the xcodeproj gem to add files to Xcode projects',
+  inputSchema: XCODE_ADD_FILES_WORKFLOW_INPUT_SCHEMA,
+} as const;
