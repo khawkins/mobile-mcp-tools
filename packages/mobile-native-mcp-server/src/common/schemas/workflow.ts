@@ -13,10 +13,6 @@ import { z } from 'zod';
  */
 export const WORKFLOW_STATE_DATA_SCHEMA = z.object({
   thread_id: z.string().describe('Unique identifier for the workflow session'),
-  expectedInputSchema: z
-    .instanceof(z.ZodType)
-    .optional()
-    .describe("Expected input schema for the next tool's output"),
 });
 
 export type WorkflowStateData = z.infer<typeof WORKFLOW_STATE_DATA_SCHEMA>;
@@ -65,8 +61,11 @@ export interface MCPToolInvocationData<
 /**
  * Standard output schema for all workflow MCP tools
  */
-export const MCP_TOOL_OUTPUT_SCHEMA = z.object({
+export const MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA = z.object({
   promptForLLM: z
     .string()
     .describe('Complete prompt with instructions and post-processing guidance'),
+  resultSchema: z
+    .string()
+    .describe("The string-serialized JSON schema of the expected result from the LLM's task"),
 });

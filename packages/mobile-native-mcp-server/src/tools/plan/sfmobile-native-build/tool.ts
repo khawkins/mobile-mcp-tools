@@ -1,32 +1,20 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import dedent from 'dedent';
-import { AbstractTool } from '../../base/abstractTool.js';
 import { Logger } from '../../../logging/logger.js';
-import { ToolInputShape, ToolInputType } from '../../../common/metadata.js';
-import { BUILD_OUTPUT_SCHEMA, BUILD_TOOL } from './metadata.js';
+import { BUILD_TOOL, BuildWorkflowInput } from './metadata.js';
+import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
 
-export class SfmobileNativeBuildTool extends AbstractTool<ToolInputShape<typeof BUILD_TOOL>> {
-  public readonly toolId = BUILD_TOOL.toolId;
-  public readonly name = BUILD_TOOL.name;
-  public readonly title = BUILD_TOOL.title;
-  public readonly description = BUILD_TOOL.description;
-  public readonly inputSchema = BUILD_TOOL.inputSchema;
-  public readonly outputSchema = BUILD_OUTPUT_SCHEMA;
-
+export class SfmobileNativeBuildTool extends AbstractWorkflowTool<typeof BUILD_TOOL> {
   constructor(server: McpServer, logger?: Logger) {
-    super(server, 'BuildTool', logger);
+    super(server, BUILD_TOOL, 'BuildTool', logger);
   }
 
-  protected async handleRequest(input: ToolInputType<typeof BUILD_TOOL>) {
+  protected async handleRequest(input: BuildWorkflowInput) {
     const guidance = this.generateBuildGuidance(input);
 
-    // Add workflow round-tripping instructions if this is part of a workflow
+    // TODO: Add workflow round-tripping instructions
     const finalOutput = input.workflowStateData
-      ? this.addPostInvocationInstructions(
-          guidance,
-          'the complete build validation results and any build issues that were resolved',
-          input.workflowStateData
-        )
+      ? this.addPostInvocationInstructions(guidance, input.workflowStateData)
       : guidance;
 
     return {
@@ -39,7 +27,7 @@ export class SfmobileNativeBuildTool extends AbstractTool<ToolInputShape<typeof 
     };
   }
 
-  private generateBuildGuidance(input: ToolInputType<typeof BUILD_TOOL>) {
+  private generateBuildGuidance(input: BuildWorkflowInput) {
     return dedent`
      You are a tech-adept agent acting on behalf of a user who is not familiar with the technical details of MSDK development. 
      Carry out the steps in the following guideline for them, and share the key outcomes they need to know.

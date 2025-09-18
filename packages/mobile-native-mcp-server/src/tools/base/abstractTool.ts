@@ -9,8 +9,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ToolAnnotations, CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import z from 'zod';
 import { Logger, createComponentLogger } from '../../logging/logger.js';
-import { WORKFLOW_PROPERTY_NAMES, WorkflowStateData } from '../../common/schemas/workflow.js';
-import { ORCHESTRATOR_TOOL } from '../workflow/sfmobile-native-project-manager/metadata.js';
+import { ToolMetadata } from '../../common/metadata.js';
 
 /**
  * Abstract base class for ALL MCP tools in the mobile native server
@@ -27,26 +26,18 @@ import { ORCHESTRATOR_TOOL } from '../workflow/sfmobile-native-project-manager/m
  * @template OutputArgs - Zod schema shape for tool output
  */
 export abstract class AbstractTool<
-  InputArgs extends z.ZodRawShape = z.ZodRawShape,
-  OutputArgs extends z.ZodRawShape = z.ZodRawShape,
+  TMetadata extends ToolMetadata<z.ZodObject<z.ZodRawShape>, z.ZodObject<z.ZodRawShape>>,
 > {
   protected readonly logger: Logger;
 
   constructor(
     protected readonly server: McpServer,
+    protected readonly toolMetadata: TMetadata,
     componentName?: string,
     logger?: Logger
   ) {
     this.logger = logger || createComponentLogger(componentName || this.constructor.name);
   }
-
-  // Abstract properties that implementing tools must define
-  abstract readonly name: string;
-  abstract readonly title: string;
-  abstract readonly description: string;
-  abstract readonly toolId: string;
-  abstract readonly inputSchema: z.ZodObject<InputArgs>;
-  abstract readonly outputSchema?: z.ZodObject<OutputArgs>;
 
   /**
    * Register the tool with the MCP server
@@ -57,15 +48,15 @@ export abstract class AbstractTool<
 
     const enhancedAnnotations = {
       ...annotations,
-      title: this.title,
+      title: this.toolMetadata.title,
     };
 
-    this.server.registerTool<InputArgs, OutputArgs>(
-      this.toolId,
+    this.server.registerTool(
+      this.toolMetadata.toolId,
       {
-        description: this.description,
-        inputSchema: this.inputSchema.shape,
-        outputSchema: this.outputSchema?.shape,
+        description: this.toolMetadata.description,
+        inputSchema: this.toolMetadata.inputSchema.shape,
+        outputSchema: this.toolMetadata.outputSchema.shape,
         ...enhancedAnnotations,
       },
       this.handleRequest.bind(this)
@@ -75,12 +66,12 @@ export abstract class AbstractTool<
   /**
    * Abstract method that implementing tools must provide for handling requests
    *
-   * Uses the same typing pattern as registerTool() ToolCallback<InputArgs> for perfect 1:1 type matching
-   * Input: z.objectOutputType<InputArgs, ZodTypeAny> (parsed/validated object)
-   * Return: CallToolResult | Promise<CallToolResult>
+   * Uses the same typing pattern as registerTool() ToolCallback<InputArgs>.
+   * @param input The input to the callback
+   * @returns The return result of the tool
    */
   protected abstract handleRequest(
-    input: z.objectOutputType<InputArgs, z.ZodTypeAny>
+    input: z.objectOutputType<TMetadata['inputSchema']['shape'], z.ZodTypeAny>
   ): Promise<CallToolResult>;
 
   /**
@@ -88,7 +79,7 @@ export abstract class AbstractTool<
    * @param annotations The tool annotations
    */
   protected logRegistration(annotations: ToolAnnotations): void {
-    this.logger.info(`Registering MCP tool: ${this.toolId}`, { annotations });
+    this.logger.info(`Registering MCP tool: ${this.toolMetadata.toolId}`, { annotations });
   }
 
   /**
@@ -114,45 +105,6 @@ export abstract class AbstractTool<
   }
 
   /**
-   * Utility method for tools to add post-invocation instructions
-   * that guide the LLM back to the orchestrator for workflow continuation
-   *
-   * @param prompt The main tool response prompt
-   * @param toolOutputDescription Description of what the tool output represents
-   * @param workflowStateData Workflow state data to round-trip back to orchestrator
-   * @returns Complete prompt with post-invocation instructions
-   */
-  protected addPostInvocationInstructions(
-    prompt: string,
-    toolOutputDescription: string,
-    workflowStateData?: WorkflowStateData
-  ): string {
-    const postInstructions = `
-
-# Post-Tool-Invocation Instructions
-
-After this prompt has been processed, you MUST initiate the following actions to proceed with the in-progress workflow.
-
-## Prerequisite: Expected Input Schema of \`${WORKFLOW_PROPERTY_NAMES.userInput}\` Parameter
-
-The following JSON schema is the expected input schema for the \`${WORKFLOW_PROPERTY_NAMES.userInput}\`
-parameter, which you will populate based on the instructions below:
-
-${/* TODO: interpolate new output schema -- JSON.stringify(zodToJsonSchema(workflowStateData?.expectedInputSchema)) */ ''}
-
-## Invoke the \`${ORCHESTRATOR_TOOL.toolId}\` Tool
-
-- Invoke the \`${ORCHESTRATOR_TOOL.toolId}\` tool with the following input:
-  - \`${WORKFLOW_PROPERTY_NAMES.userInput}\`: ${toolOutputDescription}
-  - \`${WORKFLOW_PROPERTY_NAMES.workflowStateData}\`: ${JSON.stringify(workflowStateData || {})}
-
-This will continue the workflow orchestration process.
-`;
-
-    return prompt + postInstructions;
-  }
-
-  /**
    * Logs workflow-specific events with enhanced context
    * @param event The workflow event description
    * @param data Additional workflow context data
@@ -161,7 +113,7 @@ This will continue the workflow orchestration process.
     this.logger.info(event, {
       ...(data || {}),
       workflowTool: true,
-      toolId: this.toolId,
+      toolId: this.toolMetadata.toolId,
     });
   }
 }

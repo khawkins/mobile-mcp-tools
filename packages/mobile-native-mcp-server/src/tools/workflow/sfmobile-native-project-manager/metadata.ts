@@ -33,10 +33,14 @@ export type OrchestratorOutput = z.infer<typeof ORCHESTRATOR_OUTPUT_SCHEMA>;
 /**
  * Orchestrator Tool Metadata
  */
-export const ORCHESTRATOR_TOOL: ToolMetadata<typeof ORCHESTRATOR_INPUT_SCHEMA> = {
+export const ORCHESTRATOR_TOOL: ToolMetadata<
+  typeof ORCHESTRATOR_INPUT_SCHEMA,
+  typeof ORCHESTRATOR_OUTPUT_SCHEMA
+> = {
   toolId: 'sfmobile-native-project-manager',
   name: 'Salesforce Mobile Native Project Manager',
   title: 'Salesforce Mobile Native Project Manager Orchestrator',
   description: 'Orchestrates the end-to-end workflow for generating Salesforce native mobile apps.',
   inputSchema: ORCHESTRATOR_INPUT_SCHEMA,
+  outputSchema: ORCHESTRATOR_OUTPUT_SCHEMA,
 } as const;

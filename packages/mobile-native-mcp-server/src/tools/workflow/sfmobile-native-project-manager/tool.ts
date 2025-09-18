@@ -4,13 +4,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SqliteSaver } from '@langchain/langgraph-checkpoint-sqlite';
 import { BaseCheckpointSaver, Command } from '@langchain/langgraph';
 import { getWorkflowStateDatabasePath } from '../../../utils/wellKnownDirectory.js';
-import {
-  ORCHESTRATOR_OUTPUT_SCHEMA,
-  ORCHESTRATOR_TOOL,
-  OrchestratorInput,
-  OrchestratorOutput,
-} from './metadata.js';
-import { type ToolInputType, type ToolInputShape } from '../../../common/metadata.js';
+import { ORCHESTRATOR_TOOL, OrchestratorInput, OrchestratorOutput } from './metadata.js';
 import { Logger, createWorkflowLogger } from '../../../logging/logger.js';
 import { AbstractTool } from '../../base/abstractTool.js';
 import {
@@ -51,30 +45,20 @@ function createCheckpointer(useMemoryForTesting = false): BaseCheckpointSaver {
  * mobile app generation workflow using LangGraph.js for deterministic state management
  * and human-in-the-loop patterns for agentic task execution.
  */
-export class MobileNativeOrchestrator extends AbstractTool<
-  ToolInputShape<typeof ORCHESTRATOR_TOOL>,
-  typeof ORCHESTRATOR_OUTPUT_SCHEMA.shape
-> {
-  public readonly toolId = ORCHESTRATOR_TOOL.toolId;
-  public readonly name = ORCHESTRATOR_TOOL.name;
-  public readonly title = ORCHESTRATOR_TOOL.title;
-  public readonly description = ORCHESTRATOR_TOOL.description;
-  public readonly inputSchema = ORCHESTRATOR_TOOL.inputSchema;
-  public readonly outputSchema = ORCHESTRATOR_OUTPUT_SCHEMA;
-
+export class MobileNativeOrchestrator extends AbstractTool<typeof ORCHESTRATOR_TOOL> {
   private readonly useMemoryForTesting: boolean;
 
   constructor(server: McpServer, logger?: Logger, useMemoryForTesting = false) {
     // Use provided logger (for testing) or create workflow logger (for production)
     const effectiveLogger = logger || createWorkflowLogger('MobileNativeOrchestrator');
-    super(server, 'MobileNativeOrchestrator', effectiveLogger);
+    super(server, ORCHESTRATOR_TOOL, 'MobileNativeOrchestrator', effectiveLogger);
     this.useMemoryForTesting = useMemoryForTesting;
   }
 
   /**
    * Handle orchestrator requests - manages workflow state and execution
    */
-  protected async handleRequest(input: ToolInputType<typeof ORCHESTRATOR_TOOL>) {
+  protected async handleRequest(input: OrchestratorInput) {
     this.logger.debug('Orchestrator tool called with input', input);
     try {
       const result = await this.processRequest(input);
@@ -202,7 +186,7 @@ export class MobileNativeOrchestrator extends AbstractTool<
     return `
 # Your Role
 
-You are participating in a workflow orchestration process. The current (\`${this.toolId}\`) MCP
+You are participating in a workflow orchestration process. The current (\`${this.toolMetadata.toolId}\`) MCP
 server tool is the orchestrator, and is sending you instructions on what to do next. These
 instructions describe the next participating MCP server tool to invoke, along with its input schema
 and input values.
@@ -231,7 +215,7 @@ following object value:
 ${JSON.stringify(workflowStateData)}
 \`\`\`
 
-This represents opaque workflow state data that should be round-tripped back to the \`${this.toolId}\`
+This represents opaque workflow state data that should be round-tripped back to the \`${this.toolMetadata.toolId}\`
 MCP server tool orchestrator at the completion of the next MCP server tool invocation, without
 modification. These instructions will be further specified by the next MCP server tool invocation.
 

@@ -1,9 +1,12 @@
 import z from 'zod';
 
 /**
- * Tool metadata interface - defines the structure for tool information
+ * Base tool metadata interface - defines the general structure for tool information
  */
-export interface ToolMetadata<TInputSchema extends z.ZodObject<z.ZodRawShape>> {
+export interface ToolMetadata<
+  TInputSchema extends z.ZodObject<z.ZodRawShape>,
+  TOutputSchema extends z.ZodObject<z.ZodRawShape>,
+> {
   /** Unique tool identifier used for MCP registration and workflow orchestration */
   readonly toolId: string;
 
@@ -18,19 +21,19 @@ export interface ToolMetadata<TInputSchema extends z.ZodObject<z.ZodRawShape>> {
 
   /** Zod input schema for validation */
   readonly inputSchema: TInputSchema;
+
+  /** Zod output schema for validation */
+  readonly outputSchema: TOutputSchema;
 }
 
 /**
- * Utility type to extract the input type from a ToolMetadata
- * Usage: ToolInputType<typeof DEPLOYMENT_TOOL>
+ * Workflow tool metadata interface - defines the structure for workflow tool information
  */
-export type ToolInputType<T extends ToolMetadata<z.ZodObject<z.ZodRawShape>>> = z.infer<
-  T['inputSchema']
->;
-
-/**
- * Utility type to extract the input schema shape from a ToolMetadata
- * Usage: ToolInputShape<typeof DEPLOYMENT_TOOL>
- */
-export type ToolInputShape<T extends ToolMetadata<z.ZodObject<z.ZodRawShape>>> =
-  T['inputSchema']['shape'];
+export interface WorkflowToolMetadata<
+  TInputSchema extends z.ZodObject<z.ZodRawShape>,
+  TOutputSchema extends z.ZodObject<z.ZodRawShape>,
+  TResultSchema extends z.ZodObject<z.ZodRawShape>,
+> extends ToolMetadata<TInputSchema, TOutputSchema> {
+  /** Holds the shape of the expected result for guidance-based tools */
+  readonly resultSchema: TResultSchema;
+}
