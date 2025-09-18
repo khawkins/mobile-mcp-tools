@@ -1,10 +1,10 @@
 import z from 'zod';
-import { PLATFORM_ENUM, PROJECT_PATH_FIELD } from '../../../common/schemas/common.js';
+import { PLATFORM_ENUM, PROJECT_PATH_FIELD } from '../../../common/schemas.js';
 import {
   WORKFLOW_TOOL_BASE_INPUT_SCHEMA,
   MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
-} from '../../../common/schemas/workflow.js';
-import { WorkflowToolMetadata } from '../../../common/metadata.js';
+  WorkflowToolMetadata,
+} from '../../../common/metadata.js';
 
 /**
  * Deployment Tool Input Schema
@@ -36,7 +36,6 @@ export type DeploymentWorkflowInput = z.infer<typeof DEPLOYMENT_WORKFLOW_INPUT_S
  */
 export const DEPLOYMENT_TOOL: WorkflowToolMetadata<
   typeof DEPLOYMENT_WORKFLOW_INPUT_SCHEMA,
-  typeof MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
   typeof DEPLOYMENT_RESULT_SCHEMA
 > = {
   toolId: 'sfmobile-native-deployment',

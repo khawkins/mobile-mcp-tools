@@ -1,8 +1,10 @@
 import z from 'zod';
-import { PLATFORM_ENUM } from '../../../common/schemas/common.js';
-import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA } from '../../../common/schemas/workflow.js';
-import { MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA } from '../../../common/schemas/workflow.js';
-import { WorkflowToolMetadata } from '../../../common/metadata.js';
+import { PLATFORM_ENUM } from '../../../common/schemas.js';
+import {
+  MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
+  WORKFLOW_TOOL_BASE_INPUT_SCHEMA,
+  WorkflowToolMetadata,
+} from '../../../common/metadata.js';
 
 /**
  * Project Generation Tool Input Schema
@@ -45,7 +47,6 @@ export type ProjectGenerationWorkflowInput = z.infer<
  */
 export const PROJECT_GENERATION_TOOL: WorkflowToolMetadata<
   typeof PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA,
-  typeof MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
   typeof PROJECT_GENERATION_RESULT_SCHEMA
 > = {
   toolId: 'sfmobile-native-project-generation',

@@ -23,17 +23,7 @@ export class SfmobileNativeTemplateDiscoveryTool extends AbstractWorkflowTool<
     try {
       const guidance = this.generateTemplateDiscoveryGuidance(input);
 
-      // Add workflow round-tripping instructions if this is part of a workflow
-      const finalOutput = this.addPostInvocationInstructions(guidance, input.workflowStateData);
-
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: finalOutput,
-          },
-        ],
-      };
+      return this.finalizeWorkflowToolOutput(guidance, input.workflowStateData);
     } catch (error) {
       return {
         isError: true,

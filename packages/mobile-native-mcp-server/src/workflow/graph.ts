@@ -1,5 +1,5 @@
 import { Annotation, END, START, interrupt, StateGraph } from '@langchain/langgraph';
-import { MCPToolInvocationData } from '../common/schemas/workflow.js';
+import { MCPToolInvocationData } from '../common/metadata.js';
 import {
   TEMPLATE_DISCOVERY_TOOL,
   TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA,

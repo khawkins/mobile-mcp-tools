@@ -12,19 +12,8 @@ export class SfmobileNativeBuildTool extends AbstractWorkflowTool<typeof BUILD_T
   protected async handleRequest(input: BuildWorkflowInput) {
     const guidance = this.generateBuildGuidance(input);
 
-    // TODO: Add workflow round-tripping instructions
-    const finalOutput = input.workflowStateData
-      ? this.addPostInvocationInstructions(guidance, input.workflowStateData)
-      : guidance;
-
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: finalOutput,
-        },
-      ],
-    };
+    const finalOutput = this.finalizeWorkflowToolOutput(guidance, input.workflowStateData);
+    return finalOutput;
   }
 
   private generateBuildGuidance(input: BuildWorkflowInput) {

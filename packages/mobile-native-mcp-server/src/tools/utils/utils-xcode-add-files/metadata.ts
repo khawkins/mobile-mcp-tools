@@ -2,8 +2,8 @@ import z from 'zod';
 import {
   MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
   WORKFLOW_TOOL_BASE_INPUT_SCHEMA,
-} from '../../../common/schemas/workflow.js';
-import { WorkflowToolMetadata } from '../../../common/metadata.js';
+  WorkflowToolMetadata,
+} from '../../../common/metadata.js';
 
 /**
  * Xcode Add Files Tool Input Schema
@@ -49,7 +49,6 @@ export const XCODE_ADD_FILES_RESULT_SCHEMA = z.object({
  */
 export const XCODE_ADD_FILES_TOOL: WorkflowToolMetadata<
   typeof XCODE_ADD_FILES_WORKFLOW_INPUT_SCHEMA,
-  typeof MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
   typeof XCODE_ADD_FILES_RESULT_SCHEMA
 > = {
   toolId: 'utils-xcode-add-files',

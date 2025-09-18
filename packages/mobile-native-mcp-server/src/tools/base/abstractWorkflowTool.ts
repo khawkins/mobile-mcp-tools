@@ -1,10 +1,17 @@
 import z from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { AbstractTool } from './abstractTool.js';
-import { WORKFLOW_PROPERTY_NAMES, WorkflowStateData } from '../../common/schemas/workflow.js';
+import {
+  MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
+  MCPWorkflowToolOutput,
+  WORKFLOW_PROPERTY_NAMES,
+  WORKFLOW_TOOL_BASE_INPUT_SCHEMA,
+  WorkflowStateData,
+  WorkflowToolMetadata,
+} from '../../common/metadata.js';
 import { ORCHESTRATOR_TOOL } from '../workflow/sfmobile-native-project-manager/metadata.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { WorkflowToolMetadata } from '../../common/metadata.js';
 import { Logger } from '../../logging/logger.js';
 
 /**
@@ -15,9 +22,9 @@ import { Logger } from '../../logging/logger.js';
  */
 export abstract class AbstractWorkflowTool<
   TMetadata extends WorkflowToolMetadata<
+    typeof WORKFLOW_TOOL_BASE_INPUT_SCHEMA,
     z.ZodObject<z.ZodRawShape>,
-    z.ZodObject<z.ZodRawShape>,
-    z.ZodObject<z.ZodRawShape>
+    typeof MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA
   >,
 > extends AbstractTool<TMetadata> {
   constructor(server: McpServer, toolMetadata: TMetadata, componentName?: string, logger?: Logger) {
@@ -32,10 +39,11 @@ export abstract class AbstractWorkflowTool<
    * @param workflowStateData Workflow state data to round-trip back to orchestrator
    * @returns Complete prompt with post-invocation instructions
    */
-  protected addPostInvocationInstructions(
+  protected finalizeWorkflowToolOutput(
     prompt: string,
     workflowStateData: WorkflowStateData
-  ): string {
+  ): CallToolResult {
+    const resultSchemaString = JSON.stringify(zodToJsonSchema(this.toolMetadata.resultSchema));
     const postInstructions = `
 
 # Post-Tool-Invocation Instructions
@@ -45,7 +53,7 @@ export abstract class AbstractWorkflowTool<
 The output of your task should conform to the following JSON schema:
 
 \`\`\`json
-${JSON.stringify(zodToJsonSchema(this.toolMetadata.resultSchema))}
+${resultSchemaString}
 \`\`\`
 
 A string representation of this JSON schema can also be found in the \`resultSchema\`
@@ -73,6 +81,19 @@ with the input schema from the last step:
 This will continue the workflow orchestration process.
 `;
 
-    return prompt + postInstructions;
+    const promptForLLM = prompt + postInstructions;
+    const result: MCPWorkflowToolOutput = {
+      promptForLLM,
+      resultSchema: resultSchemaString,
+    };
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify(result),
+        },
+      ],
+      structuredContent: result,
+    };
   }
 }

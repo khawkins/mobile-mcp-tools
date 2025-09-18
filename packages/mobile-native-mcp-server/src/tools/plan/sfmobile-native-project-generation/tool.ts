@@ -22,15 +22,7 @@ export class SfmobileNativeProjectGenerationTool extends AbstractWorkflowTool<
   protected async handleRequest(input: ProjectGenerationWorkflowInput) {
     try {
       const guidance = this.generateProjectGenerationGuidance(input);
-
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: guidance,
-          },
-        ],
-      };
+      return this.finalizeWorkflowToolOutput(guidance, input.workflowStateData);
     } catch (error) {
       return {
         isError: true,

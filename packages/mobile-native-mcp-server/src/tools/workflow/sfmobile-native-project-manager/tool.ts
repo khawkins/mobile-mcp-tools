@@ -11,7 +11,7 @@ import {
   MCPToolInvocationData,
   WORKFLOW_PROPERTY_NAMES,
   WorkflowStateData,
-} from '../../../common/schemas/workflow.js';
+} from '../../../common/metadata.js';
 import { mobileNativeWorkflow, State } from '../../../workflow/graph.js';
 
 /**
@@ -186,10 +186,10 @@ export class MobileNativeOrchestrator extends AbstractTool<typeof ORCHESTRATOR_T
     return `
 # Your Role
 
-You are participating in a workflow orchestration process. The current (\`${this.toolMetadata.toolId}\`) MCP
-server tool is the orchestrator, and is sending you instructions on what to do next. These
-instructions describe the next participating MCP server tool to invoke, along with its input schema
-and input values.
+You are participating in a workflow orchestration process. The current
+(\`${this.toolMetadata.toolId}\`) MCP server tool is the orchestrator, and is sending
+you instructions on what to do next. These instructions describe the next participating
+MCP server tool to invoke, along with its input schema and input values.
 
 # Your Task
 
@@ -207,20 +207,21 @@ ${JSON.stringify(mcpToolInvocationData.input)}
 
 ## Additional Input: \`${WORKFLOW_PROPERTY_NAMES.workflowStateData}\`
 
-\`${WORKFLOW_PROPERTY_NAMES.workflowStateData}\` is an additional input parameter that is specified
-in the input schema above, and should be passed to the next MCP server tool invocation, with the
-following object value:
+\`${WORKFLOW_PROPERTY_NAMES.workflowStateData}\` is an additional input parameter that is
+specified in the input schema above, and should be passed to the next MCP server tool
+invocation, with the following object value:
 
 \`\`\`json
 ${JSON.stringify(workflowStateData)}
 \`\`\`
 
-This represents opaque workflow state data that should be round-tripped back to the \`${this.toolMetadata.toolId}\`
-MCP server tool orchestrator at the completion of the next MCP server tool invocation, without
-modification. These instructions will be further specified by the next MCP server tool invocation.
+This represents opaque workflow state data that should be round-tripped back to the
+\`${this.toolMetadata.toolId}\` MCP server tool orchestrator at the completion of the
+next MCP server tool invocation, without modification. These instructions will be further
+specified by the next MCP server tool invocation.
 
-The MCP server tool you invoke will respond with its output, along with further instructions for
-continuing the workflow.
+The MCP server tool you invoke will respond with its output, along with further
+instructions for continuing the workflow.
 `;
   }
 }

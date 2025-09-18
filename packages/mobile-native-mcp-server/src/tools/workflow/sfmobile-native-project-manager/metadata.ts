@@ -1,6 +1,5 @@
 import z from 'zod';
-import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA } from '../../../common/schemas/workflow.js';
-import { ToolMetadata } from '../../../common/metadata.js';
+import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA, ToolMetadata } from '../../../common/metadata.js';
 
 /**
  * Orchestrator input schema - simplified to single userInput parameter

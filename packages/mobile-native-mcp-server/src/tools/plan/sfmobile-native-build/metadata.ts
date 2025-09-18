@@ -1,8 +1,10 @@
 import z from 'zod';
-import { PLATFORM_ENUM, PROJECT_PATH_FIELD } from '../../../common/schemas/common.js';
-import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA } from '../../../common/schemas/workflow.js';
-import { MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA } from '../../../common/schemas/workflow.js';
-import { WorkflowToolMetadata } from '../../../common/metadata.js';
+import { PLATFORM_ENUM, PROJECT_PATH_FIELD } from '../../../common/schemas.js';
+import {
+  MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
+  WORKFLOW_TOOL_BASE_INPUT_SCHEMA,
+  WorkflowToolMetadata,
+} from '../../../common/metadata.js';
 
 /**
  * Build Tool Input Schema
@@ -32,7 +34,6 @@ export type BuildWorkflowInput = z.infer<typeof BUILD_WORKFLOW_INPUT_SCHEMA>;
  */
 export const BUILD_TOOL: WorkflowToolMetadata<
   typeof BUILD_WORKFLOW_INPUT_SCHEMA,
-  typeof MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
   typeof BUILD_RESULT_SCHEMA
 > = {
   toolId: 'sfmobile-native-build',
