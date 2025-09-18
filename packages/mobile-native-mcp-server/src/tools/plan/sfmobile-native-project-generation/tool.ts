@@ -7,27 +7,19 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import dedent from 'dedent';
-import { AbstractTool } from '../../base/abstractTool.js';
 import { MOBILE_SDK_TEMPLATES_PATH } from '../../../constants.js';
 import { Logger } from '../../../logging/logger.js';
-import { ToolInputShape, ToolInputType } from '../../../common/metadata.js';
-import { PROJECT_GENERATION_TOOL } from './metadata.js';
+import { PROJECT_GENERATION_TOOL, ProjectGenerationWorkflowInput } from './metadata.js';
+import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
 
-export class SfmobileNativeProjectGenerationTool extends AbstractTool<
-  ToolInputShape<typeof PROJECT_GENERATION_TOOL>
+export class SfmobileNativeProjectGenerationTool extends AbstractWorkflowTool<
+  typeof PROJECT_GENERATION_TOOL
 > {
-  public readonly toolId = PROJECT_GENERATION_TOOL.toolId;
-  public readonly name = PROJECT_GENERATION_TOOL.name;
-  public readonly title = PROJECT_GENERATION_TOOL.title;
-  public readonly description = PROJECT_GENERATION_TOOL.description;
-  public readonly inputSchema = PROJECT_GENERATION_TOOL.inputSchema;
-  public readonly outputSchema = undefined; // No specific output schema defined
-
   constructor(server: McpServer, logger?: Logger) {
-    super(server, 'ProjectGenerationTool', logger);
+    super(server, PROJECT_GENERATION_TOOL, 'ProjectGenerationTool', logger);
   }
 
-  protected async handleRequest(input: ToolInputType<typeof PROJECT_GENERATION_TOOL>) {
+  protected async handleRequest(input: ProjectGenerationWorkflowInput) {
     try {
       const guidance = this.generateProjectGenerationGuidance(input);
 
@@ -52,9 +44,7 @@ export class SfmobileNativeProjectGenerationTool extends AbstractTool<
     }
   }
 
-  private generateProjectGenerationGuidance(
-    input: ToolInputType<typeof PROJECT_GENERATION_TOOL>
-  ): string {
+  private generateProjectGenerationGuidance(input: ProjectGenerationWorkflowInput): string {
     return dedent`
       # Mobile App Project Generation Guide
 
@@ -84,7 +74,7 @@ export class SfmobileNativeProjectGenerationTool extends AbstractTool<
 
   private generateStepExecuteCliCommand(
     stepNumber: number,
-    input: ToolInputType<typeof PROJECT_GENERATION_TOOL>
+    input: ProjectGenerationWorkflowInput
   ): string {
     const platformLower = input.platform.toLowerCase();
 
@@ -105,7 +95,7 @@ export class SfmobileNativeProjectGenerationTool extends AbstractTool<
 
   private generateStepVerifyProjectStructure(
     stepNumber: number,
-    input: ToolInputType<typeof PROJECT_GENERATION_TOOL>
+    input: ProjectGenerationWorkflowInput
   ): string {
     return dedent`
       ## Step ${stepNumber}: Verify Project Structure
@@ -123,7 +113,7 @@ export class SfmobileNativeProjectGenerationTool extends AbstractTool<
 
   private generateStepConfigureOAuth(
     stepNumber: number,
-    input: ToolInputType<typeof PROJECT_GENERATION_TOOL>
+    input: ProjectGenerationWorkflowInput
   ): string {
     const { connectedAppClientId, connectedAppCallbackUri, loginHost } = input;
 

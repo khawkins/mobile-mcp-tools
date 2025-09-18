@@ -1,8 +1,8 @@
 import z from 'zod';
 import { PLATFORM_ENUM } from '../../../common/schemas/common.js';
 import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA } from '../../../common/schemas/workflow.js';
-import { MCP_TOOL_OUTPUT_SCHEMA } from '../../../common/schemas/workflow.js';
-import { ToolMetadata } from '../../../common/metadata.js';
+import { MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA } from '../../../common/schemas/workflow.js';
+import { WorkflowToolMetadata } from '../../../common/metadata.js';
 
 /**
  * Project Generation Tool Input Schema
@@ -25,6 +25,10 @@ export const PROJECT_GENERATION_INPUT_SCHEMA = z.object({
 
 export type ProjectGenerationInput = z.infer<typeof PROJECT_GENERATION_INPUT_SCHEMA>;
 
+export const PROJECT_GENERATION_RESULT_SCHEMA = z.object({
+  projectPath: z.string().describe('The path to the generated project'),
+});
+
 /**
  * Extended input schema for workflow integration
  */
@@ -32,18 +36,17 @@ export const PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT
   PROJECT_GENERATION_INPUT_SCHEMA.shape
 );
 
-/**
- * Project Generation Tool Output Schema
- */
-export const PROJECT_GENERATION_OUTPUT_SCHEMA = MCP_TOOL_OUTPUT_SCHEMA;
-
-export type ProjectGenerationOutput = z.infer<typeof PROJECT_GENERATION_OUTPUT_SCHEMA>;
+export type ProjectGenerationWorkflowInput = z.infer<
+  typeof PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA
+>;
 
 /**
  * Project Generation Tool Metadata
  */
-export const PROJECT_GENERATION_TOOL: ToolMetadata<
-  typeof PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA
+export const PROJECT_GENERATION_TOOL: WorkflowToolMetadata<
+  typeof PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA,
+  typeof MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
+  typeof PROJECT_GENERATION_RESULT_SCHEMA
 > = {
   toolId: 'sfmobile-native-project-generation',
   name: 'Salesforce Mobile Native Project Generation',
@@ -51,4 +54,6 @@ export const PROJECT_GENERATION_TOOL: ToolMetadata<
   description:
     'Provides LLM instructions for generating a mobile app project from a selected template with OAuth configuration',
   inputSchema: PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA,
+  outputSchema: MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
+  resultSchema: PROJECT_GENERATION_RESULT_SCHEMA,
 } as const;

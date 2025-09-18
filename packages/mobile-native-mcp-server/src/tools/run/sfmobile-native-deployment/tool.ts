@@ -7,31 +7,19 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import dedent from 'dedent';
-import { AbstractTool } from '../../base/abstractTool.js';
 import { Logger } from '../../../logging/logger.js';
-import { ToolInputShape, ToolInputType } from '../../../common/metadata.js';
-import { DEPLOYMENT_TOOL } from './metadata.js';
+import { DEPLOYMENT_TOOL, DeploymentWorkflowInput } from './metadata.js';
+import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
 
-export class SfmobileNativeDeploymentTool extends AbstractTool<
-  ToolInputShape<typeof DEPLOYMENT_TOOL>
-> {
-  public readonly toolId = DEPLOYMENT_TOOL.toolId;
-  public readonly name = DEPLOYMENT_TOOL.name;
-  public readonly title = DEPLOYMENT_TOOL.title;
-  public readonly description = DEPLOYMENT_TOOL.description;
-  public readonly inputSchema = DEPLOYMENT_TOOL.inputSchema;
-  public readonly outputSchema = undefined; // No specific output schema defined
-
+export class SfmobileNativeDeploymentTool extends AbstractWorkflowTool<typeof DEPLOYMENT_TOOL> {
   constructor(server: McpServer, logger?: Logger) {
-    super(server, 'DeploymentTool', logger);
+    super(server, DEPLOYMENT_TOOL, 'DeploymentTool', logger);
   }
 
-  protected async handleRequest(input: ToolInputType<typeof DEPLOYMENT_TOOL>) {
+  protected async handleRequest(input: DeploymentWorkflowInput) {
     try {
-      // TODO: Validate this parsing.
-      // Note: MCP SDK already validates input, but we validate here for test compatibility
-      // and to ensure defaults are applied (e.g., buildType default)
-      const validatedInput = this.inputSchema.parse(input);
+      // Parsing here is about setting defaults from the input schema (e.g. buildType default).
+      const validatedInput = this.toolMetadata.inputSchema.parse(input);
       const guidance = this.generateDeploymentGuidance(validatedInput);
 
       return {
@@ -55,7 +43,7 @@ export class SfmobileNativeDeploymentTool extends AbstractTool<
     }
   }
 
-  private generateDeploymentGuidance(input: ToolInputType<typeof DEPLOYMENT_TOOL>): string {
+  private generateDeploymentGuidance(input: DeploymentWorkflowInput): string {
     return dedent`
       You are a technology-adept agent working on behalf of a user who has less familiarity with the technical details of application deployment than you do, and needs your assistance to deploy the app to the target device.
       Please execute the instructions of the following plan on behalf of the user, providing them information on the outcomes that they may need to know.
@@ -76,7 +64,7 @@ export class SfmobileNativeDeploymentTool extends AbstractTool<
 
   private generateTargetDeviceReadyStep(
     stepNumber: number,
-    input: ToolInputType<typeof DEPLOYMENT_TOOL>
+    input: DeploymentWorkflowInput
   ): string {
     return dedent`
       ## Step ${stepNumber}: ${input.platform === 'iOS' ? 'iOS Simulator' : 'Android Emulator'} must be ready
@@ -89,7 +77,7 @@ export class SfmobileNativeDeploymentTool extends AbstractTool<
     `;
   }
 
-  private generateTargetDeviceReadyStepIOS(input: ToolInputType<typeof DEPLOYMENT_TOOL>): string {
+  private generateTargetDeviceReadyStepIOS(input: DeploymentWorkflowInput): string {
     return dedent`
       Navigate to the ${input.projectPath} directory and run the following command to check if the simulator is running:
 
@@ -105,9 +93,7 @@ export class SfmobileNativeDeploymentTool extends AbstractTool<
     `;
   }
 
-  private generateTargetDeviceReadyStepAndroid(
-    input: ToolInputType<typeof DEPLOYMENT_TOOL>
-  ): string {
+  private generateTargetDeviceReadyStepAndroid(input: DeploymentWorkflowInput): string {
     return dedent`
       Navigate to the ${input.projectPath} directory and run the following commands to make sure 
       an emulator with an API level equal to or higher than the app's minimum SDK version is active.
@@ -136,10 +122,7 @@ export class SfmobileNativeDeploymentTool extends AbstractTool<
     `;
   }
 
-  private generateDeploymentStep(
-    stepNumber: number,
-    input: ToolInputType<typeof DEPLOYMENT_TOOL>
-  ): string {
+  private generateDeploymentStep(stepNumber: number, input: DeploymentWorkflowInput): string {
     return dedent`
       ## Step ${stepNumber}: Deploy application to ${input.platform === 'iOS' ? 'iOS Simulator' : 'Android Emulator'}
 
@@ -151,7 +134,7 @@ export class SfmobileNativeDeploymentTool extends AbstractTool<
     `;
   }
 
-  private generateDeploymentCommand(input: ToolInputType<typeof DEPLOYMENT_TOOL>): string {
+  private generateDeploymentCommand(input: DeploymentWorkflowInput): string {
     return input.platform === 'iOS'
       ? dedent`
         \`\`\`bash
@@ -167,7 +150,7 @@ export class SfmobileNativeDeploymentTool extends AbstractTool<
       `;
   }
 
-  private generateNextStep(input: ToolInputType<typeof DEPLOYMENT_TOOL>): string {
+  private generateNextStep(input: DeploymentWorkflowInput): string {
     return dedent`
       ## Next Steps
 
@@ -176,7 +159,7 @@ export class SfmobileNativeDeploymentTool extends AbstractTool<
     `;
   }
 
-  private generateLaunchCommand(input: ToolInputType<typeof DEPLOYMENT_TOOL>): string {
+  private generateLaunchCommand(input: DeploymentWorkflowInput): string {
     return input.platform === 'iOS'
       ? dedent`
         \`\`\`bash

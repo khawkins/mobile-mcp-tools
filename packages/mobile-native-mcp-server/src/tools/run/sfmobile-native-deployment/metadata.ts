@@ -2,9 +2,9 @@ import z from 'zod';
 import { PLATFORM_ENUM, PROJECT_PATH_FIELD } from '../../../common/schemas/common.js';
 import {
   WORKFLOW_TOOL_BASE_INPUT_SCHEMA,
-  MCP_TOOL_OUTPUT_SCHEMA,
+  MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
 } from '../../../common/schemas/workflow.js';
-import { ToolMetadata } from '../../../common/metadata.js';
+import { WorkflowToolMetadata } from '../../../common/metadata.js';
 
 /**
  * Deployment Tool Input Schema
@@ -18,6 +18,10 @@ export const DEPLOYMENT_INPUT_SCHEMA = z.object({
 
 export type DeploymentInput = z.infer<typeof DEPLOYMENT_INPUT_SCHEMA>;
 
+export const DEPLOYMENT_RESULT_SCHEMA = z.object({
+  deploymentStatus: z.string().describe('The status of the deployment'),
+});
+
 /**
  * Extended input schema for workflow integration
  */
@@ -25,23 +29,22 @@ export const DEPLOYMENT_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.
   DEPLOYMENT_INPUT_SCHEMA.shape
 );
 
-/**
- * Deployment Tool Output Schema
- */
-export const DEPLOYMENT_OUTPUT_SCHEMA = MCP_TOOL_OUTPUT_SCHEMA.extend({
-  // Additional deployment-specific output fields can be added here
-});
-
-export type DeploymentOutput = z.infer<typeof DEPLOYMENT_OUTPUT_SCHEMA>;
+export type DeploymentWorkflowInput = z.infer<typeof DEPLOYMENT_WORKFLOW_INPUT_SCHEMA>;
 
 /**
  * Deployment Tool Metadata
  */
-export const DEPLOYMENT_TOOL: ToolMetadata<typeof DEPLOYMENT_WORKFLOW_INPUT_SCHEMA> = {
+export const DEPLOYMENT_TOOL: WorkflowToolMetadata<
+  typeof DEPLOYMENT_WORKFLOW_INPUT_SCHEMA,
+  typeof MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
+  typeof DEPLOYMENT_RESULT_SCHEMA
+> = {
   toolId: 'sfmobile-native-deployment',
   name: 'Salesforce Mobile Native Deployment',
   title: 'Salesforce Mobile Native Deployment Guide',
   description:
     'Guides LLM through deploying Salesforce mobile native apps to devices or simulators',
   inputSchema: DEPLOYMENT_WORKFLOW_INPUT_SCHEMA,
+  outputSchema: MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
+  resultSchema: DEPLOYMENT_RESULT_SCHEMA,
 } as const;

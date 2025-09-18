@@ -7,38 +7,24 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import dedent from 'dedent';
-import { AbstractTool } from '../../base/abstractTool.js';
 import { MOBILE_SDK_TEMPLATES_PATH } from '../../../constants.js';
 import { Logger } from '../../../logging/logger.js';
-import { ToolInputShape, ToolInputType } from '../../../common/metadata.js';
-import { TEMPLATE_DISCOVERY_TOOL } from './metadata.js';
+import { TEMPLATE_DISCOVERY_TOOL, TemplateDiscoveryWorkflowInput } from './metadata.js';
+import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
 
-export class SfmobileNativeTemplateDiscoveryTool extends AbstractTool<
-  ToolInputShape<typeof TEMPLATE_DISCOVERY_TOOL>
+export class SfmobileNativeTemplateDiscoveryTool extends AbstractWorkflowTool<
+  typeof TEMPLATE_DISCOVERY_TOOL
 > {
-  public readonly toolId = TEMPLATE_DISCOVERY_TOOL.toolId;
-  public readonly name = TEMPLATE_DISCOVERY_TOOL.name;
-  public readonly title = TEMPLATE_DISCOVERY_TOOL.title;
-  public readonly description = TEMPLATE_DISCOVERY_TOOL.description;
-  public readonly inputSchema = TEMPLATE_DISCOVERY_TOOL.inputSchema;
-  public readonly outputSchema = undefined; // No specific output schema defined
-
   constructor(server: McpServer, logger?: Logger) {
-    super(server, 'TemplateDiscoveryTool', logger);
+    super(server, TEMPLATE_DISCOVERY_TOOL, 'TemplateDiscoveryTool', logger);
   }
 
-  protected async handleRequest(input: ToolInputType<typeof TEMPLATE_DISCOVERY_TOOL>) {
+  protected async handleRequest(input: TemplateDiscoveryWorkflowInput) {
     try {
       const guidance = this.generateTemplateDiscoveryGuidance(input);
 
       // Add workflow round-tripping instructions if this is part of a workflow
-      const finalOutput = input.workflowStateData
-        ? this.addPostInvocationInstructions(
-            guidance,
-            'the complete template discovery results and selected template information',
-            input.workflowStateData
-          )
-        : guidance;
+      const finalOutput = this.addPostInvocationInstructions(guidance, input.workflowStateData);
 
       return {
         content: [
@@ -61,9 +47,7 @@ export class SfmobileNativeTemplateDiscoveryTool extends AbstractTool<
     }
   }
 
-  private generateTemplateDiscoveryGuidance(
-    input: ToolInputType<typeof TEMPLATE_DISCOVERY_TOOL>
-  ): string {
+  private generateTemplateDiscoveryGuidance(input: TemplateDiscoveryWorkflowInput): string {
     return dedent`
       # Template Discovery Guidance for ${input.platform}
 
@@ -109,7 +93,7 @@ export class SfmobileNativeTemplateDiscoveryTool extends AbstractTool<
 
   private generateTemplateDiscoveryStep(
     stepNumber: number,
-    input: ToolInputType<typeof TEMPLATE_DISCOVERY_TOOL>
+    input: TemplateDiscoveryWorkflowInput
   ): string {
     const platformLower = input.platform.toLowerCase();
 
@@ -136,7 +120,7 @@ export class SfmobileNativeTemplateDiscoveryTool extends AbstractTool<
 
   private generateDetailedInvestigationStep(
     stepNumber: number,
-    input: ToolInputType<typeof TEMPLATE_DISCOVERY_TOOL>
+    input: TemplateDiscoveryWorkflowInput
   ): string {
     const platformLower = input.platform.toLowerCase();
 

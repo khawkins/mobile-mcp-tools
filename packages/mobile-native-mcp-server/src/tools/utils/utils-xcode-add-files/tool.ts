@@ -5,17 +5,17 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
+// TODO: This tool needs further consideration for our server tool design pattern. It's basically
+// wired up to the data structures, but has no LLM exeuction prompt and is in need of
+// consideration for how that should be implemented.
+
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import dedent from 'dedent';
-import { AbstractTool } from '../../base/abstractTool.js';
 import { Logger } from '../../../logging/logger.js';
-import { XCODE_ADD_FILES_OUTPUT_SCHEMA, XCODE_ADD_FILES_TOOL } from './metadata.js';
-import { ToolInputShape, ToolInputType } from '../../../common/metadata.js';
-
-// Use the centralized schemas directly
-const XcodeAddFilesOutputSchema = XCODE_ADD_FILES_OUTPUT_SCHEMA;
+import { XCODE_ADD_FILES_TOOL, XcodeAddFilesWorkflowInput } from './metadata.js';
+import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
 
 interface XcodeAddFilesResult {
   success: boolean;
@@ -27,27 +27,17 @@ interface XcodeAddFilesResult {
   error?: string;
 }
 
-export class UtilsXcodeAddFilesTool extends AbstractTool<
-  ToolInputShape<typeof XCODE_ADD_FILES_TOOL>,
-  typeof XcodeAddFilesOutputSchema.shape
-> {
-  public readonly toolId = XCODE_ADD_FILES_TOOL.toolId;
-  public readonly name = XCODE_ADD_FILES_TOOL.name;
-  public readonly title = XCODE_ADD_FILES_TOOL.title;
-  public readonly description = XCODE_ADD_FILES_TOOL.description;
-  public readonly inputSchema = XCODE_ADD_FILES_TOOL.inputSchema;
-  public readonly outputSchema = XcodeAddFilesOutputSchema;
-
+export class UtilsXcodeAddFilesTool extends AbstractWorkflowTool<typeof XCODE_ADD_FILES_TOOL> {
   constructor(server: McpServer, logger?: Logger) {
-    super(server, 'XcodeAddFilesTool', logger);
+    super(server, XCODE_ADD_FILES_TOOL, 'XcodeAddFilesTool', logger);
   }
 
-  protected async handleRequest(input: ToolInputType<typeof XCODE_ADD_FILES_TOOL>) {
+  protected async handleRequest(input: XcodeAddFilesWorkflowInput) {
     try {
       const result = await this.addFilesToXcodeProject(input);
 
       // Validate the result against the output schema
-      const validatedResult = this.outputSchema.parse(result);
+      const validatedResult = this.toolMetadata.resultSchema.parse(result);
 
       return {
         content: [
@@ -68,7 +58,7 @@ export class UtilsXcodeAddFilesTool extends AbstractTool<
       };
 
       // Validate the error result against the output schema
-      const validatedErrorResult = this.outputSchema.parse(errorResult);
+      const validatedErrorResult = this.toolMetadata.resultSchema.parse(errorResult);
 
       return {
         isError: true,
@@ -83,7 +73,7 @@ export class UtilsXcodeAddFilesTool extends AbstractTool<
   }
 
   private async addFilesToXcodeProject(
-    input: ToolInputType<typeof XCODE_ADD_FILES_TOOL>
+    input: XcodeAddFilesWorkflowInput
   ): Promise<XcodeAddFilesResult> {
     const { projectPath, xcodeProjectPath, newFilePaths, targetName } = input;
 
