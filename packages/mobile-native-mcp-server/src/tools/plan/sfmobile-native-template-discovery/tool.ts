@@ -12,7 +12,7 @@ import { Logger } from '../../../logging/logger.js';
 import { TEMPLATE_DISCOVERY_TOOL, TemplateDiscoveryWorkflowInput } from './metadata.js';
 import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
 
-export class SfmobileNativeTemplateDiscoveryTool extends AbstractWorkflowTool<
+export class SFMobileNativeTemplateDiscoveryTool extends AbstractWorkflowTool<
   typeof TEMPLATE_DISCOVERY_TOOL
 > {
   constructor(server: McpServer, logger?: Logger) {

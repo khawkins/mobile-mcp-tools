@@ -11,7 +11,7 @@ import { Logger } from '../../../logging/logger.js';
 import { DEPLOYMENT_TOOL, DeploymentWorkflowInput } from './metadata.js';
 import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
 
-export class SfmobileNativeDeploymentTool extends AbstractWorkflowTool<typeof DEPLOYMENT_TOOL> {
+export class SFMobileNativeDeploymentTool extends AbstractWorkflowTool<typeof DEPLOYMENT_TOOL> {
   constructor(server: McpServer, logger?: Logger) {
     super(server, DEPLOYMENT_TOOL, 'DeploymentTool', logger);
   }

@@ -4,7 +4,7 @@ import { Logger } from '../../../logging/logger.js';
 import { BUILD_TOOL, BuildWorkflowInput } from './metadata.js';
 import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
 
-export class SfmobileNativeBuildTool extends AbstractWorkflowTool<typeof BUILD_TOOL> {
+export class SFMobileNativeBuildTool extends AbstractWorkflowTool<typeof BUILD_TOOL> {
   constructor(server: McpServer, logger?: Logger) {
     super(server, BUILD_TOOL, 'BuildTool', logger);
   }

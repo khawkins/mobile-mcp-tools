@@ -12,7 +12,7 @@ import { Logger } from '../../../logging/logger.js';
 import { PROJECT_GENERATION_TOOL, ProjectGenerationWorkflowInput } from './metadata.js';
 import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
 
-export class SfmobileNativeProjectGenerationTool extends AbstractWorkflowTool<
+export class SFMobileNativeProjectGenerationTool extends AbstractWorkflowTool<
   typeof PROJECT_GENERATION_TOOL
 > {
   constructor(server: McpServer, logger?: Logger) {

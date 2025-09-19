@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { SfmobileNativeTemplateDiscoveryTool } from '../../../../src/tools/plan/sfmobile-native-template-discovery/tool.js';
+import { SFMobileNativeTemplateDiscoveryTool } from '../../../../src/tools/plan/sfmobile-native-template-discovery/tool.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 
 // Mock MCP Server implementation for testing
@@ -20,14 +20,14 @@ class MockMcpServer {
   }
 }
 
-describe('SfmobileNativeTemplateDiscoveryTool', () => {
-  let tool: SfmobileNativeTemplateDiscoveryTool;
+describe('SFMobileNativeTemplateDiscoveryTool', () => {
+  let tool: SFMobileNativeTemplateDiscoveryTool;
   let mockServer: MockMcpServer;
   let annotations: ToolAnnotations;
 
   beforeEach(() => {
     mockServer = new MockMcpServer();
-    tool = new SfmobileNativeTemplateDiscoveryTool(mockServer as any);
+    tool = new SFMobileNativeTemplateDiscoveryTool(mockServer as any);
     annotations = {
       readOnlyHint: true,
       destructiveHint: false,

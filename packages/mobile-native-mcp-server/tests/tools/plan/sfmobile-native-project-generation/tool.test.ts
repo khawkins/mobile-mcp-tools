@@ -7,21 +7,21 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SfmobileNativeProjectGenerationTool } from '../../../../src/tools/plan/sfmobile-native-project-generation/tool.js';
+import { SFMobileNativeProjectGenerationTool } from '../../../../src/tools/plan/sfmobile-native-project-generation/tool.js';
 
 // Mock the constants module to provide consistent paths for snapshots
 vi.mock('../../../../src/constants.js', () => ({
   MOBILE_SDK_TEMPLATES_PATH: './templates',
 }));
 
-describe('SfmobileNativeProjectGenerationTool', () => {
-  let tool: SfmobileNativeProjectGenerationTool;
+describe('SFMobileNativeProjectGenerationTool', () => {
+  let tool: SFMobileNativeProjectGenerationTool;
 
   beforeEach(() => {
     const mockServer = {
       registerTool: vi.fn(),
     };
-    tool = new SfmobileNativeProjectGenerationTool(mockServer as any);
+    tool = new SFMobileNativeProjectGenerationTool(mockServer as any);
   });
 
   it('should have correct tool properties', () => {
@@ -56,7 +56,7 @@ describe('SfmobileNativeProjectGenerationTool', () => {
       idempotentHint: true,
       openWorldHint: false,
     };
-    const projectTool = new SfmobileNativeProjectGenerationTool(mockServer as any);
+    const projectTool = new SFMobileNativeProjectGenerationTool(mockServer as any);
 
     projectTool.register(mockAnnotations);
 

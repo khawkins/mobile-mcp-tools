@@ -7,16 +7,16 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SfmobileNativeDeploymentTool } from '../../../../src/tools/run/sfmobile-native-deployment/tool.js';
+import { SFMobileNativeDeploymentTool } from '../../../../src/tools/run/sfmobile-native-deployment/tool.js';
 
-describe('SfmobileNativeDeploymentTool', () => {
-  let tool: SfmobileNativeDeploymentTool;
+describe('SFMobileNativeDeploymentTool', () => {
+  let tool: SFMobileNativeDeploymentTool;
 
   beforeEach(() => {
     const mockServer = {
       registerTool: vi.fn(),
     };
-    tool = new SfmobileNativeDeploymentTool(mockServer as any);
+    tool = new SFMobileNativeDeploymentTool(mockServer as any);
   });
 
   it('should have correct tool properties', () => {
@@ -47,7 +47,7 @@ describe('SfmobileNativeDeploymentTool', () => {
       idempotentHint: true,
       openWorldHint: false,
     };
-    const deploymentTool = new SfmobileNativeDeploymentTool(mockServer as any);
+    const deploymentTool = new SFMobileNativeDeploymentTool(mockServer as any);
 
     deploymentTool.register(mockAnnotations);
 

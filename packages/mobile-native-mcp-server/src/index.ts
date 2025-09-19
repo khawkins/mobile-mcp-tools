@@ -9,11 +9,11 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { SfmobileNativeTemplateDiscoveryTool } from './tools/plan/sfmobile-native-template-discovery/tool.js';
+import { SFMobileNativeTemplateDiscoveryTool } from './tools/plan/sfmobile-native-template-discovery/tool.js';
 import { UtilsXcodeAddFilesTool } from './tools/utils/utils-xcode-add-files/tool.js';
-import { SfmobileNativeDeploymentTool } from './tools/run/sfmobile-native-deployment/tool.js';
-import { SfmobileNativeBuildTool } from './tools/plan/sfmobile-native-build/tool.js';
-import { SfmobileNativeProjectGenerationTool } from './tools/plan/sfmobile-native-project-generation/tool.js';
+import { SFMobileNativeDeploymentTool } from './tools/run/sfmobile-native-deployment/tool.js';
+import { SFMobileNativeBuildTool } from './tools/plan/sfmobile-native-build/tool.js';
+import { SFMobileNativeProjectGenerationTool } from './tools/plan/sfmobile-native-project-generation/tool.js';
 import { MobileNativeOrchestrator } from './tools/workflow/sfmobile-native-project-manager/tool.js';
 
 import packageJson from '../package.json' with { type: 'json' };
@@ -42,10 +42,10 @@ const orchestratorAnnotations: ToolAnnotations = {
 
 // Initialize tools
 const orchestrator = new MobileNativeOrchestrator(server);
-const templateDiscoveryTool = new SfmobileNativeTemplateDiscoveryTool(server);
-const projectGenerationTool = new SfmobileNativeProjectGenerationTool(server);
-const buildTool = new SfmobileNativeBuildTool(server);
-const deploymentTool = new SfmobileNativeDeploymentTool(server);
+const templateDiscoveryTool = new SFMobileNativeTemplateDiscoveryTool(server);
+const projectGenerationTool = new SFMobileNativeProjectGenerationTool(server);
+const buildTool = new SFMobileNativeBuildTool(server);
+const deploymentTool = new SFMobileNativeDeploymentTool(server);
 const xcodeAddFilesTool = new UtilsXcodeAddFilesTool(server);
 
 // Register orchestrator with specific annotations

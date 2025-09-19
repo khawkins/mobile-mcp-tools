@@ -7,16 +7,16 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SfmobileNativeBuildTool } from '../../../../src/tools/plan/sfmobile-native-build/tool.js';
+import { SFMobileNativeBuildTool } from '../../../../src/tools/plan/sfmobile-native-build/tool.js';
 
-describe('SfmobileNativeBuildTool', () => {
-  let tool: SfmobileNativeBuildTool;
+describe('SFMobileNativeBuildTool', () => {
+  let tool: SFMobileNativeBuildTool;
 
   beforeEach(() => {
     const mockServer = {
       registerTool: vi.fn(),
     };
-    tool = new SfmobileNativeBuildTool(mockServer as any);
+    tool = new SFMobileNativeBuildTool(mockServer as any);
   });
 
   it('should have correct tool properties', () => {
@@ -45,7 +45,7 @@ describe('SfmobileNativeBuildTool', () => {
       idempotentHint: true,
       openWorldHint: false,
     };
-    const buildTool = new SfmobileNativeBuildTool(mockServer as any);
+    const buildTool = new SFMobileNativeBuildTool(mockServer as any);
 
     buildTool.register(mockAnnotations);
 
