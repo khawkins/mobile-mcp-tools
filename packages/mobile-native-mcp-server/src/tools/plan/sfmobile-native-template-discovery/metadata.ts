@@ -17,7 +17,7 @@ export type TemplateDiscoveryWorkflowInput = z.infer<
   typeof TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA
 >;
 
-export const TEMPLATE_DISCOVERY_RESULT_SCHEMA = z.object({
+export const TEMPLATE_DISCOVERY_WORKFLOW_RESULT_SCHEMA = z.object({
   selectedTemplate: z.string().describe('The template ID selected from template discovery'),
   projectName: z.string().describe('Name for the mobile app project'),
   packageName: z.string().describe('Package name for the mobile app (e.g., com.company.appname)'),
@@ -34,7 +34,7 @@ export const TEMPLATE_DISCOVERY_RESULT_SCHEMA = z.object({
  */
 export const TEMPLATE_DISCOVERY_TOOL: WorkflowToolMetadata<
   typeof TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA,
-  typeof TEMPLATE_DISCOVERY_RESULT_SCHEMA
+  typeof TEMPLATE_DISCOVERY_WORKFLOW_RESULT_SCHEMA
 > = {
   toolId: 'sfmobile-native-template-discovery',
   title: 'Salesforce Mobile Native Template Discovery',
@@ -42,5 +42,5 @@ export const TEMPLATE_DISCOVERY_TOOL: WorkflowToolMetadata<
     'Guides LLM through template discovery and selection for Salesforce mobile app development',
   inputSchema: TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA,
   outputSchema: MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
-  resultSchema: TEMPLATE_DISCOVERY_RESULT_SCHEMA,
+  resultSchema: TEMPLATE_DISCOVERY_WORKFLOW_RESULT_SCHEMA,
 } as const;

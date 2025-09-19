@@ -29,8 +29,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "lint": "eslint --config ../../eslint.config.mjs \"src/**/*.ts\"",
-    "format": "prettier --write \"src/**/*.ts\""
+    "lint": "eslint --config ../../eslint.config.mjs \"{src,tests}/**/*.ts\"",
+    "format": "prettier --write \"{src,tests}/**/*.ts\""
   },
   "dependencies": {
     "@langchain/langgraph": "^0.4.9",

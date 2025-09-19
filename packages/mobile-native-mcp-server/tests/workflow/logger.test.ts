@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { 
+import {
   Logger,
-  PinoLogger, 
+  PinoLogger,
   createProductionLogger,
   createDevelopmentLogger,
   createTestLogger,
@@ -77,7 +77,7 @@ describe('Logger Implementation', () => {
       const prodLogger = createLogger('production');
       const devLogger = createLogger('development');
       const testLogger = createLogger('test');
-      
+
       expect(prodLogger).toBeInstanceOf(PinoLogger);
       expect(devLogger).toBeInstanceOf(PinoLogger);
       expect(testLogger).toBeInstanceOf(PinoLogger);
@@ -93,12 +93,12 @@ describe('Logger Implementation', () => {
   describe('Logger Compatibility', () => {
     it('should work with structured data', () => {
       const logger = createTestLogger();
-      
+
       expect(() => {
-        logger.info('test message', { 
-          userId: 123, 
+        logger.info('test message', {
+          userId: 123,
           action: 'login',
-          metadata: { timestamp: Date.now() }
+          metadata: { timestamp: Date.now() },
         });
       }).not.toThrow();
     });
@@ -107,7 +107,7 @@ describe('Logger Implementation', () => {
       const logger = createTestLogger();
       const testError = new Error('Test error message');
       testError.stack = 'Test stack trace';
-      
+
       expect(() => {
         logger.error('An error occurred', testError);
       }).not.toThrow();
@@ -115,11 +115,11 @@ describe('Logger Implementation', () => {
 
     it('should create child loggers with bindings', () => {
       const logger = createTestLogger();
-      const childLogger = logger.child({ 
+      const childLogger = logger.child({
         component: 'WorkflowOrchestrator',
-        version: '1.0.0'
+        version: '1.0.0',
       });
-      
+
       expect(childLogger).toBeDefined();
       expect(() => {
         childLogger.info('Child logger message');

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
  * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
@@ -19,16 +20,15 @@ describe('SfmobileNativeBuildTool', () => {
   });
 
   it('should have correct tool properties', () => {
-    expect(tool.name).toBe('Salesforce Mobile App Build Tool');
-    expect(tool.title).toBe('Salesforce Mobile app build guide');
-    expect(tool.toolId).toBe('sfmobile-native-build');
-    expect(tool.description).toBe(
+    expect(tool.toolMetadata.toolId).toBe('sfmobile-native-build');
+    expect(tool.toolMetadata.title).toBe('Salesforce Mobile App Build Tool');
+    expect(tool.toolMetadata.description).toBe(
       'Guides LLM through the process of building a Salesforce mobile app with target platform'
     );
   });
 
   it('should have input schema with required platform and projectPath fields', () => {
-    const schema = tool.inputSchema;
+    const schema = tool.toolMetadata.inputSchema;
     expect(schema).toBeDefined();
     expect(schema.shape).toBeDefined();
     expect(schema.shape.platform).toBeDefined();
@@ -52,9 +52,11 @@ describe('SfmobileNativeBuildTool', () => {
     expect(mockServer.registerTool).toHaveBeenCalledWith(
       'sfmobile-native-build',
       expect.objectContaining({
-        description: 'Guides LLM through the process of building a Salesforce mobile app with target platform',
+        description:
+          'Guides LLM through the process of building a Salesforce mobile app with target platform',
         inputSchema: expect.any(Object),
-        title: 'Salesforce Mobile app build guide',
+        outputSchema: expect.any(Object),
+        title: 'Salesforce Mobile App Build Tool',
       }),
       expect.any(Function)
     );
@@ -67,7 +69,6 @@ describe('SfmobileNativeBuildTool', () => {
 
   it('should generate iOS build guidance', async () => {
     const input = { platform: 'iOS' as const, projectPath: '/path/to/ios/project' };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await (tool as any).handleRequest(input);
 
     expect(result.content).toBeDefined();
@@ -93,7 +94,6 @@ describe('SfmobileNativeBuildTool', () => {
 
   it('should generate Android build guidance', async () => {
     const input = { platform: 'Android' as const, projectPath: '/path/to/android/project' };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await (tool as any).handleRequest(input);
 
     expect(result.content).toBeDefined();
@@ -117,7 +117,6 @@ describe('SfmobileNativeBuildTool', () => {
   it('should include project path in iOS build guidance', async () => {
     const customPath = '/custom/ios/project/path';
     const input = { platform: 'iOS' as const, projectPath: customPath };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await (tool as any).handleRequest(input);
 
     expect(result.content[0].text).toContain(`Navigate to the ${customPath} directory`);
@@ -126,7 +125,6 @@ describe('SfmobileNativeBuildTool', () => {
   it('should include project path in Android build guidance', async () => {
     const customPath = '/custom/android/project/path';
     const input = { platform: 'Android' as const, projectPath: customPath };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await (tool as any).handleRequest(input);
 
     expect(result.content[0].text).toContain(`Navigate to the ${customPath} directory`);
@@ -135,20 +133,17 @@ describe('SfmobileNativeBuildTool', () => {
   it('should include platform-specific build commands', async () => {
     // Test iOS build command
     const iOSInput = { platform: 'iOS' as const, projectPath: '/ios/path' };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const iOSResult = await (tool as any).handleRequest(iOSInput);
     expect(iOSResult.content[0].text).toContain('xcodebuild -workspace');
 
     // Test Android build command
     const androidInput = { platform: 'Android' as const, projectPath: '/android/path' };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const androidResult = await (tool as any).handleRequest(androidInput);
     expect(androidResult.content[0].text).toContain('./gradlew build');
   });
 
   it('should include proper formatting and structure', async () => {
     const input = { platform: 'iOS' as const, projectPath: '/test/path' };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await (tool as any).handleRequest(input);
 
     const guidance = result.content[0].text;
@@ -162,7 +157,6 @@ describe('SfmobileNativeBuildTool', () => {
 
   it('should handle empty project path', async () => {
     const input = { platform: 'Android' as const, projectPath: '' };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await (tool as any).handleRequest(input);
 
     expect(result.content).toBeDefined();
@@ -171,14 +165,12 @@ describe('SfmobileNativeBuildTool', () => {
 
   it('should test individual method behaviors', () => {
     // Test msdkAppBuildExecutionIOS method
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const iOSBuildResult = (tool as any).msdkAppBuildExecutionIOS('/test/path');
     expect(iOSBuildResult).toContain('iOS Build Execution');
     expect(iOSBuildResult).toContain('/test/path');
     expect(iOSBuildResult).toContain('xcodebuild');
 
     // Test msdkAppBuildExecutionAndroid method
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const androidBuildResult = (tool as any).msdkAppBuildExecutionAndroid('/android/path');
     expect(androidBuildResult).toContain('Android Build Execution');
     expect(androidBuildResult).toContain('/android/path');

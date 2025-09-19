@@ -28,8 +28,7 @@ class MockLogger implements Logger {
     MockLogger.globalLogs.push({ level: 'warn', message, data });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  child(bindings: Record<string, unknown>): Logger {
+  child(_bindings: Record<string, unknown>): Logger {
     // Return a new instance that shares the same global logs array
     return new MockLogger();
   }
@@ -94,9 +93,7 @@ describe('MobileNativeOrchestrator', () => {
       expect(registeredTool.config.description).toBe(
         'Orchestrates the end-to-end workflow for generating Salesforce native mobile apps.'
       );
-      expect(registeredTool.config.title).toBe(
-        'Salesforce Mobile Native Project Manager Orchestrator'
-      );
+      expect(registeredTool.config.title).toBe('Salesforce Mobile Native Project Manager');
       expect(registeredTool.config.inputSchema).toBeDefined();
       expect(registeredTool.config.outputSchema).toBeDefined();
     });
@@ -129,14 +126,13 @@ describe('MobileNativeOrchestrator', () => {
 
   describe('Tool Properties', () => {
     it('should have correct tool metadata properties', () => {
-      expect(orchestrator.toolId).toBe('sfmobile-native-project-manager');
-      expect(orchestrator.name).toBe('Salesforce Mobile Native Project Manager');
-      expect(orchestrator.title).toBe('Salesforce Mobile Native Project Manager Orchestrator');
-      expect(orchestrator.description).toBe(
+      expect(orchestrator.toolMetadata.toolId).toBe('sfmobile-native-project-manager');
+      expect(orchestrator.toolMetadata.title).toBe('Salesforce Mobile Native Project Manager');
+      expect(orchestrator.toolMetadata.description).toBe(
         'Orchestrates the end-to-end workflow for generating Salesforce native mobile apps.'
       );
-      expect(orchestrator.inputSchema).toBeDefined();
-      expect(orchestrator.outputSchema).toBeDefined();
+      expect(orchestrator.toolMetadata.inputSchema).toBeDefined();
+      expect(orchestrator.toolMetadata.outputSchema).toBeDefined();
     });
   });
 });

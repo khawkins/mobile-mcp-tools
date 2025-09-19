@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
  * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
@@ -19,16 +20,15 @@ describe('SfmobileNativeDeploymentTool', () => {
   });
 
   it('should have correct tool properties', () => {
-    expect(tool.name).toBe('Salesforce Mobile Native Deployment');
-    expect(tool.title).toBe('Salesforce Mobile Native Deployment Guide');
-    expect(tool.toolId).toBe('sfmobile-native-deployment');
-    expect(tool.description).toBe(
+    expect(tool.toolMetadata.toolId).toBe('sfmobile-native-deployment');
+    expect(tool.toolMetadata.title).toBe('Salesforce Mobile Native Deployment');
+    expect(tool.toolMetadata.description).toBe(
       'Guides LLM through deploying Salesforce mobile native apps to devices or simulators'
     );
   });
 
   it('should have input schema with required fields', () => {
-    const schema = tool.inputSchema;
+    const schema = tool.toolMetadata.inputSchema;
     expect(schema).toBeDefined();
     expect(schema.shape).toBeDefined();
     expect(schema.shape.platform).toBeDefined();
@@ -54,9 +54,11 @@ describe('SfmobileNativeDeploymentTool', () => {
     expect(mockServer.registerTool).toHaveBeenCalledWith(
       'sfmobile-native-deployment',
       expect.objectContaining({
-        description: 'Guides LLM through deploying Salesforce mobile native apps to devices or simulators',
+        description:
+          'Guides LLM through deploying Salesforce mobile native apps to devices or simulators',
         inputSchema: expect.any(Object),
-        title: 'Salesforce Mobile Native Deployment Guide',
+        outputSchema: expect.any(Object),
+        title: 'Salesforce Mobile Native Deployment',
       }),
       expect.any(Function)
     );
@@ -70,7 +72,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         buildType: 'debug' as const,
         targetDevice: 'iPhone-15-Pro',
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = await (tool as any).handleRequest(input);
 
       expect(result.content).toBeDefined();
@@ -91,7 +93,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         buildType: 'release' as const,
         targetDevice: 'iPhone-15-Pro',
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = await (tool as any).handleRequest(input);
 
       expect(result.content).toBeDefined();
@@ -105,7 +107,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         projectPath: '/path/to/project',
         buildType: 'debug' as const,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = await (tool as any).handleRequest(input);
 
       expect(result.content).toBeDefined();
@@ -122,7 +124,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         buildType: 'debug' as const,
         targetDevice: 'pixel-34',
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = await (tool as any).handleRequest(input);
 
       expect(result.content).toBeDefined();
@@ -144,7 +146,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         buildType: 'release' as const,
         targetDevice: 'pixel-34',
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = await (tool as any).handleRequest(input);
 
       expect(result.content).toBeDefined();
@@ -159,7 +161,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         projectPath: '/path/to/project',
         buildType: 'debug' as const,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = await (tool as any).handleRequest(input);
 
       expect(result.content).toBeDefined();
@@ -174,7 +176,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         platform: 'iOS' as const,
         projectPath: '/path/to/project',
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = await (tool as any).handleRequest(input);
 
       expect(result.content).toBeDefined();
@@ -188,7 +190,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         projectPath: '/path/to/project',
         buildType: 'debug' as const,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = await (tool as any).handleRequest(input);
 
       expect(result.isError).toBe(true);
@@ -200,7 +202,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         platform: 'iOS' as const,
         // Missing projectPath
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = await (tool as any).handleRequest(input);
 
       expect(result.isError).toBe(true);
@@ -211,9 +213,9 @@ describe('SfmobileNativeDeploymentTool', () => {
   describe('error handling', () => {
     it('should handle errors gracefully', async () => {
       // Mock the generateDeploymentGuidance to throw an error
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const originalMethod = (tool as any).generateDeploymentGuidance;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       (tool as any).generateDeploymentGuidance = () => {
         throw new Error('Test error');
       };
@@ -223,22 +225,22 @@ describe('SfmobileNativeDeploymentTool', () => {
         projectPath: '/path/to/project',
         buildType: 'debug' as const,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = await (tool as any).handleRequest(input);
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Error: Test error');
 
       // Restore original method
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       (tool as any).generateDeploymentGuidance = originalMethod;
     });
 
     it('should handle unknown errors', async () => {
       // Mock the generateDeploymentGuidance to throw a non-Error object
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const originalMethod = (tool as any).generateDeploymentGuidance;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       (tool as any).generateDeploymentGuidance = () => {
         throw 'String error';
       };
@@ -248,14 +250,14 @@ describe('SfmobileNativeDeploymentTool', () => {
         projectPath: '/path/to/project',
         buildType: 'debug' as const,
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = await (tool as any).handleRequest(input);
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Error: Unknown error occurred');
 
       // Restore original method
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       (tool as any).generateDeploymentGuidance = originalMethod;
     });
   });
@@ -268,7 +270,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         buildType: 'debug' as const,
         targetDevice: 'iPhone-15-Pro',
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = (tool as any).generateTargetDeviceReadyStep(1, input);
 
       expect(result).toContain('Step 1: iOS Simulator must be ready');
@@ -283,7 +285,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         buildType: 'debug' as const,
         targetDevice: 'pixel-34',
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = (tool as any).generateTargetDeviceReadyStep(1, input);
 
       expect(result).toContain('Step 1: Android Emulator must be ready');
@@ -298,7 +300,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         buildType: 'debug' as const,
         targetDevice: 'iPhone-15-Pro',
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = (tool as any).generateDeploymentStep(2, input);
 
       expect(result).toContain('Step 2: Deploy application to iOS Simulator');
@@ -312,7 +314,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         buildType: 'debug' as const,
         targetDevice: 'iPhone-15-Pro',
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = (tool as any).generateDeploymentCommand(input);
 
       expect(result).toContain('xcrun simctl install iPhone-15-Pro <your-app>.app');
@@ -326,7 +328,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         buildType: 'debug' as const,
         targetDevice: 'pixel-34',
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = (tool as any).generateDeploymentCommand(input);
 
       expect(result).toContain('./gradlew installDebug');
@@ -339,7 +341,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         buildType: 'release' as const,
         targetDevice: 'pixel-34',
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = (tool as any).generateDeploymentCommand(input);
 
       expect(result).toContain('./gradlew installRelease');
@@ -352,7 +354,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         buildType: 'debug' as const,
         targetDevice: 'iPhone-15-Pro',
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = (tool as any).generateLaunchCommand(input);
 
       expect(result).toContain('xcrun simctl launch iPhone-15-Pro <app-bundle-id>');
@@ -366,7 +368,7 @@ describe('SfmobileNativeDeploymentTool', () => {
         buildType: 'debug' as const,
         targetDevice: 'pixel-34',
       };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const result = (tool as any).generateLaunchCommand(input);
 
       expect(result).toContain('adb shell monkey -p <application-id>');

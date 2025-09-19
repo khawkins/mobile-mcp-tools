@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
  * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
@@ -31,16 +32,15 @@ describe('UtilsXcodeAddFilesTool', () => {
 
   describe('Tool Properties', () => {
     it('should have correct tool properties', () => {
-      expect(tool.name).toBe('Utils Xcode Add Files');
-      expect(tool.title).toBe('Xcode Project File Addition Utility');
-      expect(tool.toolId).toBe('utils-xcode-add-files');
-      expect(tool.description).toBe(
+      expect(tool.toolMetadata.toolId).toBe('utils-xcode-add-files');
+      expect(tool.toolMetadata.title).toBe('Xcode Project File Addition Utility');
+      expect(tool.toolMetadata.description).toBe(
         'Generates a Ruby command using the xcodeproj gem to add files to Xcode projects'
       );
     });
 
     it('should have input schema with required fields', () => {
-      const schema = tool.inputSchema;
+      const schema = tool.toolMetadata.inputSchema;
       expect(schema).toBeDefined();
       expect(schema.shape).toBeDefined();
       expect(schema.shape.projectPath).toBeDefined();
@@ -68,8 +68,10 @@ describe('UtilsXcodeAddFilesTool', () => {
       expect(mockServer.registerTool).toHaveBeenCalledWith(
         'utils-xcode-add-files',
         expect.objectContaining({
-          description: 'Generates a Ruby command using the xcodeproj gem to add files to Xcode projects',
+          description:
+            'Generates a Ruby command using the xcodeproj gem to add files to Xcode projects',
           inputSchema: expect.any(Object),
+          outputSchema: expect.any(Object),
           title: 'Xcode Project File Addition Utility',
         }),
         expect.any(Function)
@@ -100,7 +102,6 @@ describe('UtilsXcodeAddFilesTool', () => {
     });
 
     it('should generate Ruby command successfully', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(validInput);
 
       expect(result.content).toBeDefined();
@@ -130,7 +131,6 @@ describe('UtilsXcodeAddFilesTool', () => {
         ],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(inputWithAbsolutePaths);
 
       const parsedResult = JSON.parse(result.content[0].text);
@@ -148,7 +148,6 @@ describe('UtilsXcodeAddFilesTool', () => {
         newFilePaths: ['ContactManager.swift'],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(inputWithoutTarget);
 
       const parsedResult = JSON.parse(result.content[0].text);
@@ -171,7 +170,6 @@ describe('UtilsXcodeAddFilesTool', () => {
     });
 
     it('should generate Ruby command with proper structure', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(validInput);
 
       const parsedResult = JSON.parse(result.content[0].text);
@@ -194,7 +192,6 @@ describe('UtilsXcodeAddFilesTool', () => {
     });
 
     it('should include file type detection logic', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(validInput);
 
       const parsedResult = JSON.parse(result.content[0].text);
@@ -215,7 +212,6 @@ describe('UtilsXcodeAddFilesTool', () => {
         newFilePaths: ["File'With'Quotes.swift"],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(inputWithSpecialChars);
 
       const parsedResult = JSON.parse(result.content[0].text);
@@ -237,7 +233,6 @@ describe('UtilsXcodeAddFilesTool', () => {
         newFilePaths: ['ContactManager.swift'],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(input);
 
       expect(result.isError).toBe(true);
@@ -257,7 +252,6 @@ describe('UtilsXcodeAddFilesTool', () => {
         newFilePaths: ['ContactManager.swift'],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(input);
 
       expect(result.isError).toBe(true);
@@ -279,7 +273,6 @@ describe('UtilsXcodeAddFilesTool', () => {
         newFilePaths: ['ContactManager.swift'],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(input);
 
       const parsedResult = JSON.parse(result.content[0].text);
@@ -301,7 +294,6 @@ describe('UtilsXcodeAddFilesTool', () => {
         return filePath === path.join(absoluteXcodePath, 'project.pbxproj');
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (tool as any).handleRequest(input);
 
       const parsedResult = JSON.parse(result.content[0].text);

@@ -32,7 +32,7 @@ export abstract class AbstractTool<
 
   constructor(
     protected readonly server: McpServer,
-    protected readonly toolMetadata: TMetadata,
+    public readonly toolMetadata: TMetadata,
     loggerComponentName?: string,
     logger?: Logger
   ) {
