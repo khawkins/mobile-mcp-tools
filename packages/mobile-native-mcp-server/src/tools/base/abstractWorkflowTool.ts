@@ -1,5 +1,6 @@
 import z from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { AbstractTool } from './abstractTool.js';
 import {
@@ -11,7 +12,6 @@ import {
   WorkflowToolMetadata,
 } from '../../common/metadata.js';
 import { ORCHESTRATOR_TOOL } from '../workflow/sfmobile-native-project-manager/metadata.js';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Logger } from '../../logging/logger.js';
 
 /**
@@ -27,8 +27,13 @@ export abstract class AbstractWorkflowTool<
     typeof MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA
   >,
 > extends AbstractTool<TMetadata> {
-  constructor(server: McpServer, toolMetadata: TMetadata, componentName?: string, logger?: Logger) {
-    super(server, toolMetadata, componentName, logger);
+  constructor(
+    server: McpServer,
+    toolMetadata: TMetadata,
+    loggerComponentName?: string,
+    logger?: Logger
+  ) {
+    super(server, toolMetadata, loggerComponentName, logger);
   }
 
   /**

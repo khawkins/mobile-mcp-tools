@@ -12,7 +12,8 @@ import {
   WORKFLOW_PROPERTY_NAMES,
   WorkflowStateData,
 } from '../../../common/metadata.js';
-import { mobileNativeWorkflow, State } from '../../../workflow/graph.js';
+import { mobileNativeWorkflow } from '../../../workflow/graph.js';
+import { State } from '../../../workflow/metadata.js';
 
 /**
  * Generate unique thread ID for workflow sessions
@@ -101,7 +102,7 @@ export class MobileNativeOrchestrator extends AbstractTool<typeof ORCHESTRATOR_T
 
     // Check for interrupted workflow state
     this.logger.debug('Checking for interrupted workflow state');
-    const graphState = await compiledWorkflow.getState(threadConfig);
+    let graphState = await compiledWorkflow.getState(threadConfig);
     const interruptedTask = graphState.tasks.find(task => task.interrupts.length > 0);
 
     let result: State;
@@ -122,58 +123,48 @@ export class MobileNativeOrchestrator extends AbstractTool<typeof ORCHESTRATOR_T
       result = await compiledWorkflow.invoke(
         {
           userInput: input.userInput,
-          platform: this.extractPlatform(input.userInput),
         },
         threadConfig
       );
     }
 
     this.logger.debug('Processing workflow result');
-    const mcpToolInvocationData: MCPToolInvocationData<z.ZodObject<z.ZodRawShape>> | undefined =
-      '__interrupt__' in result
-        ? (
-            result.__interrupt__ as Array<{
-              value: MCPToolInvocationData<z.ZodObject<z.ZodRawShape>>;
-            }>
-          )[0].value
-        : undefined;
+    graphState = await compiledWorkflow.getState(threadConfig);
+    if (graphState.next.length > 0) {
+      // There are more nodes to execute.
+      const mcpToolInvocationData: MCPToolInvocationData<z.ZodObject<z.ZodRawShape>> | undefined =
+        '__interrupt__' in result
+          ? (
+              result.__interrupt__ as Array<{
+                value: MCPToolInvocationData<z.ZodObject<z.ZodRawShape>>;
+              }>
+            )[0].value
+          : undefined;
 
-    if (!mcpToolInvocationData) {
-      this.logger.error('Workflow completed without expected MCP tool invocation.');
-      throw new Error('FATAL: Unexpected workflow state without an interrupt');
+      if (!mcpToolInvocationData) {
+        this.logger.error('Workflow completed without expected MCP tool invocation.');
+        throw new Error('FATAL: Unexpected workflow state without an interrupt');
+      }
+
+      this.logger.info('Invoking next MCP tool', {
+        toolName: mcpToolInvocationData.llmMetadata?.name,
+      });
+
+      // Create orchestration prompt
+      const orchestrationPrompt = this.createOrchestrationPrompt(
+        mcpToolInvocationData,
+        workflowStateData
+      );
+
+      return {
+        orchestrationInstructionsPrompt: orchestrationPrompt,
+      };
     }
 
-    this.logger.info('Workflow execution completed', {
-      isComplete: mcpToolInvocationData.isComplete,
-      toolName: mcpToolInvocationData.llmMetadata?.name,
-    });
-
-    // Create orchestration prompt or completion message
-    const orchestrationPrompt = mcpToolInvocationData.isComplete
-      ? 'The workflow has completed successfully. Your Contact list mobile app is now ready!'
-      : this.createOrchestrationPrompt(mcpToolInvocationData, workflowStateData);
-
+    // Workflow completed.
     return {
-      orchestrationInstructionsPrompt: orchestrationPrompt,
-      isComplete: mcpToolInvocationData.isComplete,
+      orchestrationInstructionsPrompt: 'The workflow has completed successfully.',
     };
-  }
-
-  /**
-   * Extract platform from user input (simple implementation for steel thread)
-   */
-  private extractPlatform(userInput: any): 'iOS' | 'Android' {
-    // Handle structured input
-    if (typeof userInput === 'object' && userInput && userInput.platform) {
-      return userInput.platform as 'iOS' | 'Android';
-    }
-
-    // Handle string input
-    const inputStr = typeof userInput === 'string' ? userInput : JSON.stringify(userInput);
-    if (inputStr.toLowerCase().includes('android')) {
-      return 'Android';
-    }
-    return 'iOS'; // Default for proof of life
   }
 
   /**

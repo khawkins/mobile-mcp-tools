@@ -1,0 +1,34 @@
+import { interrupt } from '@langchain/langgraph';
+import { MCPToolInvocationData } from '../../common/metadata.js';
+import { TEMPLATE_DISCOVERY_TOOL } from '../../tools/plan/sfmobile-native-template-discovery/metadata.js';
+import { State } from '../metadata.js';
+import { AbstractSchemaNode } from './abstractSchemaNode.js';
+
+export class TemplateDiscoveryNode extends AbstractSchemaNode<
+  typeof TEMPLATE_DISCOVERY_TOOL.inputSchema,
+  typeof TEMPLATE_DISCOVERY_TOOL.resultSchema,
+  typeof TEMPLATE_DISCOVERY_TOOL.outputSchema
+> {
+  name = 'discoverTemplates';
+  protected readonly workflowToolMetadata = TEMPLATE_DISCOVERY_TOOL;
+
+  execute(state: State): Partial<State> {
+    const toolInvocationData: MCPToolInvocationData<typeof this.workflowToolMetadata.inputSchema> =
+      {
+        llmMetadata: {
+          name: TEMPLATE_DISCOVERY_TOOL.toolId,
+          description: TEMPLATE_DISCOVERY_TOOL.description,
+          inputSchema: TEMPLATE_DISCOVERY_TOOL.inputSchema,
+        },
+        input: {
+          platform: state.platform,
+        },
+      };
+
+    const result = interrupt(toolInvocationData);
+    const validatedResult = this.workflowToolMetadata.resultSchema.parse(result);
+    return {
+      ...validatedResult,
+    };
+  }
+}

@@ -8,7 +8,7 @@ import {
 /**
  * Xcode Add Files Tool Input Schema
  */
-export const XCODE_ADD_FILES_INPUT_SCHEMA = z.object({
+export const XCODE_ADD_FILES_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.extend({
   projectPath: z.string().describe('Absolute path to the Xcode project directory'),
   xcodeProjectPath: z.string().describe('Path to the .xcodeproj file (e.g., "MyApp.xcodeproj")'),
   newFilePaths: z
@@ -19,15 +19,6 @@ export const XCODE_ADD_FILES_INPUT_SCHEMA = z.object({
     .optional()
     .describe('Optional: specific target to add files to (defaults to main app target)'),
 });
-
-export type XcodeAddFilesInput = z.infer<typeof XCODE_ADD_FILES_INPUT_SCHEMA>;
-
-/**
- * Extended input schema for workflow integration
- */
-export const XCODE_ADD_FILES_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.extend(
-  XCODE_ADD_FILES_INPUT_SCHEMA.shape
-);
 
 export type XcodeAddFilesWorkflowInput = z.infer<typeof XCODE_ADD_FILES_WORKFLOW_INPUT_SCHEMA>;
 
@@ -52,7 +43,6 @@ export const XCODE_ADD_FILES_TOOL: WorkflowToolMetadata<
   typeof XCODE_ADD_FILES_RESULT_SCHEMA
 > = {
   toolId: 'utils-xcode-add-files',
-  name: 'Utils Xcode Add Files',
   title: 'Xcode Project File Addition Utility',
   description: 'Generates a Ruby command using the xcodeproj gem to add files to Xcode projects',
   inputSchema: XCODE_ADD_FILES_WORKFLOW_INPUT_SCHEMA,

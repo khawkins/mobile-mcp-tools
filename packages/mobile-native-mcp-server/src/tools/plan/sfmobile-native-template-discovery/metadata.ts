@@ -9,11 +9,13 @@ import {
 /**
  * Template Discovery Tool Input Schema
  */
-export const TEMPLATE_DISCOVERY_INPUT_SCHEMA = z.object({
+export const TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.extend({
   platform: PLATFORM_ENUM,
 });
 
-export type TemplateDiscoveryInput = z.infer<typeof TEMPLATE_DISCOVERY_INPUT_SCHEMA>;
+export type TemplateDiscoveryWorkflowInput = z.infer<
+  typeof TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA
+>;
 
 export const TEMPLATE_DISCOVERY_RESULT_SCHEMA = z.object({
   selectedTemplate: z.string().describe('The template ID selected from template discovery'),
@@ -28,17 +30,6 @@ export const TEMPLATE_DISCOVERY_RESULT_SCHEMA = z.object({
 });
 
 /**
- * Extended input schema for workflow integration
- */
-export const TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.extend(
-  TEMPLATE_DISCOVERY_INPUT_SCHEMA.shape
-);
-
-export type TemplateDiscoveryWorkflowInput = z.infer<
-  typeof TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA
->;
-
-/**
  * Template Discovery Tool Metadata
  */
 export const TEMPLATE_DISCOVERY_TOOL: WorkflowToolMetadata<
@@ -46,8 +37,7 @@ export const TEMPLATE_DISCOVERY_TOOL: WorkflowToolMetadata<
   typeof TEMPLATE_DISCOVERY_RESULT_SCHEMA
 > = {
   toolId: 'sfmobile-native-template-discovery',
-  name: 'Salesforce Mobile Native Template Discovery',
-  title: 'Salesforce Mobile Native Template Discovery Guide',
+  title: 'Salesforce Mobile Native Template Discovery',
   description:
     'Guides LLM through template discovery and selection for Salesforce mobile app development',
   inputSchema: TEMPLATE_DISCOVERY_WORKFLOW_INPUT_SCHEMA,

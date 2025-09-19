@@ -9,7 +9,7 @@ import {
 /**
  * Project Generation Tool Input Schema
  */
-export const PROJECT_GENERATION_INPUT_SCHEMA = z.object({
+export const PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.extend({
   selectedTemplate: z.string().describe('The template ID selected from template discovery'),
   projectName: z.string().describe('Name for the mobile app project'),
   platform: PLATFORM_ENUM,
@@ -25,36 +25,26 @@ export const PROJECT_GENERATION_INPUT_SCHEMA = z.object({
     .describe('Optional Salesforce login host URL (e.g., https://test.salesforce.com for sandbox)'),
 });
 
-export type ProjectGenerationInput = z.infer<typeof PROJECT_GENERATION_INPUT_SCHEMA>;
-
-export const PROJECT_GENERATION_RESULT_SCHEMA = z.object({
-  projectPath: z.string().describe('The path to the generated project'),
-});
-
-/**
- * Extended input schema for workflow integration
- */
-export const PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.extend(
-  PROJECT_GENERATION_INPUT_SCHEMA.shape
-);
-
 export type ProjectGenerationWorkflowInput = z.infer<
   typeof PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA
 >;
+
+export const PROJECT_GENERATION_WORKFLOW_RESULT_SCHEMA = z.object({
+  projectPath: z.string().describe('The path to the generated project'),
+});
 
 /**
  * Project Generation Tool Metadata
  */
 export const PROJECT_GENERATION_TOOL: WorkflowToolMetadata<
   typeof PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA,
-  typeof PROJECT_GENERATION_RESULT_SCHEMA
+  typeof PROJECT_GENERATION_WORKFLOW_RESULT_SCHEMA
 > = {
   toolId: 'sfmobile-native-project-generation',
-  name: 'Salesforce Mobile Native Project Generation',
-  title: 'Salesforce Mobile Native Project Generation Guide',
+  title: 'Salesforce Mobile Native Project Generation',
   description:
     'Provides LLM instructions for generating a mobile app project from a selected template with OAuth configuration',
   inputSchema: PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA,
   outputSchema: MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
-  resultSchema: PROJECT_GENERATION_RESULT_SCHEMA,
+  resultSchema: PROJECT_GENERATION_WORKFLOW_RESULT_SCHEMA,
 } as const;

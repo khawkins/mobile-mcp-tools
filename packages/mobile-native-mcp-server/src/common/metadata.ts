@@ -33,22 +33,16 @@ export const WORKFLOW_TOOL_BASE_INPUT_SCHEMA = z.object({
  * Contains all information needed for the orchestrator to create tool invocation instructions
  *
  * @template TWorkflowInputSchema - The full workflow input schema (includes workflowStateData)
- * @template TBusinessInput - The business logic input data type (excludes workflowStateData)
  */
-export interface MCPToolInvocationData<
-  TWorkflowInputSchema extends z.ZodObject<z.ZodRawShape>,
-  TBusinessInput = Record<string, unknown>,
-> {
-  /** Metadata about the tool to invoke - uses full workflow schema for orchestration prompt */
+export interface MCPToolInvocationData<TWorkflowInputSchema extends z.ZodObject<z.ZodRawShape>> {
+  /** Metadata about the tool to invoke */
   llmMetadata: {
     name: string;
     description: string;
     inputSchema: TWorkflowInputSchema;
   };
   /** Input parameters for the tool invocation - typed to business logic schema only */
-  input: TBusinessInput;
-  /** Whether this represents workflow completion */
-  isComplete: boolean;
+  input: Omit<z.infer<TWorkflowInputSchema>, 'workflowStateData'>;
 }
 
 /**
@@ -74,9 +68,6 @@ export interface ToolMetadata<
 > {
   /** Unique tool identifier used for MCP registration and workflow orchestration */
   readonly toolId: string;
-
-  /** Human-readable tool name for display */
-  readonly name: string;
 
   /** Extended tool title for detailed display */
   readonly title: string;

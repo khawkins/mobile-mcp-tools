@@ -1,0 +1,34 @@
+import { interrupt } from '@langchain/langgraph';
+import { MCPToolInvocationData } from '../../common/metadata.js';
+import { State } from '../metadata.js';
+import { AbstractSchemaNode } from './abstractSchemaNode.js';
+import { FINISH_TOOL } from '../../tools/workflow/sfmobile-native-completion/metadata.js';
+
+export class CompletionNode extends AbstractSchemaNode<
+  typeof FINISH_TOOL.inputSchema,
+  typeof FINISH_TOOL.resultSchema,
+  typeof FINISH_TOOL.outputSchema
+> {
+  name = 'finish';
+  protected readonly workflowToolMetadata = FINISH_TOOL;
+
+  execute(state: State): Partial<State> {
+    const toolInvocationData: MCPToolInvocationData<typeof this.workflowToolMetadata.inputSchema> =
+      {
+        llmMetadata: {
+          name: FINISH_TOOL.toolId,
+          description: FINISH_TOOL.description,
+          inputSchema: FINISH_TOOL.inputSchema,
+        },
+        input: {
+          projectPath: state.projectPath,
+        },
+      };
+
+    const result = interrupt(toolInvocationData);
+    const validatedResult = this.workflowToolMetadata.resultSchema.parse(result);
+    return {
+      ...validatedResult,
+    };
+  }
+}

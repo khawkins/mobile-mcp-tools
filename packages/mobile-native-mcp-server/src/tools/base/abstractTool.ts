@@ -33,10 +33,10 @@ export abstract class AbstractTool<
   constructor(
     protected readonly server: McpServer,
     protected readonly toolMetadata: TMetadata,
-    componentName?: string,
+    loggerComponentName?: string,
     logger?: Logger
   ) {
-    this.logger = logger || createComponentLogger(componentName || this.constructor.name);
+    this.logger = logger || createComponentLogger(loggerComponentName || this.constructor.name);
   }
 
   /**
