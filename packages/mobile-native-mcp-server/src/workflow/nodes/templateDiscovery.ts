@@ -9,8 +9,11 @@ export class TemplateDiscoveryNode extends AbstractSchemaNode<
   typeof TEMPLATE_DISCOVERY_TOOL.resultSchema,
   typeof TEMPLATE_DISCOVERY_TOOL.outputSchema
 > {
-  name = 'discoverTemplates';
   protected readonly workflowToolMetadata = TEMPLATE_DISCOVERY_TOOL;
+
+  constructor() {
+    super('discoverTemplates');
+  }
 
   execute(state: State): Partial<State> {
     const toolInvocationData: MCPToolInvocationData<typeof this.workflowToolMetadata.inputSchema> =

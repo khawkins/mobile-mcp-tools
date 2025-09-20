@@ -9,8 +9,11 @@ export class BuildValidationNode extends AbstractSchemaNode<
   typeof BUILD_TOOL.resultSchema,
   typeof BUILD_TOOL.outputSchema
 > {
-  name = 'validateBuild';
   protected readonly workflowToolMetadata = BUILD_TOOL;
+
+  constructor() {
+    super('validateBuild');
+  }
 
   execute(state: State): Partial<State> {
     const toolInvocationData: MCPToolInvocationData<typeof this.workflowToolMetadata.inputSchema> =

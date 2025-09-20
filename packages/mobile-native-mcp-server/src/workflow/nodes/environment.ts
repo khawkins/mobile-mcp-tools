@@ -2,11 +2,13 @@ import { State } from '../metadata.js';
 import { BaseNode } from './abstractBaseNode.js';
 
 export class EnvironmentValidationNode extends BaseNode {
-  readonly name = 'validateEnvironment';
+  constructor() {
+    super('validateEnvironment');
+  }
 
   execute(_state: State): Partial<State> {
+    // TODO: Implement environment validation.
     return {
-      platform: 'iOS', // TODO: Implement platform validation. See "initialInputNode" note in graph.ts.
       environmentValidated: true,
     };
   }

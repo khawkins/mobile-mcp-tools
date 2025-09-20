@@ -9,8 +9,11 @@ export class DeploymentNode extends AbstractSchemaNode<
   typeof DEPLOYMENT_TOOL.resultSchema,
   typeof DEPLOYMENT_TOOL.outputSchema
 > {
-  name = 'deployApp';
   protected readonly workflowToolMetadata = DEPLOYMENT_TOOL;
+
+  constructor() {
+    super('deployApp');
+  }
 
   execute(state: State): Partial<State> {
     const toolInvocationData: MCPToolInvocationData<typeof this.workflowToolMetadata.inputSchema> =

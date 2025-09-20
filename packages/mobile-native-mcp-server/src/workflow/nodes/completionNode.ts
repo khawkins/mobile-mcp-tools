@@ -9,8 +9,11 @@ export class CompletionNode extends AbstractSchemaNode<
   typeof FINISH_TOOL.resultSchema,
   typeof FINISH_TOOL.outputSchema
 > {
-  name = 'finish';
   protected readonly workflowToolMetadata = FINISH_TOOL;
+
+  constructor() {
+    super('finish');
+  }
 
   execute(state: State): Partial<State> {
     const toolInvocationData: MCPToolInvocationData<typeof this.workflowToolMetadata.inputSchema> =

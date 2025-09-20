@@ -9,8 +9,11 @@ export class ProjectGenerationNode extends AbstractSchemaNode<
   typeof PROJECT_GENERATION_TOOL.resultSchema,
   typeof PROJECT_GENERATION_TOOL.outputSchema
 > {
-  name = 'generateProject';
   protected readonly workflowToolMetadata = PROJECT_GENERATION_TOOL;
+
+  constructor() {
+    super('generateProject');
+  }
 
   execute(state: State): Partial<State> {
     const toolInvocationData: MCPToolInvocationData<typeof this.workflowToolMetadata.inputSchema> =

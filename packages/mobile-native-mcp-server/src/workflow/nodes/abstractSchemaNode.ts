@@ -17,4 +17,8 @@ export abstract class AbstractSchemaNode<
     TResultSchema,
     TOutputSchema
   >;
+
+  constructor(name: string) {
+    super(name);
+  }
 }
