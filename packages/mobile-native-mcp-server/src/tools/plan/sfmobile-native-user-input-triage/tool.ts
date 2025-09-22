@@ -18,18 +18,18 @@ export class SFMobileNativeUserInputTriageTool extends AbstractWorkflowTool<
     super(server, USER_INPUT_TRIAGE_TOOL, 'UserInputTriageTool', logger);
   }
 
-  protected async handleRequest(input: UserInputTriageWorkflowInput) {
+  public async handleRequest(input: UserInputTriageWorkflowInput) {
     try {
       const guidance = this.generateUserInputTriageGuidance(input);
-
       return this.finalizeWorkflowToolOutput(guidance, input.workflowStateData);
     } catch (error) {
+      const toolError = error instanceof Error ? error : new Error('Unknown error occurred');
       return {
         isError: true,
         content: [
           {
             type: 'text' as const,
-            text: `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`,
+            text: `Error: ${toolError.message}`,
           },
         ],
       };

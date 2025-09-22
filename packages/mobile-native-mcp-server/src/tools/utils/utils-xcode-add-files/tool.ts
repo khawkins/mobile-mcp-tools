@@ -10,12 +10,15 @@
 // consideration for how that should be implemented.
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import * as fs from 'fs';
-import * as path from 'path';
 import dedent from 'dedent';
+import * as path from 'path';
 import { Logger } from '../../../logging/logger.js';
 import { XCODE_ADD_FILES_TOOL, XcodeAddFilesWorkflowInput } from './metadata.js';
 import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
+import {
+  FileSystemProvider,
+  defaultFileSystemProvider,
+} from '../../../utils/FileSystemProvider.js';
 
 interface XcodeAddFilesResult {
   success: boolean;
@@ -28,11 +31,15 @@ interface XcodeAddFilesResult {
 }
 
 export class UtilsXcodeAddFilesTool extends AbstractWorkflowTool<typeof XCODE_ADD_FILES_TOOL> {
-  constructor(server: McpServer, logger?: Logger) {
+  constructor(
+    server: McpServer,
+    logger?: Logger,
+    private readonly fileSystem: FileSystemProvider = defaultFileSystemProvider
+  ) {
     super(server, XCODE_ADD_FILES_TOOL, 'XcodeAddFilesTool', logger);
   }
 
-  protected async handleRequest(input: XcodeAddFilesWorkflowInput) {
+  public async handleRequest(input: XcodeAddFilesWorkflowInput) {
     try {
       const result = await this.addFilesToXcodeProject(input);
 
@@ -82,7 +89,7 @@ export class UtilsXcodeAddFilesTool extends AbstractWorkflowTool<typeof XCODE_AD
     const pbxprojPath = path.join(fullXcodeProjectPath, 'project.pbxproj');
 
     // Validate inputs
-    if (!fs.existsSync(pbxprojPath)) {
+    if (!this.fileSystem.existsSync(pbxprojPath)) {
       throw new Error(`Project file not found: ${pbxprojPath}`);
     }
 

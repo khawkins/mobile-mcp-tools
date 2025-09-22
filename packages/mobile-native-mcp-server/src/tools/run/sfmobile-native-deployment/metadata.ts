@@ -12,7 +12,11 @@ import {
 export const DEPLOYMENT_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.extend({
   platform: PLATFORM_ENUM,
   projectPath: PROJECT_PATH_FIELD,
-  buildType: z.enum(['debug', 'release']).default('debug').describe('Build type for deployment'),
+  buildType: z
+    .enum(['debug', 'release'])
+    .optional()
+    .default('debug')
+    .describe('Build type for deployment'),
   targetDevice: z.string().optional().describe('Target device identifier (optional)'),
 });
 

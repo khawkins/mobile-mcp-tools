@@ -19,7 +19,7 @@ export class SFMobileNativeProjectGenerationTool extends AbstractWorkflowTool<
     super(server, PROJECT_GENERATION_TOOL, 'ProjectGenerationTool', logger);
   }
 
-  protected async handleRequest(input: ProjectGenerationWorkflowInput) {
+  public async handleRequest(input: ProjectGenerationWorkflowInput) {
     try {
       const guidance = this.generateProjectGenerationGuidance(input);
       return this.finalizeWorkflowToolOutput(guidance, input.workflowStateData);

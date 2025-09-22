@@ -19,7 +19,7 @@ export class SFMobileNativeTemplateDiscoveryTool extends AbstractWorkflowTool<
     super(server, TEMPLATE_DISCOVERY_TOOL, 'TemplateDiscoveryTool', logger);
   }
 
-  protected async handleRequest(input: TemplateDiscoveryWorkflowInput) {
+  public async handleRequest(input: TemplateDiscoveryWorkflowInput) {
     try {
       const guidance = this.generateTemplateDiscoveryGuidance(input);
 

@@ -59,7 +59,7 @@ export class MobileNativeOrchestrator extends AbstractTool<typeof ORCHESTRATOR_T
   /**
    * Handle orchestrator requests - manages workflow state and execution
    */
-  protected async handleRequest(input: OrchestratorInput) {
+  public async handleRequest(input: OrchestratorInput) {
     this.logger.debug('Orchestrator tool called with input', input);
     try {
       const result = await this.processRequest(input);

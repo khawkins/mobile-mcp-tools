@@ -8,7 +8,7 @@ export class SfMobileNativeCompletionTool extends AbstractWorkflowTool<typeof FI
     super(server, FINISH_TOOL, 'FinishTool', logger);
   }
 
-  protected async handleRequest(input: FinishWorkflowInput) {
+  public async handleRequest(input: FinishWorkflowInput) {
     const guidance = this.generateWorkflowCompletionGuidance(input);
 
     const finalOutput = this.finalizeWorkflowToolOutput(guidance, input.workflowStateData);

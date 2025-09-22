@@ -70,7 +70,7 @@ export abstract class AbstractTool<
    * @param input The input to the callback
    * @returns The return result of the tool
    */
-  protected abstract handleRequest(
+  public abstract handleRequest(
     input: z.objectOutputType<TMetadata['inputSchema']['shape'], z.ZodTypeAny>
   ): Promise<CallToolResult>;
 

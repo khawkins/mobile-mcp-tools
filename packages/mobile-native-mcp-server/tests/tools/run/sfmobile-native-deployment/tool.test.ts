@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
  * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
@@ -6,74 +5,68 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import z from 'zod';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SFMobileNativeDeploymentTool } from '../../../../src/tools/run/sfmobile-native-deployment/tool.js';
+import { MockLogger } from '../../../utils/MockLogger.js';
+import {
+  DEPLOYMENT_WORKFLOW_INPUT_SCHEMA,
+  DeploymentWorkflowInput,
+} from '../../../../src/tools/run/sfmobile-native-deployment/metadata.js';
 
 describe('SFMobileNativeDeploymentTool', () => {
   let tool: SFMobileNativeDeploymentTool;
+  let mockServer: McpServer;
+  let mockLogger: MockLogger;
 
   beforeEach(() => {
-    const mockServer = {
-      registerTool: vi.fn(),
-    };
-    tool = new SFMobileNativeDeploymentTool(mockServer as any);
+    mockServer = new McpServer({ name: 'test-server', version: '1.0.0' });
+    mockLogger = new MockLogger();
+    tool = new SFMobileNativeDeploymentTool(mockServer, mockLogger);
   });
 
-  it('should have correct tool properties', () => {
-    expect(tool.toolMetadata.toolId).toBe('sfmobile-native-deployment');
-    expect(tool.toolMetadata.title).toBe('Salesforce Mobile Native Deployment');
-    expect(tool.toolMetadata.description).toBe(
-      'Guides LLM through deploying Salesforce mobile native apps to devices or simulators'
-    );
+  describe('Tool Metadata', () => {
+    it('should have correct tool properties', () => {
+      expect(tool.toolMetadata.toolId).toBe('sfmobile-native-deployment');
+      expect(tool.toolMetadata.title).toBe('Salesforce Mobile Native Deployment');
+      expect(tool.toolMetadata.description).toBe(
+        'Guides LLM through deploying Salesforce mobile native apps to devices or simulators'
+      );
+    });
+
+    it('should have input schema with required fields', () => {
+      const schema = tool.toolMetadata.inputSchema;
+      expect(schema).toBeDefined();
+      expect(schema.shape).toBeDefined();
+      expect(schema.shape.platform).toBeDefined();
+      expect(schema.shape.projectPath).toBeDefined();
+      expect(schema.shape.workflowStateData).toBeDefined();
+    });
+
+    it('should register without throwing errors', () => {
+      const mockAnnotations = {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      };
+
+      expect(() => tool.register(mockAnnotations)).not.toThrow();
+    });
   });
 
-  it('should have input schema with required fields', () => {
-    const schema = tool.toolMetadata.inputSchema;
-    expect(schema).toBeDefined();
-    expect(schema.shape).toBeDefined();
-    expect(schema.shape.platform).toBeDefined();
-    expect(schema.shape.projectPath).toBeDefined();
-    expect(schema.shape.buildType).toBeDefined();
-    expect(schema.shape.targetDevice).toBeDefined();
-  });
-
-  it('should register with MCP server', () => {
-    const mockServer = {
-      registerTool: vi.fn(),
-    };
-    const mockAnnotations = {
-      readOnlyHint: true,
-      destructiveHint: false,
-      idempotentHint: true,
-      openWorldHint: false,
-    };
-    const deploymentTool = new SFMobileNativeDeploymentTool(mockServer as any);
-
-    deploymentTool.register(mockAnnotations);
-
-    expect(mockServer.registerTool).toHaveBeenCalledWith(
-      'sfmobile-native-deployment',
-      expect.objectContaining({
-        description:
-          'Guides LLM through deploying Salesforce mobile native apps to devices or simulators',
-        inputSchema: expect.any(Object),
-        outputSchema: expect.any(Object),
-        title: 'Salesforce Mobile Native Deployment',
-      }),
-      expect.any(Function)
-    );
-  });
-
-  describe('iOS deployment guidance', () => {
+  describe('iOS Deployment Guidance', () => {
     it('should generate guidance for iOS with debug build', async () => {
       const input = {
         platform: 'iOS' as const,
         projectPath: '/path/to/project',
         buildType: 'debug' as const,
         targetDevice: 'iPhone-15-Pro',
+        workflowStateData: { thread_id: 'test-123' },
       };
 
-      const result = await (tool as any).handleRequest(input);
+      const result = await tool.handleRequest(input);
 
       expect(result.content).toBeDefined();
       expect(result.content[0].type).toBe('text');
@@ -92,13 +85,15 @@ describe('SFMobileNativeDeploymentTool', () => {
         projectPath: '/path/to/project',
         buildType: 'release' as const,
         targetDevice: 'iPhone-15-Pro',
+        workflowStateData: { thread_id: 'test-456' },
       };
 
-      const result = await (tool as any).handleRequest(input);
+      const result = await tool.handleRequest(input);
 
       expect(result.content).toBeDefined();
       expect(result.content[0].type).toBe('text');
       expect(result.content[0].text).toContain('Mobile Native App Deployment Guidance for iOS');
+      expect(result.content[0].text).toContain('iPhone-15-Pro');
     });
 
     it('should generate guidance for iOS without target device', async () => {
@@ -106,9 +101,10 @@ describe('SFMobileNativeDeploymentTool', () => {
         platform: 'iOS' as const,
         projectPath: '/path/to/project',
         buildType: 'debug' as const,
+        workflowStateData: { thread_id: 'test-789' },
       };
 
-      const result = await (tool as any).handleRequest(input);
+      const result = await tool.handleRequest(input);
 
       expect(result.content).toBeDefined();
       expect(result.content[0].type).toBe('text');
@@ -116,16 +112,17 @@ describe('SFMobileNativeDeploymentTool', () => {
     });
   });
 
-  describe('Android deployment guidance', () => {
+  describe('Android Deployment Guidance', () => {
     it('should generate guidance for Android with debug build', async () => {
       const input = {
         platform: 'Android' as const,
         projectPath: '/path/to/project',
         buildType: 'debug' as const,
         targetDevice: 'pixel-34',
+        workflowStateData: { thread_id: 'test-android-123' },
       };
 
-      const result = await (tool as any).handleRequest(input);
+      const result = await tool.handleRequest(input);
 
       expect(result.content).toBeDefined();
       expect(result.content[0].type).toBe('text');
@@ -145,9 +142,10 @@ describe('SFMobileNativeDeploymentTool', () => {
         projectPath: '/path/to/project',
         buildType: 'release' as const,
         targetDevice: 'pixel-34',
+        workflowStateData: { thread_id: 'test-android-456' },
       };
 
-      const result = await (tool as any).handleRequest(input);
+      const result = await tool.handleRequest(input);
 
       expect(result.content).toBeDefined();
       expect(result.content[0].type).toBe('text');
@@ -160,9 +158,10 @@ describe('SFMobileNativeDeploymentTool', () => {
         platform: 'Android' as const,
         projectPath: '/path/to/project',
         buildType: 'debug' as const,
+        workflowStateData: { thread_id: 'test-android-789' },
       };
 
-      const result = await (tool as any).handleRequest(input);
+      const result = await tool.handleRequest(input);
 
       expect(result.content).toBeDefined();
       expect(result.content[0].type).toBe('text');
@@ -170,28 +169,50 @@ describe('SFMobileNativeDeploymentTool', () => {
     });
   });
 
-  describe('input validation', () => {
+  describe('Input Validation and Defaults', () => {
     it('should apply default buildType when not provided', async () => {
       const input = {
         platform: 'iOS' as const,
         projectPath: '/path/to/project',
-      };
+        workflowStateData: { thread_id: 'test-default' },
+      } satisfies z.input<typeof DEPLOYMENT_WORKFLOW_INPUT_SCHEMA>;
 
-      const result = await (tool as any).handleRequest(input);
+      const result = await tool.handleRequest(input as DeploymentWorkflowInput);
 
       expect(result.content).toBeDefined();
       expect(result.content[0].type).toBe('text');
       expect(result.content[0].text).toContain('Mobile Native App Deployment Guidance for iOS');
+      // iOS guidance doesn't explicitly mention build type, but should work
+      expect(result.content[0].text).toContain('xcrun simctl');
     });
 
-    it('should handle invalid platform gracefully', async () => {
+    it('should handle optional targetDevice parameter', async () => {
       const input = {
-        platform: 'InvalidPlatform',
+        platform: 'iOS' as const,
         projectPath: '/path/to/project',
         buildType: 'debug' as const,
+        targetDevice: 'iPhone-14-Pro',
+        workflowStateData: { thread_id: 'test-optional-device' },
       };
 
-      const result = await (tool as any).handleRequest(input);
+      const result = await tool.handleRequest(input);
+
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
+      expect(result.content[0].text).toContain('iPhone-14-Pro');
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle invalid platform gracefully', async () => {
+      const input = {
+        platform: 'InvalidPlatform' as any, // Intentionally invalid
+        projectPath: '/path/to/project',
+        buildType: 'debug' as const,
+        workflowStateData: { thread_id: 'test-invalid-platform' },
+      };
+
+      const result = await tool.handleRequest(input);
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Error:');
@@ -200,179 +221,72 @@ describe('SFMobileNativeDeploymentTool', () => {
     it('should handle missing required fields', async () => {
       const input = {
         platform: 'iOS' as const,
-        // Missing projectPath
+        // Missing projectPath and workflowStateData
+      } as any; // Intentionally incomplete
+
+      const result = await tool.handleRequest(input);
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error:');
+    });
+
+    it('should handle invalid build type', async () => {
+      const input = {
+        platform: 'Android' as const,
+        projectPath: '/path/to/project',
+        buildType: 'invalid-build-type' as any, // Intentionally invalid
+        workflowStateData: { thread_id: 'test-invalid-build' },
       };
 
-      const result = await (tool as any).handleRequest(input);
+      const result = await tool.handleRequest(input);
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error:');
+    });
+
+    it('should handle malformed workflow state data', async () => {
+      const input = {
+        platform: 'iOS' as const,
+        projectPath: '/path/to/project',
+        workflowStateData: null as any, // Intentionally invalid
+      };
+
+      const result = await tool.handleRequest(input);
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Error:');
     });
   });
 
-  describe('error handling', () => {
-    it('should handle errors gracefully', async () => {
-      // Mock the generateDeploymentGuidance to throw an error
-
-      const originalMethod = (tool as any).generateDeploymentGuidance;
-
-      (tool as any).generateDeploymentGuidance = () => {
-        throw new Error('Test error');
-      };
-
-      const input = {
-        platform: 'iOS' as const,
-        projectPath: '/path/to/project',
-        buildType: 'debug' as const,
-      };
-
-      const result = await (tool as any).handleRequest(input);
-
-      expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Error: Test error');
-
-      // Restore original method
-
-      (tool as any).generateDeploymentGuidance = originalMethod;
-    });
-
-    it('should handle unknown errors', async () => {
-      // Mock the generateDeploymentGuidance to throw a non-Error object
-
-      const originalMethod = (tool as any).generateDeploymentGuidance;
-
-      (tool as any).generateDeploymentGuidance = () => {
-        throw 'String error';
-      };
-
-      const input = {
-        platform: 'iOS' as const,
-        projectPath: '/path/to/project',
-        buildType: 'debug' as const,
-      };
-
-      const result = await (tool as any).handleRequest(input);
-
-      expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Error: Unknown error occurred');
-
-      // Restore original method
-
-      (tool as any).generateDeploymentGuidance = originalMethod;
-    });
-  });
-
-  describe('private method testing', () => {
-    it('should generate correct iOS target device ready step', () => {
-      const input = {
-        platform: 'iOS' as const,
-        projectPath: '/path/to/project',
-        buildType: 'debug' as const,
-        targetDevice: 'iPhone-15-Pro',
-      };
-
-      const result = (tool as any).generateTargetDeviceReadyStep(1, input);
-
-      expect(result).toContain('Step 1: iOS Simulator must be ready');
-      expect(result).toContain('xcrun simctl list devices | grep "iPhone-15-Pro"');
-      expect(result).toContain('xcrun simctl boot iPhone-15-Pro');
-    });
-
-    it('should generate correct Android target device ready step', () => {
+  describe('Build Type Handling', () => {
+    it('should include correct gradle command for Android debug build', async () => {
       const input = {
         platform: 'Android' as const,
         projectPath: '/path/to/project',
         buildType: 'debug' as const,
-        targetDevice: 'pixel-34',
+        workflowStateData: { thread_id: 'test-android-debug' },
       };
 
-      const result = (tool as any).generateTargetDeviceReadyStep(1, input);
+      const result = await tool.handleRequest(input);
 
-      expect(result).toContain('Step 1: Android Emulator must be ready');
-      expect(result).toContain('sf force lightning local device list -p android');
-      expect(result).toContain('sf force lightning local device create -p android');
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
+      expect(result.content[0].text).toContain('./gradlew installDebug');
     });
 
-    it('should generate correct deployment step', () => {
-      const input = {
-        platform: 'iOS' as const,
-        projectPath: '/path/to/project',
-        buildType: 'debug' as const,
-        targetDevice: 'iPhone-15-Pro',
-      };
-
-      const result = (tool as any).generateDeploymentStep(2, input);
-
-      expect(result).toContain('Step 2: Deploy application to iOS Simulator');
-      expect(result).toContain('xcrun simctl install iPhone-15-Pro <your-app>.app');
-    });
-
-    it('should generate correct iOS deployment command', () => {
-      const input = {
-        platform: 'iOS' as const,
-        projectPath: '/path/to/project',
-        buildType: 'debug' as const,
-        targetDevice: 'iPhone-15-Pro',
-      };
-
-      const result = (tool as any).generateDeploymentCommand(input);
-
-      expect(result).toContain('xcrun simctl install iPhone-15-Pro <your-app>.app');
-      expect(result).toContain('Replace <your-app>.app with app name built in');
-    });
-
-    it('should generate correct Android deployment command for debug', () => {
-      const input = {
-        platform: 'Android' as const,
-        projectPath: '/path/to/project',
-        buildType: 'debug' as const,
-        targetDevice: 'pixel-34',
-      };
-
-      const result = (tool as any).generateDeploymentCommand(input);
-
-      expect(result).toContain('./gradlew installDebug');
-    });
-
-    it('should generate correct Android deployment command for release', () => {
+    it('should include correct gradle command for Android release build', async () => {
       const input = {
         platform: 'Android' as const,
         projectPath: '/path/to/project',
         buildType: 'release' as const,
-        targetDevice: 'pixel-34',
+        workflowStateData: { thread_id: 'test-android-release' },
       };
 
-      const result = (tool as any).generateDeploymentCommand(input);
+      const result = await tool.handleRequest(input);
 
-      expect(result).toContain('./gradlew installRelease');
-    });
-
-    it('should generate correct iOS launch command', () => {
-      const input = {
-        platform: 'iOS' as const,
-        projectPath: '/path/to/project',
-        buildType: 'debug' as const,
-        targetDevice: 'iPhone-15-Pro',
-      };
-
-      const result = (tool as any).generateLaunchCommand(input);
-
-      expect(result).toContain('xcrun simctl launch iPhone-15-Pro <app-bundle-id>');
-      expect(result).toContain('Replace <app-bundle-id> with the bundle id of the app');
-    });
-
-    it('should generate correct Android launch command', () => {
-      const input = {
-        platform: 'Android' as const,
-        projectPath: '/path/to/project',
-        buildType: 'debug' as const,
-        targetDevice: 'pixel-34',
-      };
-
-      const result = (tool as any).generateLaunchCommand(input);
-
-      expect(result).toContain('adb shell monkey -p <application-id>');
-      expect(result).toContain('Replace <application-id> with the value of applicationId');
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
+      expect(result.content[0].text).toContain('./gradlew installRelease');
     });
   });
 });

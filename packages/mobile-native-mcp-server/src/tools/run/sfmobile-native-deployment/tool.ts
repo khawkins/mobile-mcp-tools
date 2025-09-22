@@ -16,7 +16,7 @@ export class SFMobileNativeDeploymentTool extends AbstractWorkflowTool<typeof DE
     super(server, DEPLOYMENT_TOOL, 'DeploymentTool', logger);
   }
 
-  protected async handleRequest(input: DeploymentWorkflowInput) {
+  public async handleRequest(input: DeploymentWorkflowInput) {
     try {
       // Parsing here is about setting defaults from the input schema (e.g. buildType default).
       const validatedInput = this.toolMetadata.inputSchema.parse(input);

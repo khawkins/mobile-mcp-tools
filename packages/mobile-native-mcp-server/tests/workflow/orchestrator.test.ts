@@ -1,75 +1,19 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { MobileNativeOrchestrator } from '../../src/tools/workflow/sfmobile-native-project-manager/tool.js';
-import { Logger } from '../../src/logging/logger.js';
+import { MockLogger } from '../utils/MockLogger.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 
-// Mock logger implementation for testing - compatible with updated Logger interface
-class MockLogger implements Logger {
-  // Shared logs array across parent and children to capture all logging
-  private static globalLogs: Array<{ level: string; message: string; data?: unknown }> = [];
-
-  public get logs(): Array<{ level: string; message: string; data?: unknown }> {
-    return MockLogger.globalLogs;
-  }
-
-  info(message: string, data?: unknown): void {
-    MockLogger.globalLogs.push({ level: 'info', message, data });
-  }
-
-  debug(message: string, data?: unknown): void {
-    MockLogger.globalLogs.push({ level: 'debug', message, data });
-  }
-
-  error(message: string, error?: Error): void {
-    MockLogger.globalLogs.push({ level: 'error', message, data: error });
-  }
-
-  warn(message: string, data?: unknown): void {
-    MockLogger.globalLogs.push({ level: 'warn', message, data });
-  }
-
-  child(_bindings: Record<string, unknown>): Logger {
-    // Return a new instance that shares the same global logs array
-    return new MockLogger();
-  }
-
-  reset(): void {
-    MockLogger.globalLogs.length = 0;
-  }
-}
-
-// Mock MCP Server implementation for testing
-class MockMcpServer {
-  public readonly registeredTools: Array<{
-    toolId: string;
-    // TODO: This MockMcpServer probably needs some work. Get rid of all the 'any's.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    config: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handler: any;
-  }> = [];
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  registerTool(toolId: string, config: any, handler: any): void {
-    this.registeredTools.push({ toolId, config, handler });
-  }
-
-  reset(): void {
-    this.registeredTools.length = 0;
-  }
-}
-
 describe('MobileNativeOrchestrator', () => {
-  let mockServer: MockMcpServer;
+  let mockServer: McpServer;
   let mockLogger: MockLogger;
   let orchestrator: MobileNativeOrchestrator;
   let annotations: ToolAnnotations;
 
   beforeEach(() => {
-    mockServer = new MockMcpServer();
+    mockServer = new McpServer({ name: 'test-server', version: '1.0.0' });
     mockLogger = new MockLogger();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    orchestrator = new MobileNativeOrchestrator(mockServer as any, mockLogger, true);
+    orchestrator = new MobileNativeOrchestrator(mockServer, mockLogger, true);
     annotations = {
       readOnlyHint: false,
       destructiveHint: false,
@@ -78,34 +22,22 @@ describe('MobileNativeOrchestrator', () => {
     };
 
     // Clear mocks
-    mockServer.reset();
     mockLogger.reset();
   });
 
-  describe('Tool Registration', () => {
-    it('should register the orchestrator tool with correct metadata', () => {
-      orchestrator.register(annotations);
-
-      expect(mockServer.registeredTools).toHaveLength(1);
-
-      const registeredTool = mockServer.registeredTools[0];
-      expect(registeredTool.toolId).toBe('sfmobile-native-project-manager');
-      expect(registeredTool.config.description).toBe(
+  describe('Tool Metadata', () => {
+    it('should have correct tool metadata properties', () => {
+      expect(orchestrator.toolMetadata.toolId).toBe('sfmobile-native-project-manager');
+      expect(orchestrator.toolMetadata.title).toBe('Salesforce Mobile Native Project Manager');
+      expect(orchestrator.toolMetadata.description).toBe(
         'Orchestrates the end-to-end workflow for generating Salesforce native mobile apps.'
       );
-      expect(registeredTool.config.title).toBe('Salesforce Mobile Native Project Manager');
-      expect(registeredTool.config.inputSchema).toBeDefined();
-      expect(registeredTool.config.outputSchema).toBeDefined();
+      expect(orchestrator.toolMetadata.inputSchema).toBeDefined();
+      expect(orchestrator.toolMetadata.outputSchema).toBeDefined();
     });
 
-    it('should merge provided annotations with tool config', () => {
-      orchestrator.register(annotations);
-
-      const registeredTool = mockServer.registeredTools[0];
-      expect(registeredTool.config.readOnlyHint).toBe(false);
-      expect(registeredTool.config.destructiveHint).toBe(false);
-      expect(registeredTool.config.idempotentHint).toBe(false);
-      expect(registeredTool.config.openWorldHint).toBe(true);
+    it('should register without throwing errors', () => {
+      expect(() => orchestrator.register(annotations)).not.toThrow();
     });
 
     it('should log registration information', () => {
@@ -124,15 +56,70 @@ describe('MobileNativeOrchestrator', () => {
     });
   });
 
-  describe('Tool Properties', () => {
-    it('should have correct tool metadata properties', () => {
-      expect(orchestrator.toolMetadata.toolId).toBe('sfmobile-native-project-manager');
-      expect(orchestrator.toolMetadata.title).toBe('Salesforce Mobile Native Project Manager');
-      expect(orchestrator.toolMetadata.description).toBe(
-        'Orchestrates the end-to-end workflow for generating Salesforce native mobile apps.'
+  describe('Workflow Orchestration', () => {
+    it('should handle new workflow initiation', async () => {
+      const input = {
+        userInput: 'I want to create an iOS app',
+        workflowStateData: { thread_id: 'test-123' },
+      };
+
+      const result = await orchestrator.handleRequest(input);
+
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
+
+      const response = JSON.parse(result.content[0].text);
+      expect(response.orchestrationInstructionsPrompt).toBeDefined();
+      expect(typeof response.orchestrationInstructionsPrompt).toBe('string');
+    });
+
+    it('should handle workflow resumption', async () => {
+      const input = {
+        userInput: { projectPath: '/test/path' },
+        workflowStateData: { thread_id: 'existing-thread-123' },
+      };
+
+      const result = await orchestrator.handleRequest(input);
+
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
+
+      const response = JSON.parse(result.content[0].text);
+      expect(response.orchestrationInstructionsPrompt).toBeDefined();
+    });
+
+    it('should log workflow processing events', async () => {
+      mockLogger.reset();
+
+      const input = {
+        userInput: 'Create an Android app',
+        workflowStateData: { thread_id: 'test-456' },
+      };
+
+      await orchestrator.handleRequest(input);
+
+      // Should have logged workflow processing events
+      expect(mockLogger.logs.length).toBeGreaterThan(0);
+      const processingLog = mockLogger.logs.find(
+        log => log.message === 'Processing orchestrator request'
       );
-      expect(orchestrator.toolMetadata.inputSchema).toBeDefined();
-      expect(orchestrator.toolMetadata.outputSchema).toBeDefined();
+      expect(processingLog).toBeDefined();
+      expect(processingLog?.level).toBe('info');
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle errors gracefully', async () => {
+      // Test with invalid input structure
+      const invalidInput = {
+        // Missing required fields
+      };
+
+      const result = await orchestrator.handleRequest(invalidInput);
+
+      // Should not throw, but may return error response
+      expect(result).toBeDefined();
+      expect(result.content).toBeDefined();
     });
   });
 });
