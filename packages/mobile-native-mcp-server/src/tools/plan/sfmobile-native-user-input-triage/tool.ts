@@ -18,7 +18,7 @@ export class SFMobileNativeUserInputTriageTool extends AbstractWorkflowTool<
     super(server, USER_INPUT_TRIAGE_TOOL, 'UserInputTriageTool', logger);
   }
 
-  public async handleRequest(input: UserInputTriageWorkflowInput) {
+  public handleRequest = async (input: UserInputTriageWorkflowInput) => {
     try {
       const guidance = this.generateUserInputTriageGuidance(input);
       return this.finalizeWorkflowToolOutput(guidance, input.workflowStateData);
@@ -34,7 +34,7 @@ export class SFMobileNativeUserInputTriageTool extends AbstractWorkflowTool<
         ],
       };
     }
-  }
+  };
 
   private generateUserInputTriageGuidance(input: UserInputTriageWorkflowInput): string {
     return dedent`

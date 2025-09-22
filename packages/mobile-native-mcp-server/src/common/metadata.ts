@@ -30,8 +30,8 @@ export const WORKFLOW_PROPERTY_NAMES = {
  * All tools participating in workflow orchestration should extend this schema
  */
 export const WORKFLOW_TOOL_BASE_INPUT_SCHEMA = z.object({
-  [WORKFLOW_PROPERTY_NAMES.workflowStateData]: WORKFLOW_STATE_DATA_SCHEMA.optional().describe(
-    'Workflow session state for continuation (auto-generated if not provided)'
+  [WORKFLOW_PROPERTY_NAMES.workflowStateData]: WORKFLOW_STATE_DATA_SCHEMA.describe(
+    'Workflow session state for continuation. Required for all workflow-aware tools, but optional for the orchestrator tool, because it can also start new workflows.'
   ),
 });
 

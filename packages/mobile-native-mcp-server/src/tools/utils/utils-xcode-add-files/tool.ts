@@ -39,7 +39,7 @@ export class UtilsXcodeAddFilesTool extends AbstractWorkflowTool<typeof XCODE_AD
     super(server, XCODE_ADD_FILES_TOOL, 'XcodeAddFilesTool', logger);
   }
 
-  public async handleRequest(input: XcodeAddFilesWorkflowInput) {
+  public handleRequest = async (input: XcodeAddFilesWorkflowInput) => {
     try {
       const result = await this.addFilesToXcodeProject(input);
 
@@ -77,7 +77,7 @@ export class UtilsXcodeAddFilesTool extends AbstractWorkflowTool<typeof XCODE_AD
         ],
       };
     }
-  }
+  };
 
   private async addFilesToXcodeProject(
     input: XcodeAddFilesWorkflowInput

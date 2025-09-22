@@ -19,7 +19,7 @@ export class SFMobileNativeTemplateDiscoveryTool extends AbstractWorkflowTool<
     super(server, TEMPLATE_DISCOVERY_TOOL, 'TemplateDiscoveryTool', logger);
   }
 
-  public async handleRequest(input: TemplateDiscoveryWorkflowInput) {
+  public handleRequest = async (input: TemplateDiscoveryWorkflowInput) => {
     try {
       const guidance = this.generateTemplateDiscoveryGuidance(input);
 
@@ -35,7 +35,7 @@ export class SFMobileNativeTemplateDiscoveryTool extends AbstractWorkflowTool<
         ],
       };
     }
-  }
+  };
 
   private generateTemplateDiscoveryGuidance(input: TemplateDiscoveryWorkflowInput): string {
     return dedent`

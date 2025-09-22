@@ -43,7 +43,7 @@ describe('SFMobileNativeTemplateDiscoveryTool', () => {
 
   describe('Input Schema Validation', () => {
     it('should accept platform parameter', () => {
-      const validInput = { platform: 'iOS' as const };
+      const validInput = { platform: 'iOS', workflowStateData: { thread_id: 'test-123' } };
       const result = tool.toolMetadata.inputSchema.safeParse(validInput);
       expect(result.success).toBe(true);
     });

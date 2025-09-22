@@ -16,12 +16,12 @@ export class SFMobileNativeBuildTool extends AbstractWorkflowTool<typeof BUILD_T
     super(server, BUILD_TOOL, 'BuildTool', logger);
   }
 
-  public async handleRequest(input: BuildWorkflowInput) {
+  public handleRequest = async (input: BuildWorkflowInput) => {
     const guidance = this.generateBuildGuidance(input);
 
     const finalOutput = this.finalizeWorkflowToolOutput(guidance, input.workflowStateData);
     return finalOutput;
-  }
+  };
 
   private generateBuildGuidance(input: BuildWorkflowInput) {
     return dedent`

@@ -5,15 +5,11 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import z from 'zod';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SFMobileNativeDeploymentTool } from '../../../../src/tools/run/sfmobile-native-deployment/tool.js';
 import { MockLogger } from '../../../utils/MockLogger.js';
-import {
-  DEPLOYMENT_WORKFLOW_INPUT_SCHEMA,
-  DeploymentWorkflowInput,
-} from '../../../../src/tools/run/sfmobile-native-deployment/metadata.js';
+import { DeploymentWorkflowInput } from '../../../../src/tools/run/sfmobile-native-deployment/metadata.js';
 
 describe('SFMobileNativeDeploymentTool', () => {
   let tool: SFMobileNativeDeploymentTool;
@@ -175,8 +171,10 @@ describe('SFMobileNativeDeploymentTool', () => {
         platform: 'iOS' as const,
         projectPath: '/path/to/project',
         workflowStateData: { thread_id: 'test-default' },
-      } satisfies z.input<typeof DEPLOYMENT_WORKFLOW_INPUT_SCHEMA>;
+      };
 
+      // Explicit casting to DeploymentWorkflowInput is required because of `buildType` having a
+      // default value in the schema, forcing it to a non-optional value in the inferred type.
       const result = await tool.handleRequest(input as DeploymentWorkflowInput);
 
       expect(result.content).toBeDefined();
@@ -205,8 +203,9 @@ describe('SFMobileNativeDeploymentTool', () => {
 
   describe('Error Handling', () => {
     it('should handle invalid platform gracefully', async () => {
-      const input = {
-        platform: 'InvalidPlatform' as any, // Intentionally invalid
+      const input: DeploymentWorkflowInput = {
+        // @ts-expect-error: We are intentionally setting a bad version for platform.
+        platform: 'InvalidPlatform', // Intentionally invalid
         projectPath: '/path/to/project',
         buildType: 'debug' as const,
         workflowStateData: { thread_id: 'test-invalid-platform' },
@@ -219,10 +218,11 @@ describe('SFMobileNativeDeploymentTool', () => {
     });
 
     it('should handle missing required fields', async () => {
-      const input = {
+      // @ts-expect-error: We are intentionally leaving out required fields.
+      const input: DeploymentWorkflowInput = {
         platform: 'iOS' as const,
         // Missing projectPath and workflowStateData
-      } as any; // Intentionally incomplete
+      }; // Intentionally incomplete
 
       const result = await tool.handleRequest(input);
 
@@ -231,10 +231,11 @@ describe('SFMobileNativeDeploymentTool', () => {
     });
 
     it('should handle invalid build type', async () => {
-      const input = {
+      const input: DeploymentWorkflowInput = {
         platform: 'Android' as const,
         projectPath: '/path/to/project',
-        buildType: 'invalid-build-type' as any, // Intentionally invalid
+        // @ts-expect-error: We are intentionally setting a bad version for buildType.
+        buildType: 'invalid-build-type', // Intentionally invalid
         workflowStateData: { thread_id: 'test-invalid-build' },
       };
 
@@ -245,10 +246,11 @@ describe('SFMobileNativeDeploymentTool', () => {
     });
 
     it('should handle malformed workflow state data', async () => {
-      const input = {
+      // @ts-expect-error: We are intentionally leaving out workflowStateData.
+      const input: DeploymentWorkflowInput = {
         platform: 'iOS' as const,
         projectPath: '/path/to/project',
-        workflowStateData: null as any, // Intentionally invalid
+        // Leaving workflowStateData out.
       };
 
       const result = await tool.handleRequest(input);

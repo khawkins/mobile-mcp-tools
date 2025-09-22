@@ -5,8 +5,8 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { ToolAnnotations, CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { McpServer, ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import z from 'zod';
 import { Logger, createComponentLogger } from '../../logging/logger.js';
 import { ToolMetadata } from '../../common/metadata.js';
@@ -59,7 +59,7 @@ export abstract class AbstractTool<
         outputSchema: this.toolMetadata.outputSchema.shape,
         ...enhancedAnnotations,
       },
-      this.handleRequest.bind(this)
+      this.handleRequest
     );
   }
 
@@ -70,9 +70,7 @@ export abstract class AbstractTool<
    * @param input The input to the callback
    * @returns The return result of the tool
    */
-  public abstract handleRequest(
-    input: z.objectOutputType<TMetadata['inputSchema']['shape'], z.ZodTypeAny>
-  ): Promise<CallToolResult>;
+  public abstract handleRequest: ToolCallback<TMetadata['inputSchema']['shape']>;
 
   /**
    * Logs tool registration information

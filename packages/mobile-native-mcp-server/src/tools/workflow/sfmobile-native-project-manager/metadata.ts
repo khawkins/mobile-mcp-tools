@@ -11,14 +11,16 @@ import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA, ToolMetadata } from '../../../common/m
 /**
  * Orchestrator input schema - simplified to single userInput parameter
  */
-export const ORCHESTRATOR_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.extend({
-  userInput: z
-    .unknown()
-    .optional()
-    .describe(
-      'User input - can be any data structure from initial request or previously executed MCP tool'
-    ),
-});
+export const ORCHESTRATOR_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.partial().merge(
+  z.object({
+    userInput: z
+      .unknown()
+      .optional()
+      .describe(
+        'User input - can be any data structure from initial request or previously executed MCP tool'
+      ),
+  })
+);
 
 export type OrchestratorInput = z.infer<typeof ORCHESTRATOR_INPUT_SCHEMA>;
 

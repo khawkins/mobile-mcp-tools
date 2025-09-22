@@ -66,7 +66,7 @@ export class MobileNativeOrchestrator extends AbstractTool<typeof ORCHESTRATOR_T
   /**
    * Handle orchestrator requests - manages workflow state and execution
    */
-  public async handleRequest(input: OrchestratorInput) {
+  public handleRequest = async (input: OrchestratorInput) => {
     this.logger.debug('Orchestrator tool called with input', input);
     try {
       const result = await this.processRequest(input);
@@ -85,7 +85,7 @@ export class MobileNativeOrchestrator extends AbstractTool<typeof ORCHESTRATOR_T
       this.logger.error('Error in orchestrator tool execution', error as Error);
       throw error;
     }
-  }
+  };
 
   private async processRequest(input: OrchestratorInput): Promise<OrchestratorOutput> {
     // Generate or use existing thread ID for workflow session
