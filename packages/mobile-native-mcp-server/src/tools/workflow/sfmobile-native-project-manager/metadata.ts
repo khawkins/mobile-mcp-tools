@@ -9,7 +9,11 @@ import z from 'zod';
 import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA, ToolMetadata } from '../../../common/metadata.js';
 
 /**
- * Orchestrator input schema - simplified to single userInput parameter
+ * Orchestrator input schema
+ *
+ * Note: We handle the incorporation of the workflow state schema a little differently than
+ * the other tools, as the orchestrator is the only tool where the workflow state may not
+ * exist yet. All other tools require it as part of the workflow.
  */
 export const ORCHESTRATOR_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.partial().merge(
   z.object({
