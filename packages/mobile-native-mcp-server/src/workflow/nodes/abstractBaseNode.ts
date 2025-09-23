@@ -14,5 +14,5 @@ export abstract class BaseNode {
     this.name = name;
   }
 
-  abstract execute(state: State): Partial<State>;
+  abstract execute: (state: State) => Partial<State>;
 }

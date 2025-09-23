@@ -5,7 +5,6 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { interrupt } from '@langchain/langgraph';
 import { MCPToolInvocationData } from '../../common/metadata.js';
 import { TEMPLATE_DISCOVERY_TOOL } from '../../tools/plan/sfmobile-native-template-discovery/metadata.js';
 import { State } from '../metadata.js';
@@ -22,7 +21,7 @@ export class TemplateDiscoveryNode extends AbstractSchemaNode<
     super('discoverTemplates');
   }
 
-  execute(state: State): Partial<State> {
+  execute = (state: State): Partial<State> => {
     const toolInvocationData: MCPToolInvocationData<typeof this.workflowToolMetadata.inputSchema> =
       {
         llmMetadata: {
@@ -35,10 +34,9 @@ export class TemplateDiscoveryNode extends AbstractSchemaNode<
         },
       };
 
-    const result = interrupt(toolInvocationData);
-    const validatedResult = this.workflowToolMetadata.resultSchema.parse(result);
+    const validatedResult = this.executeToolWithLogging(toolInvocationData);
     return {
       ...validatedResult,
     };
-  }
+  };
 }

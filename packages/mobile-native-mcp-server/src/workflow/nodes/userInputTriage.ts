@@ -5,7 +5,6 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { interrupt } from '@langchain/langgraph';
 import { MCPToolInvocationData } from '../../common/metadata.js';
 import { USER_INPUT_TRIAGE_TOOL } from '../../tools/plan/sfmobile-native-user-input-triage/metadata.js';
 import { State } from '../metadata.js';
@@ -22,7 +21,7 @@ export class UserInputTriageNode extends AbstractSchemaNode<
     super('triageUserInput');
   }
 
-  execute(state: State): Partial<State> {
+  execute = (state: State): Partial<State> => {
     const toolInvocationData: MCPToolInvocationData<typeof this.workflowToolMetadata.inputSchema> =
       {
         llmMetadata: {
@@ -35,8 +34,7 @@ export class UserInputTriageNode extends AbstractSchemaNode<
         },
       };
 
-    const result = interrupt(toolInvocationData);
-    const validatedResult = this.workflowToolMetadata.resultSchema.parse(result);
+    const validatedResult = this.executeToolWithLogging(toolInvocationData);
 
     // Extract the structured properties and merge them into the workflow state
     const { extractedProperties } = validatedResult;
@@ -55,5 +53,5 @@ export class UserInputTriageNode extends AbstractSchemaNode<
       }),
       ...(extractedProperties.loginHost && { loginHost: extractedProperties.loginHost }),
     };
-  }
+  };
 }

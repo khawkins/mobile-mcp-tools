@@ -13,10 +13,10 @@ export class EnvironmentValidationNode extends BaseNode {
     super('validateEnvironment');
   }
 
-  execute(_state: State): Partial<State> {
+  execute = (_state: State): Partial<State> => {
     // TODO: Implement environment validation.
     return {
       environmentValidated: true,
     };
-  }
+  };
 }
