@@ -9,9 +9,6 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   Logger,
   PinoLogger,
-  createProductionLogger,
-  createDevelopmentLogger,
-  createTestLogger,
   createLogger,
   createComponentLogger,
 } from '../../src/logging/logger.js';
@@ -50,48 +47,44 @@ describe('Logger Implementation', () => {
   });
 
   describe('Logger Factories', () => {
-    it('should create production logger', () => {
-      const logger = createProductionLogger('info');
+    it('should create logger with default level', () => {
+      const logger = createLogger();
       expect(logger).toBeDefined();
       expect(logger).toBeInstanceOf(PinoLogger);
     });
 
-    it('should create development logger', () => {
-      const logger = createDevelopmentLogger('debug');
+    it('should create logger with specified level', () => {
+      const logger = createLogger('debug');
       expect(logger).toBeDefined();
       expect(logger).toBeInstanceOf(PinoLogger);
     });
 
-    it('should create test logger', () => {
-      const logger = createTestLogger();
+    it('should create logger with info level', () => {
+      const logger = createLogger('info');
       expect(logger).toBeDefined();
       expect(logger).toBeInstanceOf(PinoLogger);
     });
 
-    it('should create production logger with default level', () => {
-      const logger = createProductionLogger();
+    it('should create logger with warn level', () => {
+      const logger = createLogger('warn');
       expect(logger).toBeDefined();
       expect(logger).toBeInstanceOf(PinoLogger);
     });
 
-    it('should create development logger with default level', () => {
-      const logger = createDevelopmentLogger();
+    it('should create component logger with default level', () => {
+      const logger = createComponentLogger('TestComponent');
       expect(logger).toBeDefined();
       expect(logger).toBeInstanceOf(PinoLogger);
     });
 
-    it('should create environment-aware logger', () => {
-      const prodLogger = createLogger('production');
-      const devLogger = createLogger('development');
-      const testLogger = createLogger('test');
-
-      expect(prodLogger).toBeInstanceOf(PinoLogger);
-      expect(devLogger).toBeInstanceOf(PinoLogger);
-      expect(testLogger).toBeInstanceOf(PinoLogger);
+    it('should create logger with error level', () => {
+      const logger = createLogger('error');
+      expect(logger).toBeDefined();
+      expect(logger).toBeInstanceOf(PinoLogger);
     });
 
     it('should create component logger with context', () => {
-      const componentLogger = createComponentLogger('TestComponent', 'test');
+      const componentLogger = createComponentLogger('TestComponent', 'debug');
       expect(componentLogger).toBeDefined();
       expect(componentLogger).toBeInstanceOf(PinoLogger);
     });
@@ -99,7 +92,7 @@ describe('Logger Implementation', () => {
 
   describe('Logger Compatibility', () => {
     it('should work with structured data', () => {
-      const logger = createTestLogger();
+      const logger = createLogger('silent');
 
       expect(() => {
         logger.info('test message', {
@@ -111,7 +104,7 @@ describe('Logger Implementation', () => {
     });
 
     it('should handle error objects properly', () => {
-      const logger = createTestLogger();
+      const logger = createLogger('silent');
       const testError = new Error('Test error message');
       testError.stack = 'Test stack trace';
 
@@ -121,7 +114,7 @@ describe('Logger Implementation', () => {
     });
 
     it('should create child loggers with bindings', () => {
-      const logger = createTestLogger();
+      const logger = createLogger('silent');
       const childLogger = logger.child({
         component: 'WorkflowOrchestrator',
         version: '1.0.0',

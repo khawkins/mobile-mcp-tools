@@ -72,14 +72,14 @@ export class PinoLogger implements Logger {
 }
 
 /**
- * Factory function to create a production logger with pino that writes to .magen directory
+ * Factory function to create a logger that writes to .magen directory
  *
- * @param level - Log level (default: 'info')
+ * @param level - Log level (default: from LOG_LEVEL env var or 'info')
  * @param options - Additional pino configuration options
- * @returns Logger instance configured for production use with file logging
+ * @returns Logger instance configured for file logging
  */
-export function createProductionLogger(
-  level: string = 'info',
+export function createLogger(
+  level: string = process.env.LOG_LEVEL || 'info',
   options: pino.LoggerOptions = {}
 ): Logger {
   const logFilePath = getWorkflowLogsPath();
@@ -100,105 +100,34 @@ export function createProductionLogger(
 }
 
 /**
- * Factory function to create a development logger with pretty printing
- *
- * @param level - Log level (default: 'debug')
- * @returns Logger instance configured for development use with pretty printing
- */
-export function createDevelopmentLogger(level: string = 'debug'): Logger {
-  const pinoInstance = pino({
-    level,
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'yyyy-mm-dd HH:MM:ss',
-        ignore: 'pid,hostname',
-      },
-    },
-  });
-
-  return new PinoLogger(pinoInstance);
-}
-
-/**
- * Factory function to create a silent logger for testing
- *
- * @returns Logger instance that produces no output (silent level)
- */
-export function createTestLogger(): Logger {
-  const pinoInstance = pino({ level: 'silent' });
-  return new PinoLogger(pinoInstance);
-}
-
-/**
- * Factory function to create a logger based on environment
- *
- * @param environment - Environment string ('production', 'development', 'test')
- * @param level - Log level override
- * @returns Logger instance appropriate for the environment
- */
-export function createLogger(
-  environment: string = process.env.NODE_ENV || 'development',
-  level?: string
-): Logger {
-  switch (environment) {
-    case 'production':
-      // Production logs to .magen/workflow_logs.json
-      return createProductionLogger(level || 'info');
-    case 'test':
-      return createTestLogger();
-    case 'development':
-    default:
-      // Development logs to console with pretty printing for debugging
-      return createDevelopmentLogger(level || 'debug');
-  }
-}
-
-/**
  * Create a logger for a specific MCP tool or component
  *
  * @param componentName - Name of the component (e.g., 'TemplateDiscovery', 'BuildTool')
- * @param environment - Environment context
  * @param level - Log level override
  * @returns Logger instance with component context
  */
-export function createComponentLogger(
-  componentName: string,
-  environment?: string,
-  level?: string
-): Logger {
-  const baseLogger = createLogger(environment, level);
+export function createComponentLogger(componentName: string, level?: string): Logger {
+  const baseLogger = createLogger(level);
   return baseLogger.child({ component: componentName });
 }
 
 /**
  * Create a specialized logger for workflow orchestration and MCP tool interactions
- * Always logs to .magen/workflow_logs.json regardless of environment for persistence
  *
  * @param componentName - Name of the workflow component
  * @param level - Log level (default: 'info')
- * @returns Logger instance configured for workflow logging
+ * @returns Logger instance configured for workflow logging with additional metadata
  */
-export function createWorkflowLogger(componentName: string, level: string = 'info'): Logger {
-  const logFilePath = getWorkflowLogsPath();
-
-  const pinoInstance = pino(
-    {
-      level,
-      // Add workflow-specific metadata to all log entries
-      base: {
-        service: 'mobile-native-mcp-server',
-        logType: 'workflow',
-      },
+export function createWorkflowLogger(componentName: string, level?: string): Logger {
+  const baseLogger = createLogger(level, {
+    // Add workflow-specific metadata to all log entries
+    base: {
+      service: 'mobile-native-mcp-server',
+      logType: 'workflow',
     },
-    pino.destination({
-      dest: logFilePath,
-      sync: false,
-    })
-  );
+  });
 
-  return new PinoLogger(pinoInstance).child({
+  return baseLogger.child({
     component: componentName,
     workflowSession: true,
   });

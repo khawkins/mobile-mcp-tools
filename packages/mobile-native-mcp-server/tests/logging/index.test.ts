@@ -8,9 +8,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   PinoLogger,
-  createProductionLogger,
-  createDevelopmentLogger,
-  createTestLogger,
   createLogger,
   createComponentLogger,
   createWorkflowLogger,
@@ -21,34 +18,29 @@ describe('Logging Module Exports', () => {
     // Logger is an interface, so we can't check if it's defined
     // Instead, check that all concrete implementations and factories are available
     expect(PinoLogger).toBeDefined();
-    expect(createProductionLogger).toBeDefined();
-    expect(createDevelopmentLogger).toBeDefined();
-    expect(createTestLogger).toBeDefined();
     expect(createLogger).toBeDefined();
     expect(createComponentLogger).toBeDefined();
     expect(createWorkflowLogger).toBeDefined();
   });
 
   it('should create consistent loggers across different factories', () => {
-    const prodLogger = createProductionLogger();
-    const devLogger = createDevelopmentLogger();
-    const testLogger = createTestLogger();
-    const envLogger = createLogger('test');
-    const componentLogger = createComponentLogger('TestTool', 'test');
+    const defaultLogger = createLogger();
+    const infoLogger = createLogger('info');
+    const debugLogger = createLogger('debug');
+    const componentLogger = createComponentLogger('TestTool', 'debug');
     const workflowLogger = createWorkflowLogger('TestWorkflow');
 
     // All should be PinoLogger instances
-    expect(prodLogger).toBeInstanceOf(PinoLogger);
-    expect(devLogger).toBeInstanceOf(PinoLogger);
-    expect(testLogger).toBeInstanceOf(PinoLogger);
-    expect(envLogger).toBeInstanceOf(PinoLogger);
+    expect(defaultLogger).toBeInstanceOf(PinoLogger);
+    expect(infoLogger).toBeInstanceOf(PinoLogger);
+    expect(debugLogger).toBeInstanceOf(PinoLogger);
     expect(componentLogger).toBeInstanceOf(PinoLogger);
     expect(workflowLogger).toBeInstanceOf(PinoLogger);
   });
 
   it('should support MCP tool usage patterns', () => {
     // Simulate how a tool would create a logger
-    const toolLogger = createComponentLogger('TemplateDiscovery', 'test');
+    const toolLogger = createComponentLogger('TemplateDiscovery', 'debug');
 
     expect(() => {
       toolLogger.info('Tool initialized');
