@@ -31,7 +31,7 @@ export const WELL_KNOWN_DIR_NAME = '.magen';
  * Well-known file names within the .magen directory
  */
 export const WELL_KNOWN_FILES = {
-  WORKFLOW_STATE_DB: 'workflow-state.db',
+  WORKFLOW_STATE_STORE_FILENAME: 'workflow-state.json',
   WORKFLOW_LOGS: 'workflow_logs.json',
 } as const;
 
@@ -84,8 +84,8 @@ export function getWellKnownFilePath(fileName: string): string {
  * Get the path to the workflow state database
  * @returns Absolute path to workflow-state.db
  */
-export function getWorkflowStateDatabasePath(): string {
-  return getWellKnownFilePath(WELL_KNOWN_FILES.WORKFLOW_STATE_DB);
+export function getWorkflowStateStorePath(): string {
+  return getWellKnownFilePath(WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME);
 }
 
 /**

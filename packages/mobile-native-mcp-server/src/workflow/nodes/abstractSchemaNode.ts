@@ -34,7 +34,7 @@ export abstract class AbstractSchemaNode<
   constructor(name: string) {
     super(name);
     this.componentName = `WorkflowNode:${this.constructor.name}`;
-    this.logger = createComponentLogger(this.componentName, 'debug');
+    this.logger = createComponentLogger(this.componentName);
   }
 
   /**

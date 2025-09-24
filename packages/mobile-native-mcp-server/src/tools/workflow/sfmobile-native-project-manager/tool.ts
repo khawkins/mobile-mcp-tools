@@ -8,9 +8,8 @@
 import z from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { SqliteSaver } from '@langchain/langgraph-checkpoint-sqlite';
-import { BaseCheckpointSaver, Command } from '@langchain/langgraph';
-import { getWorkflowStateDatabasePath } from '../../../utils/wellKnownDirectory.js';
+import { BaseCheckpointSaver, Command, MemorySaver } from '@langchain/langgraph';
+import { getWorkflowStateStorePath } from '../../../utils/wellKnownDirectory.js';
 import { ORCHESTRATOR_TOOL, OrchestratorInput, OrchestratorOutput } from './metadata.js';
 import { Logger, createWorkflowLogger } from '../../../logging/logger.js';
 import { AbstractTool } from '../../base/abstractTool.js';
@@ -21,29 +20,14 @@ import {
 } from '../../../common/metadata.js';
 import { mobileNativeWorkflow } from '../../../workflow/graph.js';
 import { State } from '../../../workflow/metadata.js';
+import { JsonCheckpointSaver } from '../../../workflow/jsonCheckpointer.js';
+import { WorkflowStatePersistence } from '../../../workflow/workflowStatePersistence.js';
 
 /**
  * Generate unique thread ID for workflow sessions
  */
 function generateUniqueThreadId(): string {
   return `mobile-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-}
-
-/**
- * Create and configure workflow checkpointer for state persistence
- *
- * @param useMemoryForTesting - If true, uses SQLite :memory: database for test isolation
- *
- */
-function createCheckpointer(useMemoryForTesting = false): BaseCheckpointSaver {
-  if (useMemoryForTesting) {
-    // Use SQLite in-memory database for testing - no filesystem persistence
-    return SqliteSaver.fromConnString(':memory:');
-  }
-
-  // Create SQLite checkpointer in .magen directory
-  const dbPath = getWorkflowStateDatabasePath();
-  return SqliteSaver.fromConnString(dbPath);
 }
 
 /**
@@ -102,7 +86,7 @@ export class MobileNativeOrchestrator extends AbstractTool<typeof ORCHESTRATOR_T
     const threadConfig = { configurable: { thread_id: threadId } };
 
     // Initialize checkpointer for state persistence
-    const checkpointer = createCheckpointer(this.useMemoryForTesting);
+    const checkpointer = await this.createCheckpointer(this.useMemoryForTesting);
 
     // Compile workflow with checkpointer
     const compiledWorkflow = mobileNativeWorkflow.compile({ checkpointer });
@@ -163,6 +147,9 @@ export class MobileNativeOrchestrator extends AbstractTool<typeof ORCHESTRATOR_T
         workflowStateData
       );
 
+      // Save our workflow state to disk
+      await this.saveCheckpointerState(checkpointer);
+
       return {
         orchestrationInstructionsPrompt: orchestrationPrompt,
       };
@@ -172,6 +159,53 @@ export class MobileNativeOrchestrator extends AbstractTool<typeof ORCHESTRATOR_T
     return {
       orchestrationInstructionsPrompt: 'The workflow has completed successfully.',
     };
+  }
+
+  /**
+   * Create and configure workflow checkpointer for state persistence
+   *
+   * @param useMemoryForTesting - If true, uses MemorySaver for test isolation
+   *
+   */
+  private async createCheckpointer(useMemoryForTesting = false): Promise<BaseCheckpointSaver> {
+    if (useMemoryForTesting) {
+      // Use MemorySaver for testing
+      return new MemorySaver();
+    }
+
+    // Load checkpointer store data from .magen directory
+    const workflowStateStorePath = getWorkflowStateStorePath();
+    const checkpointer = new JsonCheckpointSaver();
+    const statePersistence = new WorkflowStatePersistence(workflowStateStorePath);
+
+    // Import the serialized state from disk if it exists
+    const serializedState = await statePersistence.readState();
+    if (serializedState) {
+      this.logger.info('Importing existing checkpointer state');
+      await checkpointer.importState(serializedState);
+    } else {
+      this.logger.info('No existing state found, starting with fresh checkpointer');
+    }
+
+    return checkpointer;
+  }
+
+  /**
+   * Save the checkpointer state to disk
+   *
+   * Note: Only applies to our JsonCheckpointSaver.
+   * @param checkpointer The checkpointer being used to manage workflow state
+   */
+  private async saveCheckpointerState(checkpointer: BaseCheckpointSaver): Promise<void> {
+    // If we have a JSONCheckpointSaver (standard, non-test-env case), we need to persist
+    // our state to disk.
+    if (checkpointer instanceof JsonCheckpointSaver) {
+      const exportedState = await checkpointer.exportState();
+      const workflowStateStorePath = getWorkflowStateStorePath();
+      const statePersistence = new WorkflowStatePersistence(workflowStateStorePath);
+      await statePersistence.writeState(exportedState);
+      this.logger.info('Checkpointer state successfully persisted');
+    }
   }
 
   /**
