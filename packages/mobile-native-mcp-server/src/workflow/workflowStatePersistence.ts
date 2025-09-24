@@ -126,8 +126,8 @@ export class WorkflowStatePersistence {
    */
   async stateExists(): Promise<boolean> {
     try {
-      await fs.access(this.storePath);
-      return true;
+      const stat = await fs.stat(this.storePath);
+      return stat.isFile();
     } catch {
       return false;
     }

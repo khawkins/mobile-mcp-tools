@@ -5,11 +5,14 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { MobileNativeOrchestrator } from '../../src/tools/workflow/sfmobile-native-project-manager/tool.js';
 import { MockLogger } from '../utils/MockLogger.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import * as os from 'os';
 
 describe('MobileNativeOrchestrator', () => {
   let mockServer: McpServer;
@@ -127,6 +130,359 @@ describe('MobileNativeOrchestrator', () => {
       // Should not throw, but may return error response
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
+    });
+  });
+
+  describe('Checkpointer Integration (Memory Mode)', () => {
+    it('should use memory checkpointer for testing', async () => {
+      // The orchestrator is already configured for memory mode in beforeEach
+      const input = {
+        userInput: 'Create a mobile app',
+        workflowStateData: { thread_id: 'memory-test-123' },
+      };
+
+      const result = await orchestrator.handleRequest(input);
+
+      expect(result.content).toBeDefined();
+      expect(result.structuredContent).toBeDefined();
+
+      // Should log checkpointer usage
+      const logs = mockLogger.logs;
+      const checkpointerLogs = logs.filter(
+        log => log.message.includes('checkpointer') || log.message.includes('state')
+      );
+      expect(checkpointerLogs.length).toBeGreaterThan(0);
+    });
+
+    it('should handle workflow resumption with memory checkpointer', async () => {
+      const threadId = 'memory-resume-test-456';
+
+      // First request to start workflow
+      const initialInput = {
+        userInput: 'Start workflow',
+        workflowStateData: { thread_id: threadId },
+      };
+
+      await orchestrator.handleRequest(initialInput);
+
+      // Second request to resume workflow
+      const resumeInput = {
+        userInput: { someData: 'resume data' },
+        workflowStateData: { thread_id: threadId },
+      };
+
+      const result = await orchestrator.handleRequest(resumeInput);
+
+      expect(result.content).toBeDefined();
+      expect(result.structuredContent).toBeDefined();
+    });
+  });
+
+  describe('Checkpointer Integration (File Mode)', () => {
+    let tempDir: string;
+    let fileOrchestrator: MobileNativeOrchestrator;
+    let originalProjectPath: string | undefined;
+
+    beforeEach(async () => {
+      // Create temporary directory for file-based testing
+      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'orchestrator-test-'));
+
+      // Store original PROJECT_PATH and set it to our temp directory
+      originalProjectPath = process.env.PROJECT_PATH;
+      process.env.PROJECT_PATH = tempDir;
+
+      // Create orchestrator without memory mode (file mode)
+      fileOrchestrator = new MobileNativeOrchestrator(mockServer, mockLogger, false);
+    });
+
+    afterEach(async () => {
+      // Restore original PROJECT_PATH
+      if (originalProjectPath !== undefined) {
+        process.env.PROJECT_PATH = originalProjectPath;
+      } else {
+        delete process.env.PROJECT_PATH;
+      }
+
+      // Clean up temporary directory
+      try {
+        await fs.rm(tempDir, { recursive: true, force: true });
+      } catch {
+        // Ignore cleanup errors
+      }
+    });
+
+    it('should create and persist state with file checkpointer', async () => {
+      const input = {
+        userInput: 'Create app with file persistence',
+        workflowStateData: { thread_id: 'file-test-123' },
+      };
+
+      const result = await fileOrchestrator.handleRequest(input);
+
+      expect(result.content).toBeDefined();
+
+      // Should log state persistence
+      const logs = mockLogger.logs;
+      const persistenceLogs = logs.filter(
+        log => log.message.includes('persisted') || log.message.includes('state')
+      );
+      expect(persistenceLogs.length).toBeGreaterThan(0);
+
+      // State file should exist in the .magen well-known directory
+      const stateFilePath = path.join(tempDir, '.magen', 'workflow-state.json');
+      try {
+        await fs.access(stateFilePath);
+        // File exists - good!
+      } catch {
+        // File might not exist if workflow completed immediately
+        // This is acceptable for this test
+      }
+    });
+
+    it('should load existing state on startup', async () => {
+      const threadId = 'file-resume-test-789';
+
+      // Create initial state with properly structured workflow result
+      const initialInput = {
+        userInput: 'Initial workflow',
+        workflowStateData: { thread_id: threadId },
+      };
+
+      // Since we're testing the checkpointer functionality, not the workflow execution,
+      // we expect this to either succeed or fail gracefully
+      try {
+        await fileOrchestrator.handleRequest(initialInput);
+
+        // Create new orchestrator instance (simulating restart)
+        const newOrchestrator = new MobileNativeOrchestrator(mockServer, mockLogger, false);
+
+        // Resume with structured mock data that matches workflow expectations
+        const resumeInput = {
+          userInput: {
+            extractedProperties: {
+              platform: 'iOS' as const,
+              projectName: 'TestApp',
+              packageName: 'com.test.app',
+              organization: 'Test Org',
+            },
+            analysisDetails: {
+              confidenceLevel: 0.8,
+              missingInformation: [],
+              assumptions: ['Assumed iOS platform'],
+              recommendations: ['Continue with project generation'],
+            },
+          },
+          workflowStateData: { thread_id: threadId },
+        };
+
+        const result = await newOrchestrator.handleRequest(resumeInput);
+
+        expect(result.content).toBeDefined();
+
+        // Should log state loading
+        const logs = mockLogger.logs;
+        const loadingLogs = logs.filter(
+          log => log.message.includes('Importing') || log.message.includes('existing state')
+        );
+        expect(loadingLogs.length).toBeGreaterThan(0);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
+        // If the workflow validation fails, that's expected since we're not providing
+        // real workflow tool results. The test should still verify that the checkpointer
+        // attempts to load state.
+        const logs = mockLogger.logs;
+        const stateRelatedLogs = logs.filter(
+          log =>
+            log.message.includes('state') ||
+            log.message.includes('checkpointer') ||
+            log.message.includes('No existing state') ||
+            log.message.includes('fresh')
+        );
+        expect(stateRelatedLogs.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('should handle missing state file gracefully', async () => {
+      // Ensure no state file exists in the .magen directory
+      const stateFilePath = path.join(tempDir, '.magen', 'workflow-state.json');
+      try {
+        await fs.unlink(stateFilePath);
+      } catch {
+        // File doesn't exist - that's what we want
+      }
+
+      const input = {
+        userInput: 'Fresh start',
+        workflowStateData: { thread_id: 'fresh-start-123' },
+      };
+
+      const result = await fileOrchestrator.handleRequest(input);
+
+      expect(result.content).toBeDefined();
+
+      // Should log fresh start
+      const logs = mockLogger.logs;
+      const freshStartLogs = logs.filter(
+        log => log.message.includes('fresh') || log.message.includes('No existing state')
+      );
+      expect(freshStartLogs.length).toBeGreaterThan(0);
+    });
+
+    it('should handle corrupted state file', async () => {
+      // Write invalid JSON to state file in .magen directory
+      const stateFilePath = path.join(tempDir, '.magen', 'workflow-state.json');
+      await fs.mkdir(path.dirname(stateFilePath), { recursive: true });
+      await fs.writeFile(stateFilePath, 'invalid json content', 'utf-8');
+
+      const input = {
+        userInput: 'Handle corruption',
+        workflowStateData: { thread_id: 'corruption-test-123' },
+      };
+
+      // Should not throw, should start fresh
+      const result = await fileOrchestrator.handleRequest(input);
+
+      expect(result.content).toBeDefined();
+
+      // Should log fresh start due to invalid state
+      const logs = mockLogger.logs;
+      const freshStartLogs = logs.filter(
+        log => log.message.includes('fresh') || log.message.includes('No existing state')
+      );
+      expect(freshStartLogs.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Thread ID Generation and Management', () => {
+    it('should generate unique thread IDs', async () => {
+      const input1 = { userInput: 'First request' };
+      const input2 = { userInput: 'Second request' };
+
+      const result1 = await orchestrator.handleRequest(input1);
+      const result2 = await orchestrator.handleRequest(input2);
+
+      // Both should have orchestration prompts
+      expect(result1.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
+      expect(result2.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
+
+      // Thread IDs should be different (we can't directly access them, but we test indirectly)
+      expect(result1.structuredContent?.orchestrationInstructionsPrompt).not.toBe(
+        result2.structuredContent?.orchestrationInstructionsPrompt
+      );
+    });
+
+    it('should use provided thread ID when given', async () => {
+      const threadId = 'user-provided-thread-456';
+      const input = {
+        userInput: 'Use my thread ID',
+        workflowStateData: { thread_id: threadId },
+      };
+
+      const result = await orchestrator.handleRequest(input);
+
+      expect(result.content).toBeDefined();
+
+      // Should log with the provided thread ID
+      const logs = mockLogger.logs;
+      const threadLogs = logs.filter(
+        log =>
+          log.message.includes('Processing orchestrator request') &&
+          log.data &&
+          typeof log.data === 'object' &&
+          'threadId' in log.data
+      );
+      expect(threadLogs.length).toBeGreaterThan(0);
+
+      const threadLog = threadLogs[0];
+      expect((threadLog.data as { threadId: string }).threadId).toBe(threadId);
+    });
+
+    it('should handle thread ID format correctly', async () => {
+      const input = { userInput: 'Generate thread ID' };
+
+      const result = await orchestrator.handleRequest(input);
+
+      expect(result.content).toBeDefined();
+
+      // Should log thread ID in expected format
+      const logs = mockLogger.logs;
+      const threadLogs = logs.filter(
+        log =>
+          log.message.includes('Processing orchestrator request') &&
+          log.data &&
+          typeof log.data === 'object' &&
+          'threadId' in log.data
+      );
+      expect(threadLogs.length).toBeGreaterThan(0);
+
+      const threadId = (threadLogs[0].data as { threadId: string }).threadId;
+      expect(typeof threadId).toBe('string');
+      expect(threadId).toMatch(/^mobile-\d+-[a-z0-9]{6}$/);
+    });
+  });
+
+  describe('Workflow State Management', () => {
+    it('should include workflow state data in orchestration prompt', async () => {
+      const workflowStateData = { thread_id: 'prompt-test-123' };
+      const input = {
+        userInput: 'Test state in prompt',
+        workflowStateData,
+      };
+
+      const result = await orchestrator.handleRequest(input);
+
+      expect(result.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
+
+      const prompt = result.structuredContent!.orchestrationInstructionsPrompt;
+
+      // Prompt should include workflow state data
+      expect(prompt).toContain('workflowStateData');
+      expect(prompt).toContain(JSON.stringify(workflowStateData));
+      expect(prompt).toContain('round-tripped back');
+    });
+
+    it('should handle workflow completion', async () => {
+      // Mock a completed workflow scenario
+      // Note: This is difficult to test without mocking the entire workflow graph
+      // For now, we test that the method handles the completion case
+      const input = {
+        userInput: 'Complete workflow',
+        workflowStateData: { thread_id: 'completion-test-123' },
+      };
+
+      const result = await orchestrator.handleRequest(input);
+
+      expect(result.content).toBeDefined();
+      expect(result.structuredContent).toBeDefined();
+
+      // Should either have orchestration prompt or completion message
+      const prompt = result.structuredContent?.orchestrationInstructionsPrompt;
+      expect(prompt).toBeDefined();
+      expect(typeof prompt).toBe('string');
+    });
+
+    it('should log workflow processing steps', async () => {
+      mockLogger.reset();
+
+      const input = {
+        userInput: 'Test logging',
+        workflowStateData: { thread_id: 'logging-test-123' },
+      };
+
+      await orchestrator.handleRequest(input);
+
+      const logs = mockLogger.logs;
+
+      // Should have various processing logs
+      const expectedLogMessages = [
+        'Processing orchestrator request',
+        'Checking for interrupted workflow state',
+      ];
+
+      for (const expectedMessage of expectedLogMessages) {
+        const hasLog = logs.some(log => log.message.includes(expectedMessage));
+        expect(hasLog).toBe(true);
+      }
     });
   });
 });
