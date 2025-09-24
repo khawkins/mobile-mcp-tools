@@ -6,7 +6,11 @@
  */
 
 import z from 'zod';
-import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA, ToolMetadata } from '../../../common/metadata.js';
+import {
+  ToolMetadata,
+  WORKFLOW_PROPERTY_NAMES,
+  WORKFLOW_STATE_DATA_SCHEMA,
+} from '../../../common/metadata.js';
 
 /**
  * Orchestrator input schema
@@ -15,16 +19,17 @@ import { WORKFLOW_TOOL_BASE_INPUT_SCHEMA, ToolMetadata } from '../../../common/m
  * the other tools, as the orchestrator is the only tool where the workflow state may not
  * exist yet. All other tools require it as part of the workflow.
  */
-export const ORCHESTRATOR_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.partial().merge(
-  z.object({
-    userInput: z
-      .unknown()
-      .optional()
-      .describe(
-        'User input - can be any data structure from initial request or previously executed MCP tool'
-      ),
-  })
-);
+export const ORCHESTRATOR_INPUT_SCHEMA = z.object({
+  userInput: z
+    .unknown()
+    .optional()
+    .describe(
+      'User input - can be any data structure from initial request or previously executed MCP tool'
+    ),
+  [WORKFLOW_PROPERTY_NAMES.workflowStateData]: WORKFLOW_STATE_DATA_SCHEMA.default({
+    thread_id: '',
+  }).describe('Opaque workflow state data. Do not populate unless explicitly instructed to do so.'),
+});
 
 export type OrchestratorInput = z.infer<typeof ORCHESTRATOR_INPUT_SCHEMA>;
 

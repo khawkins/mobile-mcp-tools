@@ -13,6 +13,7 @@ import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
+import { OrchestratorInput } from '../../src/tools/workflow/sfmobile-native-project-manager/metadata.js';
 
 describe('MobileNativeOrchestrator', () => {
   let mockServer: McpServer;
@@ -125,12 +126,317 @@ describe('MobileNativeOrchestrator', () => {
         // Missing required fields
       };
 
+      // @ts-expect-error: We are intentionally missing required fields.
       const result = await orchestrator.handleRequest(invalidInput);
 
       // Should not throw, but may return error response
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
     });
+  });
+
+  describe('Input Validation and LLM Edge Cases', () => {
+    beforeEach(() => {
+      // Clear logs before each test to check error handling
+      mockLogger.reset();
+    });
+
+    // Note: These tests intentionally use 'any' types to simulate malformed LLM input
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+
+    it('should handle completely malformed input and generate new thread ID', async () => {
+      // LLM provides completely invalid data structure
+      const malformedInput = {
+        randomField: 'invalid',
+        anotherField: 123,
+        workflowStateData: 'this should be an object',
+      } as any;
+
+      const result = await orchestrator.handleRequest(malformedInput);
+
+      expect(result.content).toBeDefined();
+      expect(result.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
+
+      // Should log parsing error
+      const errorLogs = mockLogger.getLogsByLevel('error');
+      expect(errorLogs.length).toBeGreaterThan(0);
+      const parsingErrorLog = errorLogs.find(log =>
+        log.message.includes('Error parsing orchestrator input')
+      );
+      expect(parsingErrorLog).toBeDefined();
+
+      // Should log with a generated thread ID
+      const infoLogs = mockLogger.getLogsByLevel('info');
+      const processingLog = infoLogs.find(log =>
+        log.message.includes('Processing orchestrator request')
+      );
+      expect(processingLog).toBeDefined();
+      expect((processingLog?.data as any)?.threadId).toMatch(/^mobile-\d+-[a-z0-9]{6}$/);
+    });
+
+    it('should handle missing workflowStateData and use default', async () => {
+      const inputWithoutWorkflowState = {
+        userInput: 'Create an app',
+      };
+
+      const result = await orchestrator.handleRequest(
+        inputWithoutWorkflowState as OrchestratorInput
+      );
+
+      expect(result.content).toBeDefined();
+      expect(result.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
+
+      // Should not log parsing errors since this is valid (uses default)
+      const errorLogs = mockLogger.getLogsByLevel('error');
+      const parsingErrors = errorLogs.filter(log =>
+        log.message.includes('Error parsing orchestrator input')
+      );
+      expect(parsingErrors.length).toBe(0);
+
+      // Should generate new thread ID since default is empty string
+      const infoLogs = mockLogger.getLogsByLevel('info');
+      const processingLog = infoLogs.find(log =>
+        log.message.includes('Processing orchestrator request')
+      );
+      expect(processingLog).toBeDefined();
+      expect((processingLog?.data as any)?.threadId).toMatch(/^mobile-\d+-[a-z0-9]{6}$/);
+    });
+
+    it('should handle workflowStateData with empty thread_id', async () => {
+      const inputWithEmptyThreadId = {
+        userInput: 'Create an app',
+        workflowStateData: { thread_id: '' },
+      };
+
+      const result = await orchestrator.handleRequest(inputWithEmptyThreadId);
+
+      expect(result.content).toBeDefined();
+      expect(result.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
+
+      // Should not log parsing errors since input structure is valid
+      const errorLogs = mockLogger.getLogsByLevel('error');
+      const parsingErrors = errorLogs.filter(log =>
+        log.message.includes('Error parsing orchestrator input')
+      );
+      expect(parsingErrors.length).toBe(0);
+
+      // Should generate new thread ID since provided one is empty
+      const infoLogs = mockLogger.getLogsByLevel('info');
+      const processingLog = infoLogs.find(log =>
+        log.message.includes('Processing orchestrator request')
+      );
+      expect(processingLog).toBeDefined();
+      expect((processingLog?.data as any)?.threadId).toMatch(/^mobile-\d+-[a-z0-9]{6}$/);
+    });
+
+    it('should handle workflowStateData with missing thread_id property', async () => {
+      const inputWithMissingThreadId = {
+        userInput: 'Create an app',
+        workflowStateData: { someOtherField: 'value' },
+      } as any;
+
+      const result = await orchestrator.handleRequest(inputWithMissingThreadId);
+
+      expect(result.content).toBeDefined();
+      expect(result.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
+
+      // Should log parsing error due to invalid workflowStateData structure
+      const errorLogs = mockLogger.getLogsByLevel('error');
+      expect(errorLogs.length).toBeGreaterThan(0);
+      const parsingErrorLog = errorLogs.find(log =>
+        log.message.includes('Error parsing orchestrator input')
+      );
+      expect(parsingErrorLog).toBeDefined();
+
+      // Should generate new thread ID
+      const infoLogs = mockLogger.getLogsByLevel('info');
+      const processingLog = infoLogs.find(log =>
+        log.message.includes('Processing orchestrator request')
+      );
+      expect(processingLog).toBeDefined();
+      expect((processingLog?.data as any)?.threadId).toMatch(/^mobile-\d+-[a-z0-9]{6}$/);
+    });
+
+    it('should handle workflowStateData with null thread_id', async () => {
+      const inputWithNullThreadId = {
+        userInput: 'Create an app',
+        workflowStateData: { thread_id: null },
+      } as any;
+
+      const result = await orchestrator.handleRequest(inputWithNullThreadId);
+
+      expect(result.content).toBeDefined();
+      expect(result.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
+
+      // Should log parsing error due to null thread_id
+      const errorLogs = mockLogger.getLogsByLevel('error');
+      expect(errorLogs.length).toBeGreaterThan(0);
+      const parsingErrorLog = errorLogs.find(log =>
+        log.message.includes('Error parsing orchestrator input')
+      );
+      expect(parsingErrorLog).toBeDefined();
+
+      // Should generate new thread ID
+      const infoLogs = mockLogger.getLogsByLevel('info');
+      const processingLog = infoLogs.find(log =>
+        log.message.includes('Processing orchestrator request')
+      );
+      expect(processingLog).toBeDefined();
+      expect((processingLog?.data as any)?.threadId).toMatch(/^mobile-\d+-[a-z0-9]{6}$/);
+    });
+
+    it('should preserve valid thread_id when provided correctly', async () => {
+      const validThreadId = 'valid-thread-123';
+      const validInput = {
+        userInput: 'Resume workflow',
+        workflowStateData: { thread_id: validThreadId },
+      };
+
+      const result = await orchestrator.handleRequest(validInput);
+
+      expect(result.content).toBeDefined();
+      expect(result.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
+
+      // Should not log parsing errors
+      const errorLogs = mockLogger.getLogsByLevel('error');
+      const parsingErrors = errorLogs.filter(log =>
+        log.message.includes('Error parsing orchestrator input')
+      );
+      expect(parsingErrors.length).toBe(0);
+
+      // Should use the provided thread ID
+      const infoLogs = mockLogger.getLogsByLevel('info');
+      const processingLog = infoLogs.find(log =>
+        log.message.includes('Processing orchestrator request')
+      );
+      expect(processingLog).toBeDefined();
+      expect((processingLog?.data as any)?.threadId).toBe(validThreadId);
+    });
+
+    it('should handle complex userInput structures', async () => {
+      // LLMs sometimes create nested or complex userInput structures
+      const complexMalformedInput = {
+        userInput: {
+          request: 'Create an app',
+          metadata: { platform: 'iOS', invalidField: true },
+          nestedObject: { deeply: { nested: { value: 'test' } } },
+        },
+        workflowStateData: { thread_id: 'complex-test-123' },
+      };
+
+      const result = await orchestrator.handleRequest(complexMalformedInput);
+
+      expect(result.content).toBeDefined();
+      expect(result.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
+
+      // Should not log parsing errors (userInput can be any structure)
+      const errorLogs = mockLogger.getLogsByLevel('error');
+      const parsingErrors = errorLogs.filter(log =>
+        log.message.includes('Error parsing orchestrator input')
+      );
+      expect(parsingErrors.length).toBe(0);
+
+      // Should use the provided thread ID
+      const infoLogs = mockLogger.getLogsByLevel('info');
+      const processingLog = infoLogs.find(log =>
+        log.message.includes('Processing orchestrator request')
+      );
+      expect(processingLog).toBeDefined();
+      expect((processingLog?.data as any)?.threadId).toBe('complex-test-123');
+    });
+
+    it('should handle completely empty input object', async () => {
+      const emptyInput = {};
+
+      // @ts-expect-error: We are intentionally missing required fields.
+      const result = await orchestrator.handleRequest(emptyInput);
+
+      expect(result.content).toBeDefined();
+      expect(result.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
+
+      // Should not log parsing errors (empty object is valid with defaults)
+      const errorLogs = mockLogger.getLogsByLevel('error');
+      const parsingErrors = errorLogs.filter(log =>
+        log.message.includes('Error parsing orchestrator input')
+      );
+      expect(parsingErrors.length).toBe(0);
+
+      // Should generate new thread ID
+      const infoLogs = mockLogger.getLogsByLevel('info');
+      const processingLog = infoLogs.find(log =>
+        log.message.includes('Processing orchestrator request')
+      );
+      expect(processingLog).toBeDefined();
+      expect((processingLog?.data as any)?.threadId).toMatch(/^mobile-\d+-[a-z0-9]{6}$/);
+    });
+
+    it('should handle input with extra unknown fields', async () => {
+      const inputWithExtraFields = {
+        userInput: 'Create an app',
+        workflowStateData: { thread_id: 'extra-fields-test' },
+        randomExtraField: 'should be ignored',
+        anotherField: { nested: 'data' },
+        numericField: 42,
+      } as any;
+
+      const result = await orchestrator.handleRequest(inputWithExtraFields);
+
+      expect(result.content).toBeDefined();
+      expect(result.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
+
+      // Should not log parsing errors (extra fields should be ignored/stripped)
+      const errorLogs = mockLogger.getLogsByLevel('error');
+      const parsingErrors = errorLogs.filter(log =>
+        log.message.includes('Error parsing orchestrator input')
+      );
+      expect(parsingErrors.length).toBe(0);
+
+      // Should use the provided thread ID
+      const infoLogs = mockLogger.getLogsByLevel('info');
+      const processingLog = infoLogs.find(log =>
+        log.message.includes('Processing orchestrator request')
+      );
+      expect(processingLog).toBeDefined();
+      expect((processingLog?.data as any)?.threadId).toBe('extra-fields-test');
+    });
+
+    it('should generate unique thread IDs for concurrent requests', async () => {
+      const inputs = Array(5)
+        .fill(0)
+        .map((_, i) => ({
+          userInput: `Request ${i}`,
+          // No workflowStateData to force thread ID generation
+        }));
+
+      // @ts-expect-error: We are intentionally missing required fields.
+      const results = await Promise.all(inputs.map(input => orchestrator.handleRequest(input)));
+
+      // All should succeed
+      results.forEach(result => {
+        expect(result.content).toBeDefined();
+        expect(result.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
+      });
+
+      // Extract generated thread IDs from logs
+      const infoLogs = mockLogger.getLogsByLevel('info');
+      const processingLogs = infoLogs.filter(log =>
+        log.message.includes('Processing orchestrator request')
+      );
+      expect(processingLogs.length).toBe(5);
+
+      const threadIds = processingLogs.map(log => (log.data as any)?.threadId);
+
+      // All thread IDs should be unique
+      const uniqueThreadIds = new Set(threadIds);
+      expect(uniqueThreadIds.size).toBe(5);
+
+      // All should match the expected format
+      threadIds.forEach(threadId => {
+        expect(threadId).toMatch(/^mobile-\d+-[a-z0-9]{6}$/);
+      });
+    });
+
+    /* eslint-enable @typescript-eslint/no-explicit-any */
   });
 
   describe('Checkpointer Integration (Memory Mode)', () => {
@@ -358,8 +664,8 @@ describe('MobileNativeOrchestrator', () => {
       const input1 = { userInput: 'First request' };
       const input2 = { userInput: 'Second request' };
 
-      const result1 = await orchestrator.handleRequest(input1);
-      const result2 = await orchestrator.handleRequest(input2);
+      const result1 = await orchestrator.handleRequest(input1 as OrchestratorInput);
+      const result2 = await orchestrator.handleRequest(input2 as OrchestratorInput);
 
       // Both should have orchestration prompts
       expect(result1.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
@@ -400,7 +706,7 @@ describe('MobileNativeOrchestrator', () => {
     it('should handle thread ID format correctly', async () => {
       const input = { userInput: 'Generate thread ID' };
 
-      const result = await orchestrator.handleRequest(input);
+      const result = await orchestrator.handleRequest(input as OrchestratorInput);
 
       expect(result.content).toBeDefined();
 

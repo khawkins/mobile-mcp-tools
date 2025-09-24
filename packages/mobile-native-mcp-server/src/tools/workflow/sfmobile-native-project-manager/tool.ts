@@ -73,7 +73,19 @@ export class MobileNativeOrchestrator extends AbstractTool<typeof ORCHESTRATOR_T
 
   private async processRequest(input: OrchestratorInput): Promise<OrchestratorOutput> {
     // Generate or use existing thread ID for workflow session
-    const threadId = input.workflowStateData?.thread_id || generateUniqueThreadId();
+    let threadId = '';
+    try {
+      const parsedInput = ORCHESTRATOR_TOOL.inputSchema.parse(input);
+      threadId = parsedInput.workflowStateData.thread_id;
+    } catch (error) {
+      this.logger.error(
+        'Error parsing orchestrator input. Starting a new workflow.',
+        error as Error
+      );
+    }
+    if (threadId === '') {
+      threadId = generateUniqueThreadId();
+    }
     const workflowStateData: WorkflowStateData = { thread_id: threadId };
 
     this.logger.info('Processing orchestrator request', {
