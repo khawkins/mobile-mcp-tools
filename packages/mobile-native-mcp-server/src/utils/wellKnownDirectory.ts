@@ -42,7 +42,10 @@ export const WELL_KNOWN_FILES = {
  * @returns Absolute path to .magen directory
  */
 export function getWellKnownDirectoryPath(): string {
-  return path.join(process.cwd(), WELL_KNOWN_DIR_NAME);
+  const wellKnownDir = process.env.PROJECT_PATH
+    ? path.resolve(process.env.PROJECT_PATH)
+    : process.cwd();
+  return path.join(wellKnownDir, WELL_KNOWN_DIR_NAME);
 }
 
 /**
