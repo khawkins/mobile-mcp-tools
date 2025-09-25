@@ -107,7 +107,6 @@ describe('SFMobileNativeUserInputTriageTool', () => {
   });
 
   describe('Guidance Content Verification', () => {
-
     it('should include project property extraction guidance', async () => {
       const input = {
         userUtterance: 'I need an app for managing contacts',

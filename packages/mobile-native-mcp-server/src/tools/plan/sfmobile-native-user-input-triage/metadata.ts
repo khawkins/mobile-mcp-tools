@@ -28,15 +28,13 @@ export const USER_INPUT_TRIAGE_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_
 export const USER_INPUT_TRIAGE_WORKFLOW_RESULT_SCHEMA = z.object({
   extractedProperties: z
     .object({
-      platform: PLATFORM_ENUM
-        .describe('Target mobile platform extracted from user requirements')
-        .notAssumable(),
+      platform: PLATFORM_ENUM.describe(
+        'Target mobile platform extracted from user requirements'
+      ).notAssumable(),
       projectName: z
         .string()
         .describe('Project name derived from user requirements or app description'),
-      packageName: z
-        .string()
-        .describe('Package/bundle identifier (e.g., com.company.appname)'),
+      packageName: z.string().describe('Package/bundle identifier (e.g., com.company.appname)'),
       organization: z.string().describe('Organization or company name'),
       connectedAppClientId: z
         .string()

@@ -18,12 +18,16 @@ describe('Zod Extensions', () => {
 
     it('should append to an existing description', () => {
       const schema = z.string().describe('Test description').notAssumable();
-      expect(schema.description).toBe('Test description You must NOT make any assumptions about this value.');
+      expect(schema.description).toBe(
+        'Test description You must NOT make any assumptions about this value.'
+      );
     });
 
     it('should prepend a custom description', () => {
       const schema = z.string().notAssumable('Custom description.');
-      expect(schema.description).toBe('Custom description. You must NOT make any assumptions about this value.');
+      expect(schema.description).toBe(
+        'Custom description. You must NOT make any assumptions about this value.'
+      );
     });
 
     it('should work with other Zod types', () => {

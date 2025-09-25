@@ -9,16 +9,16 @@ import { z } from 'zod';
 
 /**
  * Extension for Zod schemas to add common descriptive patterns
- * 
+ *
  * This module extends Zod's functionality with custom methods that
  * add standardized descriptions to schema fields.
  */
 
 declare module 'zod' {
-  interface ZodType<Output, Def, Input> {
+  interface ZodType<> {
     /**
      * Adds a standard "do not make assumptions" instruction to the schema description
-     * 
+     *
      * @param customDescription Optional additional description to prepend
      * @returns The schema with updated description
      */
@@ -29,10 +29,10 @@ declare module 'zod' {
 /**
  * Implementation of the notAssumable extension method
  */
-z.ZodType.prototype.notAssumable = function(customDescription?: string) {
+z.ZodType.prototype.notAssumable = function (customDescription?: string) {
   const baseDescription = this.description || '';
   const notAssumableText = 'You must NOT make any assumptions about this value.';
-  
+
   let newDescription: string;
   if (customDescription) {
     newDescription = `${customDescription} ${notAssumableText}`;
@@ -41,7 +41,7 @@ z.ZodType.prototype.notAssumable = function(customDescription?: string) {
   } else {
     newDescription = notAssumableText;
   }
-  
+
   return this.describe(newDescription);
 };
 
