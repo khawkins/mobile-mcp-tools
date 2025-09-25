@@ -53,7 +53,8 @@ export class SFMobileNativeUserInputTriageTool extends AbstractWorkflowTool<
 
       **YOU MUST NOT PROCEED TO THE NEXT STEP UNTIL ALL REQUIRED FIELDS ARE COLLECTED.**
 
-      ALL required fields specified in the provided JSON schema MUST be present.
+      - ALL required fields specified in the provided JSON schema MUST be present.
+      - All required fields specified in the provided JSON schema MUST be confidently derived FROM USER INPUT. If the user did not provide the field value with high confidence, you MUST consider the field value UNFULFILLED.
 
       If ANY required fields are missing after analyzing the user input:
       
