@@ -6,70 +6,23 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
 import dedent from 'dedent';
-import { Tool } from '../../tool.js';
 import { MOBILE_SDK_TEMPLATES_PATH } from '../../../constants.js';
+import { Logger } from '../../../logging/logger.js';
+import { PROJECT_GENERATION_TOOL, ProjectGenerationWorkflowInput } from './metadata.js';
+import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
 
-// Input schema for the project generation tool
-const ProjectGenerationInputSchema = z.object({
-  selectedTemplate: z.string().describe('The template ID selected from template discovery'),
-  projectName: z.string().describe('Name for the mobile app project'),
-  platform: z.enum(['iOS', 'Android']).describe('Target mobile platform'),
-  packageName: z.string().describe('Package name for the mobile app (e.g., com.company.appname)'),
-  organization: z.string().describe('Organization name for the mobile app project'),
-  connectedAppClientId: z.string().describe('Connected App Client ID for OAuth configuration'),
-  connectedAppCallbackUri: z
-    .string()
-    .describe('Connected App Callback URI for OAuth configuration'),
-  loginHost: z
-    .string()
-    .optional()
-    .describe('Optional Salesforce login host URL (e.g., https://test.salesforce.com for sandbox)'),
-});
-
-type ProjectGenerationInput = z.infer<typeof ProjectGenerationInputSchema>;
-
-export class SfmobileNativeProjectGenerationTool implements Tool {
-  public readonly name = 'Salesforce Mobile Native Project Generation';
-  public readonly title = 'Salesforce Mobile Native Project Generation Guide';
-  public readonly toolId = 'sfmobile-native-project-generation';
-  public readonly description =
-    'Provides LLM instructions for generating a mobile app project from a selected template with OAuth configuration';
-  public readonly inputSchema = ProjectGenerationInputSchema;
-
-  public register(server: McpServer, annotations: ToolAnnotations): void {
-    const enhancedAnnotations = {
-      ...annotations,
-      title: this.title,
-      readOnlyHint: false, // Project generation modifies file system
-      destructiveHint: false, // Creates new projects but doesn't destroy existing files
-      idempotentHint: false, // Project creation modifies file system state
-      openWorldHint: true, // Interacts with CLI tools and file system
-    };
-
-    server.tool(
-      this.toolId,
-      this.description,
-      this.inputSchema.shape,
-      enhancedAnnotations,
-      this.handleRequest.bind(this)
-    );
+export class SFMobileNativeProjectGenerationTool extends AbstractWorkflowTool<
+  typeof PROJECT_GENERATION_TOOL
+> {
+  constructor(server: McpServer, logger?: Logger) {
+    super(server, PROJECT_GENERATION_TOOL, 'ProjectGenerationTool', logger);
   }
 
-  private async handleRequest(input: ProjectGenerationInput) {
+  public handleRequest = async (input: ProjectGenerationWorkflowInput) => {
     try {
       const guidance = this.generateProjectGenerationGuidance(input);
-
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: guidance,
-          },
-        ],
-      };
+      return this.finalizeWorkflowToolOutput(guidance, input.workflowStateData);
     } catch (error) {
       return {
         isError: true,
@@ -81,9 +34,9 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
         ],
       };
     }
-  }
+  };
 
-  private generateProjectGenerationGuidance(input: ProjectGenerationInput): string {
+  private generateProjectGenerationGuidance(input: ProjectGenerationWorkflowInput): string {
     return dedent`
       # Mobile App Project Generation Guide
 
@@ -111,7 +64,10 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
     `;
   }
 
-  private generateStepExecuteCliCommand(stepNumber: number, input: ProjectGenerationInput): string {
+  private generateStepExecuteCliCommand(
+    stepNumber: number,
+    input: ProjectGenerationWorkflowInput
+  ): string {
     const platformLower = input.platform.toLowerCase();
 
     return dedent`
@@ -131,7 +87,7 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
 
   private generateStepVerifyProjectStructure(
     stepNumber: number,
-    input: ProjectGenerationInput
+    input: ProjectGenerationWorkflowInput
   ): string {
     return dedent`
       ## Step ${stepNumber}: Verify Project Structure
@@ -147,7 +103,10 @@ export class SfmobileNativeProjectGenerationTool implements Tool {
     `;
   }
 
-  private generateStepConfigureOAuth(stepNumber: number, input: ProjectGenerationInput): string {
+  private generateStepConfigureOAuth(
+    stepNumber: number,
+    input: ProjectGenerationWorkflowInput
+  ): string {
     const { connectedAppClientId, connectedAppCallbackUri, loginHost } = input;
 
     return dedent`

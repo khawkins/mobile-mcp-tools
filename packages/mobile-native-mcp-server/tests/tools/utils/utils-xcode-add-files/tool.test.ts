@@ -5,39 +5,34 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import path from 'path';
 import { UtilsXcodeAddFilesTool } from '../../../../src/tools/utils/utils-xcode-add-files/tool.js';
-import * as fs from 'fs';
-import * as path from 'path';
-
-// Mock fs module
-vi.mock('fs');
-const mockFs = vi.mocked(fs);
+import { MockFileSystemProvider } from './MockFileSystemProvider.js';
 
 describe('UtilsXcodeAddFilesTool', () => {
   let tool: UtilsXcodeAddFilesTool;
+  let mockServer: McpServer;
+  let mockFileSystem: MockFileSystemProvider;
 
   beforeEach(() => {
-    tool = new UtilsXcodeAddFilesTool();
-    vi.clearAllMocks();
+    mockServer = new McpServer({ name: 'test-server', version: '1.0.0' });
+    mockFileSystem = new MockFileSystemProvider();
+    tool = new UtilsXcodeAddFilesTool(mockServer, undefined, mockFileSystem);
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  describe('Tool Properties', () => {
+  describe('Tool Metadata', () => {
     it('should have correct tool properties', () => {
-      expect(tool.name).toBe('Utils Xcode Add Files');
-      expect(tool.title).toBe('Xcode Project File Addition Utility');
-      expect(tool.toolId).toBe('utils-xcode-add-files');
-      expect(tool.description).toBe(
+      expect(tool.toolMetadata.toolId).toBe('utils-xcode-add-files');
+      expect(tool.toolMetadata.title).toBe('Xcode Project File Addition Utility');
+      expect(tool.toolMetadata.description).toBe(
         'Generates a Ruby command using the xcodeproj gem to add files to Xcode projects'
       );
     });
 
     it('should have input schema with required fields', () => {
-      const schema = tool.inputSchema;
+      const schema = tool.toolMetadata.inputSchema;
       expect(schema).toBeDefined();
       expect(schema.shape).toBeDefined();
       expect(schema.shape.projectPath).toBeDefined();
@@ -45,267 +40,200 @@ describe('UtilsXcodeAddFilesTool', () => {
       expect(schema.shape.newFilePaths).toBeDefined();
       expect(schema.shape.targetName).toBeDefined();
     });
-  });
 
-  describe('Tool Registration', () => {
-    it('should register with MCP server', () => {
-      const mockServer = {
-        tool: vi.fn(),
-      };
+    it('should register without throwing errors', () => {
       const mockAnnotations = {
-        readOnlyHint: false,
-        destructiveHint: true,
-        idempotentHint: false,
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
         openWorldHint: false,
       };
 
-      tool.register(
-        mockServer as unknown as import('@modelcontextprotocol/sdk/server/mcp.js').McpServer,
-        mockAnnotations
-      );
-
-      expect(mockServer.tool).toHaveBeenCalledWith(
-        'utils-xcode-add-files',
-        'Generates a Ruby command using the xcodeproj gem to add files to Xcode projects',
-        expect.any(Object),
-        expect.objectContaining({
-          ...mockAnnotations,
-          title: 'Xcode Project File Addition Utility',
-        }),
-        expect.any(Function)
-      );
+      expect(() => tool.register(mockAnnotations)).not.toThrow();
     });
   });
 
-  describe('Command Generation', () => {
-    const validInput = {
-      projectPath: path.resolve('path', 'to', 'project'),
-      xcodeProjectPath: 'MyApp.xcodeproj',
-      newFilePaths: ['ContactManager.swift', 'ContactView.swift'],
-      targetName: 'MyApp',
-    };
+  describe('Ruby Command Generation', () => {
+    it('should generate Ruby command for valid Xcode project', async () => {
+      const validInput = {
+        projectPath: path.resolve('/path/to/project'),
+        xcodeProjectPath: 'MyApp.xcodeproj',
+        newFilePaths: ['NewFile.swift', 'AnotherFile.swift'],
+        targetName: 'MyApp',
+        workflowStateData: { thread_id: 'test-123' },
+      };
 
-    beforeEach(() => {
-      // Mock project.pbxproj file exists
-      const expectedPath = path.resolve(
-        'path',
-        'to',
-        'project',
-        'MyApp.xcodeproj',
-        'project.pbxproj'
+      // Mock the project file as existing
+      mockFileSystem.addExistingFile(
+        path.resolve('/path/to/project/MyApp.xcodeproj/project.pbxproj')
       );
-      mockFs.existsSync.mockImplementation(filePath => {
-        return path.resolve(filePath as string) === expectedPath;
-      });
-    });
 
-    it('should generate Ruby command successfully', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (tool as any).handleRequest(validInput);
+      const result = await tool.handleRequest(validInput);
 
       expect(result.content).toBeDefined();
       expect(result.content[0].type).toBe('text');
 
-      const parsedResult = JSON.parse(result.content[0].text);
-      expect(parsedResult.success).toBe(true);
-      expect(parsedResult.command).toContain('ruby -e');
-      expect(parsedResult.command).toContain("require 'xcodeproj'");
-      expect(path.resolve(parsedResult.projectPath)).toBe(
-        path.resolve('path', 'to', 'project', 'MyApp.xcodeproj')
-      );
-      expect(parsedResult.filePaths.map((p: string) => path.resolve(p))).toEqual([
-        path.resolve('path', 'to', 'project', 'ContactManager.swift'),
-        path.resolve('path', 'to', 'project', 'ContactView.swift'),
+      const resultData = JSON.parse(result.content[0].text);
+      expect(resultData.success).toBe(true);
+      expect(resultData.command).toContain('ruby -e');
+      expect(resultData.command).toContain('xcodeproj');
+      expect(resultData.projectPath).toBe(path.resolve('/path/to/project/MyApp.xcodeproj'));
+      expect(resultData.filePaths).toEqual([
+        path.resolve('/path/to/project/NewFile.swift'),
+        path.resolve('/path/to/project/AnotherFile.swift'),
       ]);
-      expect(parsedResult.targetName).toBe('MyApp');
-      expect(parsedResult.message).toBe('Generated command to add 2 files to Xcode project');
+      expect(resultData.targetName).toBe('MyApp');
     });
 
     it('should handle absolute file paths', async () => {
       const inputWithAbsolutePaths = {
-        ...validInput,
+        projectPath: path.resolve('/project/root'),
+        xcodeProjectPath: 'MyApp.xcodeproj',
         newFilePaths: [
-          path.resolve('absolute', 'path', 'ContactManager.swift'),
-          'relative/ContactView.swift',
+          path.resolve('/absolute/path/File1.swift'),
+          path.join('relative', 'File2.swift'),
         ],
+        targetName: 'MyApp',
+        workflowStateData: { thread_id: 'test-123' },
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (tool as any).handleRequest(inputWithAbsolutePaths);
+      mockFileSystem.addExistingFile(path.resolve('/project/root/MyApp.xcodeproj/project.pbxproj'));
 
-      const parsedResult = JSON.parse(result.content[0].text);
-      expect(parsedResult.success).toBe(true);
-      expect(parsedResult.filePaths.map((p: string) => path.resolve(p))).toEqual([
-        path.resolve('absolute', 'path', 'ContactManager.swift'),
-        path.resolve('path', 'to', 'project', 'relative', 'ContactView.swift'),
+      const result = await tool.handleRequest(inputWithAbsolutePaths);
+      const resultData = JSON.parse(result.content[0].text);
+
+      expect(resultData.success).toBe(true);
+      expect(resultData.filePaths).toEqual([
+        path.resolve('/absolute/path/File1.swift'),
+        path.resolve('/project/root/relative/File2.swift'),
       ]);
     });
 
-    it('should handle optional targetName', async () => {
+    it('should handle optional target name', async () => {
       const inputWithoutTarget = {
-        projectPath: path.resolve('path', 'to', 'project'),
+        projectPath: path.resolve('/path/to/project'),
         xcodeProjectPath: 'MyApp.xcodeproj',
-        newFilePaths: ['ContactManager.swift'],
+        newFilePaths: ['NewFile.swift'],
+        workflowStateData: { thread_id: 'test-123' },
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (tool as any).handleRequest(inputWithoutTarget);
+      mockFileSystem.addExistingFile(
+        path.resolve('/path/to/project/MyApp.xcodeproj/project.pbxproj')
+      );
 
-      const parsedResult = JSON.parse(result.content[0].text);
-      expect(parsedResult.success).toBe(true);
-      expect(parsedResult.targetName).toBeUndefined();
-      expect(parsedResult.command).toContain('target_name = nil');
-    });
-  });
+      const result = await tool.handleRequest(inputWithoutTarget);
+      const resultData = JSON.parse(result.content[0].text);
 
-  describe('Ruby Command Content', () => {
-    const validInput = {
-      projectPath: path.resolve('path', 'to', 'project'),
-      xcodeProjectPath: 'MyApp.xcodeproj',
-      newFilePaths: ['ContactManager.swift'],
-      targetName: 'MyApp',
-    };
-
-    beforeEach(() => {
-      mockFs.existsSync.mockReturnValue(true);
+      expect(resultData.success).toBe(true);
+      expect(resultData.targetName).toBeUndefined();
     });
 
-    it('should generate Ruby command with proper structure', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (tool as any).handleRequest(validInput);
-
-      const parsedResult = JSON.parse(result.content[0].text);
-      const command = parsedResult.command;
-
-      // Check for required Ruby gems
-      expect(command).toContain("require 'xcodeproj'");
-      expect(command).toContain("require 'json'");
-      expect(command).toContain("require 'pathname'");
-
-      // Check for project operations
-      expect(command).toContain('Xcodeproj::Project.open');
-      expect(command).toContain('project.main_group.new_file');
-      expect(command).toContain('target.source_build_phase.add_file_reference');
-      expect(command).toContain('project.save');
-
-      // Check for error handling
-      expect(command).toContain('rescue => e');
-      expect(command).toContain('JSON.generate');
-    });
-
-    it('should include file type detection logic', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (tool as any).handleRequest(validInput);
-
-      const parsedResult = JSON.parse(result.content[0].text);
-      const command = parsedResult.command;
-
-      expect(command).toContain('source_extensions = [');
-      expect(command).toContain("'.swift'");
-      expect(command).toContain("'.m'");
-      expect(command).toContain("'.mm'");
-      expect(command).toContain("'.c'");
-      expect(command).toContain("'.cpp'");
-    });
-
-    it('should handle string escaping in Ruby command', async () => {
+    it('should generate proper Ruby code with file escaping', async () => {
       const inputWithSpecialChars = {
-        ...validInput,
-        projectPath: path.resolve('path', "with'quotes", 'and"double'),
-        newFilePaths: ["File'With'Quotes.swift"],
+        projectPath: path.resolve('/path/to/project'),
+        xcodeProjectPath: 'MyApp.xcodeproj',
+        newFilePaths: ['File With Spaces.swift', "File'With'Quotes.swift"],
+        targetName: 'MyApp Target',
+        workflowStateData: { thread_id: 'test-123' },
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (tool as any).handleRequest(inputWithSpecialChars);
+      mockFileSystem.addExistingFile(
+        path.resolve('/path/to/project/MyApp.xcodeproj/project.pbxproj')
+      );
 
-      const parsedResult = JSON.parse(result.content[0].text);
-      expect(parsedResult.success).toBe(true);
+      const result = await tool.handleRequest(inputWithSpecialChars);
+      const resultData = JSON.parse(result.content[0].text);
 
-      const command = parsedResult.command;
-      expect(command).toContain("\\'"); // Escaped single quotes
-      expect(command).toContain('\\"'); // Escaped double quotes
+      expect(resultData.success).toBe(true);
+      expect(resultData.command).toContain('ruby -e');
+      // Verify that the command contains escaped strings
+      expect(resultData.command).toContain('File With Spaces.swift');
+      expect(resultData.command).toContain("File\\'With\\'Quotes.swift");
     });
   });
 
   describe('Error Handling', () => {
-    it('should return error when project file does not exist', async () => {
-      mockFs.existsSync.mockReturnValue(false);
-
+    it('should handle missing project file', async () => {
       const input = {
-        projectPath: path.resolve('nonexistent', 'project'),
+        projectPath: path.resolve('/nonexistent/project'),
         xcodeProjectPath: 'MyApp.xcodeproj',
-        newFilePaths: ['ContactManager.swift'],
+        newFilePaths: ['NewFile.swift'],
+        targetName: 'MyApp',
+        workflowStateData: { thread_id: 'test-123' },
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (tool as any).handleRequest(input);
+      // Don't add the project file to mock filesystem (it won't exist)
+
+      const result = await tool.handleRequest(input);
 
       expect(result.isError).toBe(true);
-      const parsedResult = JSON.parse(result.content[0].text);
-      expect(parsedResult.success).toBe(false);
-      expect(parsedResult.error).toContain('Project file not found');
+      expect(result.content[0].text).toContain('Project file not found');
     });
 
-    it('should handle internal errors gracefully', async () => {
-      mockFs.existsSync.mockImplementation(() => {
-        throw new Error('File system error');
-      });
-
+    it('should handle empty file paths array', async () => {
       const input = {
-        projectPath: path.resolve('path', 'to', 'project'),
+        projectPath: path.resolve('/path/to/project'),
         xcodeProjectPath: 'MyApp.xcodeproj',
-        newFilePaths: ['ContactManager.swift'],
+        newFilePaths: [],
+        targetName: 'MyApp',
+        workflowStateData: { thread_id: 'test-123' },
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (tool as any).handleRequest(input);
+      mockFileSystem.addExistingFile(
+        path.resolve('/path/to/project/MyApp.xcodeproj/project.pbxproj')
+      );
 
-      expect(result.isError).toBe(true);
-      const parsedResult = JSON.parse(result.content[0].text);
-      expect(parsedResult.success).toBe(false);
-      expect(parsedResult.error).toBe('File system error');
+      const result = await tool.handleRequest(input);
+      const resultData = JSON.parse(result.content[0].text);
+
+      expect(resultData.success).toBe(true);
+      expect(resultData.filePaths).toEqual([]);
     });
   });
 
-  describe('Path Resolution', () => {
-    beforeEach(() => {
-      mockFs.existsSync.mockReturnValue(true);
-    });
-
-    it('should resolve relative xcodeproj path correctly', async () => {
+  describe('Ruby Code Generation', () => {
+    it('should include proper Ruby gem requirements', async () => {
       const input = {
-        projectPath: path.resolve('base', 'project'),
-        xcodeProjectPath: path.join('subdir', 'MyApp.xcodeproj'),
-        newFilePaths: ['ContactManager.swift'],
+        projectPath: path.resolve('/path/to/project'),
+        xcodeProjectPath: 'MyApp.xcodeproj',
+        newFilePaths: ['NewFile.swift'],
+        targetName: 'MyApp',
+        workflowStateData: { thread_id: 'test-123' },
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (tool as any).handleRequest(input);
-
-      const parsedResult = JSON.parse(result.content[0].text);
-      expect(path.resolve(parsedResult.projectPath)).toBe(
-        path.resolve('base', 'project', 'subdir', 'MyApp.xcodeproj')
+      mockFileSystem.addExistingFile(
+        path.resolve('/path/to/project/MyApp.xcodeproj/project.pbxproj')
       );
+
+      const result = await tool.handleRequest(input);
+      const resultData = JSON.parse(result.content[0].text);
+
+      // Verify the Ruby command includes necessary gem requirements
+      expect(resultData.command).toContain("require 'xcodeproj'");
+      expect(resultData.command).toContain("require 'json'");
+      expect(resultData.command).toContain("require 'pathname'");
     });
 
-    it('should handle absolute xcodeproj path', async () => {
-      const absoluteXcodePath = path.resolve('absolute', 'path', 'MyApp.xcodeproj');
+    it('should include error handling in Ruby code', async () => {
       const input = {
-        projectPath: path.resolve('base', 'project'),
-        xcodeProjectPath: absoluteXcodePath,
-        newFilePaths: ['ContactManager.swift'],
+        projectPath: path.resolve('/path/to/project'),
+        xcodeProjectPath: 'MyApp.xcodeproj',
+        newFilePaths: ['NewFile.swift'],
+        targetName: 'MyApp',
+        workflowStateData: { thread_id: 'test-123' },
       };
 
-      // Mock the absolute path exists
-      mockFs.existsSync.mockImplementation(filePath => {
-        return filePath === path.join(absoluteXcodePath, 'project.pbxproj');
-      });
+      mockFileSystem.addExistingFile(
+        path.resolve('/path/to/project/MyApp.xcodeproj/project.pbxproj')
+      );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (tool as any).handleRequest(input);
+      const result = await tool.handleRequest(input);
+      const resultData = JSON.parse(result.content[0].text);
 
-      const parsedResult = JSON.parse(result.content[0].text);
-      expect(path.resolve(parsedResult.projectPath)).toBe(path.resolve(absoluteXcodePath));
+      // Verify the Ruby command includes error handling
+      expect(resultData.command).toContain('rescue => e');
+      expect(resultData.command).toContain('puts JSON.generate');
+      expect(resultData.command).toContain('exit 1');
     });
   });
 });

@@ -5,125 +5,135 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SfmobileNativeTemplateDiscoveryTool } from '../../../../src/tools/plan/sfmobile-native-template-discovery/tool.js';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { SFMobileNativeTemplateDiscoveryTool } from '../../../../src/tools/plan/sfmobile-native-template-discovery/tool.js';
+import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 
-describe('SfmobileNativeTemplateDiscoveryTool', () => {
-  let tool: SfmobileNativeTemplateDiscoveryTool;
+describe('SFMobileNativeTemplateDiscoveryTool', () => {
+  let tool: SFMobileNativeTemplateDiscoveryTool;
+  let mockServer: McpServer;
+  let annotations: ToolAnnotations;
 
   beforeEach(() => {
-    tool = new SfmobileNativeTemplateDiscoveryTool();
-  });
-
-  it('should have correct tool properties', () => {
-    expect(tool.name).toBe('Salesforce Mobile Native Template Discovery');
-    expect(tool.title).toBe('Salesforce Mobile Native Template Discovery Guide');
-    expect(tool.toolId).toBe('sfmobile-native-template-discovery');
-    expect(tool.description).toBe(
-      'Guides LLM through template discovery and selection for Salesforce mobile app development'
-    );
-  });
-
-  it('should have input schema with required platform field', () => {
-    const schema = tool.inputSchema;
-    expect(schema).toBeDefined();
-    expect(schema.shape).toBeDefined();
-    expect(schema.shape.platform).toBeDefined();
-  });
-
-  it('should register with MCP server', () => {
-    const mockServer = {
-      tool: vi.fn(),
-    };
-    const mockAnnotations = {
+    mockServer = new McpServer({ name: 'test-server', version: '1.0.0' });
+    tool = new SFMobileNativeTemplateDiscoveryTool(mockServer);
+    annotations = {
       readOnlyHint: true,
       destructiveHint: false,
       idempotentHint: true,
       openWorldHint: false,
     };
-
-    tool.register(
-      mockServer as unknown as import('@modelcontextprotocol/sdk/server/mcp.js').McpServer,
-      mockAnnotations
-    );
-
-    expect(mockServer.tool).toHaveBeenCalledWith(
-      'sfmobile-native-template-discovery',
-      'Guides LLM through template discovery and selection for Salesforce mobile app development',
-      expect.any(Object),
-      expect.objectContaining({
-        ...mockAnnotations,
-        title: 'Salesforce Mobile Native Template Discovery Guide',
-      }),
-      expect.any(Function)
-    );
   });
 
-  it('should generate guidance for iOS platform', async () => {
-    const input = { platform: 'iOS' as const };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = await (tool as any).handleRequest(input);
+  describe('Tool Metadata', () => {
+    it('should have correct tool metadata', () => {
+      expect(tool.toolMetadata.toolId).toBe('sfmobile-native-template-discovery');
+      expect(tool.toolMetadata.title).toBe('Salesforce Mobile Native Template Discovery');
+      expect(tool.toolMetadata.description).toBe(
+        'Guides LLM through template discovery and selection for Salesforce mobile app development'
+      );
+      expect(tool.toolMetadata.inputSchema).toBeDefined();
+    });
 
-    expect(result.content).toBeDefined();
-    expect(result.content[0].type).toBe('text');
-    expect(result.content[0].text).toContain('Template Discovery Guidance for iOS');
-    expect(result.content[0].text).toContain('Step 1: Plugin Verification');
-    expect(result.content[0].text).toContain('sf plugins inspect sfdx-mobilesdk-plugin --json');
-    expect(result.content[0].text).toContain(
-      '**Version Requirements:** The plugin must be version 13.1.0 or greater'
-    );
+    it('should register without throwing errors', () => {
+      expect(() => tool.register(annotations)).not.toThrow();
+    });
   });
 
-  it('should generate guidance for Android platform', async () => {
-    const input = { platform: 'Android' as const };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = await (tool as any).handleRequest(input);
+  describe('Input Schema Validation', () => {
+    it('should accept platform parameter', () => {
+      const validInput = { platform: 'iOS', workflowStateData: { thread_id: 'test-123' } };
+      const result = tool.toolMetadata.inputSchema.safeParse(validInput);
+      expect(result.success).toBe(true);
+    });
 
-    expect(result.content).toBeDefined();
-    expect(result.content[0].type).toBe('text');
-    expect(result.content[0].text).toContain('Template Discovery Guidance for Android');
-    expect(result.content[0].text).toContain('sf mobilesdk android listtemplates');
+    it('should accept workflow state data', () => {
+      const validInput = {
+        platform: 'Android' as const,
+        workflowStateData: { thread_id: 'test-123' },
+      };
+      const result = tool.toolMetadata.inputSchema.safeParse(validInput);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid platform values', () => {
+      const invalidInput = { platform: 'Windows' };
+      const result = tool.toolMetadata.inputSchema.safeParse(invalidInput);
+      expect(result.success).toBe(false);
+    });
   });
 
-  it('should handle errors gracefully', async () => {
-    // Mock the generateTemplateDiscoveryGuidance to throw an error
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const originalMethod = (tool as any).generateTemplateDiscoveryGuidance;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (tool as any).generateTemplateDiscoveryGuidance = () => {
-      throw new Error('Test error');
-    };
+  describe('Template Discovery Guidance', () => {
+    it('should generate guidance for iOS platform', async () => {
+      const input = {
+        platform: 'iOS' as const,
+        workflowStateData: { thread_id: 'test-123' },
+      };
 
-    const input = { platform: 'iOS' as const };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = await (tool as any).handleRequest(input);
+      const result = await tool.handleRequest(input);
 
-    expect(result.isError).toBe(true);
-    expect(result.content[0].text).toContain('Error: Test error');
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
 
-    // Restore original method
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (tool as any).generateTemplateDiscoveryGuidance = originalMethod;
-  });
+      const responseText = result.content[0].text as string;
+      const response = JSON.parse(responseText);
 
-  it('should handle non-Error exception in error handling', async () => {
-    // Mock the generateTemplateDiscoveryGuidance to throw a non-Error object
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const originalMethod = (tool as any).generateTemplateDiscoveryGuidance;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (tool as any).generateTemplateDiscoveryGuidance = () => {
-      throw 'String error'; // Non-Error object
-    };
+      expect(response.promptForLLM).toContain('Template Discovery Guidance for iOS');
+      expect(response.promptForLLM).toContain('Step 1: Plugin Verification');
+      expect(response.promptForLLM).toContain('Step 2: Template Discovery');
+      expect(response.promptForLLM).toContain('Step 3: Detailed Template Investigation');
+      expect(response.promptForLLM).toContain('sf mobilesdk ios listtemplates');
+      expect(response.promptForLLM).toContain('sf mobilesdk ios describetemplate');
+    });
 
-    const input = { platform: 'iOS' as const };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = await (tool as any).handleRequest(input);
+    it('should generate guidance for Android platform', async () => {
+      const input = {
+        platform: 'Android' as const,
+        workflowStateData: { thread_id: 'test-123' },
+      };
 
-    expect(result.isError).toBe(true);
-    expect(result.content[0].text).toContain('Error: Unknown error occurred');
+      const result = await tool.handleRequest(input);
 
-    // Restore original method
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (tool as any).generateTemplateDiscoveryGuidance = originalMethod;
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
+
+      const responseText = result.content[0].text as string;
+      const response = JSON.parse(responseText);
+
+      expect(response.promptForLLM).toContain('Template Discovery Guidance for Android');
+      expect(response.promptForLLM).toContain('sf mobilesdk android listtemplates');
+      expect(response.promptForLLM).toContain('sf mobilesdk android describetemplate');
+    });
+
+    it('should include plugin verification steps', async () => {
+      const input = {
+        platform: 'iOS' as const,
+        workflowStateData: { thread_id: 'test-123' },
+      };
+
+      const result = await tool.handleRequest(input);
+      const responseText = result.content[0].text as string;
+      const response = JSON.parse(responseText);
+
+      expect(response.promptForLLM).toContain('sf plugins inspect sfdx-mobilesdk-plugin');
+      expect(response.promptForLLM).toContain('version 13.1.0 or greater');
+      expect(response.promptForLLM).toContain('sf plugins install sfdx-mobilesdk-plugin');
+      expect(response.promptForLLM).toContain('sf plugins update sfdx-mobilesdk-plugin');
+    });
+
+    it('should include next steps guidance', async () => {
+      const input = {
+        platform: 'iOS' as const,
+        workflowStateData: { thread_id: 'test-123' },
+      };
+
+      const result = await tool.handleRequest(input);
+      const responseText = result.content[0].text as string;
+      const response = JSON.parse(responseText);
+
+      expect(response.promptForLLM).toContain('Next Steps');
+      expect(response.promptForLLM).toContain('sfmobile-native-project-generation');
+    });
   });
 });

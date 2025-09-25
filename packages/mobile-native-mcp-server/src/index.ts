@@ -9,11 +9,13 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { SfmobileNativeTemplateDiscoveryTool } from './tools/plan/sfmobile-native-template-discovery/tool.js';
+import { SFMobileNativeUserInputTriageTool } from './tools/plan/sfmobile-native-user-input-triage/tool.js';
+import { SFMobileNativeTemplateDiscoveryTool } from './tools/plan/sfmobile-native-template-discovery/tool.js';
 import { UtilsXcodeAddFilesTool } from './tools/utils/utils-xcode-add-files/tool.js';
-import { SfmobileNativeDeploymentTool } from './tools/run/sfmobile-native-deployment/tool.js';
-import { SfmobileNativeBuildTool } from './tools/plan/sfmobile-native-build/tool.js';
-import { SfmobileNativeProjectGenerationTool } from './tools/plan/sfmobile-native-project-generation/tool.js';
+import { SFMobileNativeDeploymentTool } from './tools/run/sfmobile-native-deployment/tool.js';
+import { SFMobileNativeBuildTool } from './tools/plan/sfmobile-native-build/tool.js';
+import { SFMobileNativeProjectGenerationTool } from './tools/plan/sfmobile-native-project-generation/tool.js';
+import { MobileNativeOrchestrator } from './tools/workflow/sfmobile-native-project-manager/tool.js';
 
 import packageJson from '../package.json' with { type: 'json' };
 const version = packageJson.version;
@@ -24,7 +26,7 @@ const server = new McpServer({
   version,
 });
 
-// Define annotations for read-only tools
+// Define annotations for different tool types
 const readOnlyAnnotations: ToolAnnotations = {
   readOnlyHint: true,
   destructiveHint: false,
@@ -32,17 +34,32 @@ const readOnlyAnnotations: ToolAnnotations = {
   openWorldHint: false,
 };
 
-// Tools will be added here when implemented
-const tools = [
-  new SfmobileNativeTemplateDiscoveryTool(),
-  new SfmobileNativeProjectGenerationTool(),
-  new SfmobileNativeBuildTool(),
-  new SfmobileNativeDeploymentTool(),
-  new UtilsXcodeAddFilesTool(),
-];
+const orchestratorAnnotations: ToolAnnotations = {
+  readOnlyHint: false,
+  destructiveHint: false,
+  idempotentHint: false,
+  openWorldHint: true,
+};
 
-// Register all tools with appropriate annotations
-tools.forEach(tool => tool.register(server, readOnlyAnnotations));
+// Initialize tools
+const orchestrator = new MobileNativeOrchestrator(server);
+const userInputTriageTool = new SFMobileNativeUserInputTriageTool(server);
+const templateDiscoveryTool = new SFMobileNativeTemplateDiscoveryTool(server);
+const projectGenerationTool = new SFMobileNativeProjectGenerationTool(server);
+const buildTool = new SFMobileNativeBuildTool(server);
+const deploymentTool = new SFMobileNativeDeploymentTool(server);
+const xcodeAddFilesTool = new UtilsXcodeAddFilesTool(server);
+
+// Register orchestrator with specific annotations
+orchestrator.register(orchestratorAnnotations);
+
+// Register all other tools with read-only annotations
+userInputTriageTool.register(readOnlyAnnotations);
+templateDiscoveryTool.register(readOnlyAnnotations);
+projectGenerationTool.register(readOnlyAnnotations);
+buildTool.register(readOnlyAnnotations);
+deploymentTool.register(readOnlyAnnotations);
+xcodeAddFilesTool.register(readOnlyAnnotations);
 
 export default server;
 

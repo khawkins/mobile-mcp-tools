@@ -46,13 +46,15 @@ export default tseslint.config(
       'prettier/prettier': 'error',
     },
   },
-  // Configuration for TypeScript files
+  ...evaluationConfig,
+  // TypeScript configuration - works both from root and package directories
   {
     files: [
-      'packages/mobile-web/src/**/*.ts',
-      'packages/project-maintenance-utilities/src/**/*.ts',
-      'packages/evaluation/src/**/*.ts',
-      'packages/mobile-native-mcp-server/src/**/*.ts',
+      'packages/mobile-web/{src,tests}/**/*.ts',
+      'packages/project-maintenance-utilities/{src,tests}/**/*.ts',
+      'packages/evaluation/{src,tests}/**/*.ts',
+      'packages/mobile-native-mcp-server/{src,tests}/**/*.ts',
+      '{src,tests}/**/*.ts', // For when running from package directories
     ],
     plugins: {
       prettier: prettier,
@@ -64,6 +66,5 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
-  },
-  ...evaluationConfig
+  }
 );

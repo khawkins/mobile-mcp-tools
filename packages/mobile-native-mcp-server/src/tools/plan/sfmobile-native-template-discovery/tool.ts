@@ -6,54 +6,24 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
-import { Tool } from '../../tool.js';
-import { MOBILE_SDK_TEMPLATES_PATH } from '../../../constants.js';
 import dedent from 'dedent';
+import { MOBILE_SDK_TEMPLATES_PATH } from '../../../constants.js';
+import { Logger } from '../../../logging/logger.js';
+import { TEMPLATE_DISCOVERY_TOOL, TemplateDiscoveryWorkflowInput } from './metadata.js';
+import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
 
-// Input schema for the template discovery tool
-const TemplateDiscoveryInputSchema = z.object({
-  platform: z.enum(['iOS', 'Android']).describe('Target mobile platform'),
-});
-
-type TemplateDiscoveryInput = z.infer<typeof TemplateDiscoveryInputSchema>;
-
-export class SfmobileNativeTemplateDiscoveryTool implements Tool {
-  public readonly name = 'Salesforce Mobile Native Template Discovery';
-  public readonly title = 'Salesforce Mobile Native Template Discovery Guide';
-  public readonly toolId = 'sfmobile-native-template-discovery';
-  public readonly description =
-    'Guides LLM through template discovery and selection for Salesforce mobile app development';
-  public readonly inputSchema = TemplateDiscoveryInputSchema;
-
-  public register(server: McpServer, annotations: ToolAnnotations): void {
-    const enhancedAnnotations = {
-      ...annotations,
-      title: this.title,
-    };
-
-    server.tool(
-      this.toolId,
-      this.description,
-      this.inputSchema.shape,
-      enhancedAnnotations,
-      this.handleRequest.bind(this)
-    );
+export class SFMobileNativeTemplateDiscoveryTool extends AbstractWorkflowTool<
+  typeof TEMPLATE_DISCOVERY_TOOL
+> {
+  constructor(server: McpServer, logger?: Logger) {
+    super(server, TEMPLATE_DISCOVERY_TOOL, 'TemplateDiscoveryTool', logger);
   }
 
-  private async handleRequest(input: TemplateDiscoveryInput) {
+  public handleRequest = async (input: TemplateDiscoveryWorkflowInput) => {
     try {
       const guidance = this.generateTemplateDiscoveryGuidance(input);
 
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: guidance,
-          },
-        ],
-      };
+      return this.finalizeWorkflowToolOutput(guidance, input.workflowStateData);
     } catch (error) {
       return {
         isError: true,
@@ -65,9 +35,9 @@ export class SfmobileNativeTemplateDiscoveryTool implements Tool {
         ],
       };
     }
-  }
+  };
 
-  private generateTemplateDiscoveryGuidance(input: TemplateDiscoveryInput): string {
+  private generateTemplateDiscoveryGuidance(input: TemplateDiscoveryWorkflowInput): string {
     return dedent`
       # Template Discovery Guidance for ${input.platform}
 
@@ -111,7 +81,10 @@ export class SfmobileNativeTemplateDiscoveryTool implements Tool {
     `;
   }
 
-  private generateTemplateDiscoveryStep(stepNumber: number, input: TemplateDiscoveryInput): string {
+  private generateTemplateDiscoveryStep(
+    stepNumber: number,
+    input: TemplateDiscoveryWorkflowInput
+  ): string {
     const platformLower = input.platform.toLowerCase();
 
     return dedent`
@@ -137,7 +110,7 @@ export class SfmobileNativeTemplateDiscoveryTool implements Tool {
 
   private generateDetailedInvestigationStep(
     stepNumber: number,
-    input: TemplateDiscoveryInput
+    input: TemplateDiscoveryWorkflowInput
   ): string {
     const platformLower = input.platform.toLowerCase();
 

@@ -123,7 +123,7 @@ export class OfflineAnalysisTool implements Tool {
 
     for (const violation of messages) {
       const { ruleId, line, column, endLine, endColumn } = violation;
-      const ruleReviewer = this.ruleReviewers[ruleId];
+      const ruleReviewer = this.ruleReviewers[ruleId!];
 
       if (ruleReviewer) {
         const issue: CodeAnalysisIssueType = {
@@ -131,7 +131,7 @@ export class OfflineAnalysisTool implements Tool {
           description: ruleReviewer.description,
           intentAnalysis: ruleReviewer.intentAnalysis,
           suggestedAction: ruleReviewer.suggestedAction,
-          code: this.extractCodeSnippet(code, line, endLine),
+          code: this.extractCodeSnippet(code, line, endLine!),
           location: {
             startLine: line,
             startColumn: column,

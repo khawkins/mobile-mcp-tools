@@ -1,52 +1,29 @@
-import { Tool } from '../../tool.js';
-import { z } from 'zod';
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
+
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import dedent from 'dedent';
-import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
+import { Logger } from '../../../logging/logger.js';
+import { BUILD_TOOL, BuildWorkflowInput } from './metadata.js';
+import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
 
-const BuildInputSchema = z.object({
-  platform: z.enum(['iOS', 'Android']).describe('Target mobile platform'),
-  projectPath: z.string().describe('Path to the project'),
-});
-
-type BuildInput = z.infer<typeof BuildInputSchema>;
-
-export class SfmobileNativeBuildTool implements Tool {
-  readonly name = 'Salesforce Mobile App Build Tool';
-  readonly title = 'Salesforce Mobile app build guide';
-  readonly description =
-    'Guides LLM through the process of building a Salesforce mobile app with target platform';
-  public readonly toolId = 'sfmobile-native-build';
-  readonly inputSchema = BuildInputSchema;
-  readonly outputSchema = z.object({});
-
-  public register(server: McpServer, annotations: ToolAnnotations): void {
-    server.tool(
-      this.toolId,
-      this.description,
-      this.inputSchema.shape,
-      {
-        ...annotations,
-        title: this.title,
-      },
-      this.handleRequest.bind(this)
-    );
+export class SFMobileNativeBuildTool extends AbstractWorkflowTool<typeof BUILD_TOOL> {
+  constructor(server: McpServer, logger?: Logger) {
+    super(server, BUILD_TOOL, 'BuildTool', logger);
   }
 
-  private async handleRequest(input: BuildInput) {
+  public handleRequest = async (input: BuildWorkflowInput) => {
     const guidance = this.generateBuildGuidance(input);
 
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: guidance,
-        },
-      ],
-    };
-  }
+    const finalOutput = this.finalizeWorkflowToolOutput(guidance, input.workflowStateData);
+    return finalOutput;
+  };
 
-  private generateBuildGuidance(input: BuildInput) {
+  private generateBuildGuidance(input: BuildWorkflowInput) {
     return dedent`
      You are a tech-adept agent acting on behalf of a user who is not familiar with the technical details of MSDK development. 
      Carry out the steps in the following guideline for them, and share the key outcomes they need to know.

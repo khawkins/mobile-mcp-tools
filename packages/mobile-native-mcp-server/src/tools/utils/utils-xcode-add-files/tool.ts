@@ -5,39 +5,20 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
+// TODO: This tool needs further consideration for our server tool design pattern. It's basically
+// wired up to the data structures, but has no LLM exeuction prompt and is in need of
+// consideration for how that should be implemented.
+
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
-import { Tool } from '../../tool.js';
-import * as fs from 'fs';
-import * as path from 'path';
 import dedent from 'dedent';
-
-// Input schema for the Xcode file addition tool
-const XcodeAddFilesInputSchema = z.object({
-  projectPath: z.string().describe('Absolute path to the Xcode project directory'),
-  xcodeProjectPath: z.string().describe('Path to the .xcodeproj file (e.g., "MyApp.xcodeproj")'),
-  newFilePaths: z
-    .array(z.string())
-    .describe('Array of newly created file paths relative to project root'),
-  targetName: z
-    .string()
-    .optional()
-    .describe('Optional: specific target to add files to (defaults to main app target)'),
-});
-
-type XcodeAddFilesInput = z.infer<typeof XcodeAddFilesInputSchema>;
-
-// Output schema for the Xcode file addition tool
-const XcodeAddFilesOutputSchema = z.object({
-  success: z.boolean().describe('Whether the command generation was successful'),
-  command: z.string().describe('The Ruby command to execute using xcodeproj gem'),
-  projectPath: z.string().describe('The project path that was processed'),
-  filePaths: z.array(z.string()).describe('Array of file paths that were processed'),
-  targetName: z.string().optional().describe('Target name if specified'),
-  message: z.string().describe('Success or informational message'),
-  error: z.string().optional().describe('Error message if operation failed'),
-});
+import * as path from 'path';
+import { Logger } from '../../../logging/logger.js';
+import { XCODE_ADD_FILES_TOOL, XcodeAddFilesWorkflowInput } from './metadata.js';
+import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
+import {
+  FileSystemProvider,
+  defaultFileSystemProvider,
+} from '../../../utils/FileSystemProvider.js';
 
 interface XcodeAddFilesResult {
   success: boolean;
@@ -49,36 +30,21 @@ interface XcodeAddFilesResult {
   error?: string;
 }
 
-export class UtilsXcodeAddFilesTool implements Tool {
-  public readonly name = 'Utils Xcode Add Files';
-  public readonly title = 'Xcode Project File Addition Utility';
-  public readonly toolId = 'utils-xcode-add-files';
-  public readonly description =
-    'Generates a Ruby command using the xcodeproj gem to add files to Xcode projects';
-  public readonly inputSchema = XcodeAddFilesInputSchema;
-  public readonly outputSchema = XcodeAddFilesOutputSchema;
-
-  public register(server: McpServer, annotations: ToolAnnotations): void {
-    const enhancedAnnotations = {
-      ...annotations,
-      title: this.title,
-    };
-
-    server.tool(
-      this.toolId,
-      this.description,
-      this.inputSchema.shape,
-      enhancedAnnotations,
-      this.handleRequest.bind(this)
-    );
+export class UtilsXcodeAddFilesTool extends AbstractWorkflowTool<typeof XCODE_ADD_FILES_TOOL> {
+  constructor(
+    server: McpServer,
+    logger?: Logger,
+    private readonly fileSystem: FileSystemProvider = defaultFileSystemProvider
+  ) {
+    super(server, XCODE_ADD_FILES_TOOL, 'XcodeAddFilesTool', logger);
   }
 
-  private async handleRequest(input: XcodeAddFilesInput) {
+  public handleRequest = async (input: XcodeAddFilesWorkflowInput) => {
     try {
       const result = await this.addFilesToXcodeProject(input);
 
       // Validate the result against the output schema
-      const validatedResult = this.outputSchema.parse(result);
+      const validatedResult = this.toolMetadata.resultSchema.parse(result);
 
       return {
         content: [
@@ -99,7 +65,7 @@ export class UtilsXcodeAddFilesTool implements Tool {
       };
 
       // Validate the error result against the output schema
-      const validatedErrorResult = this.outputSchema.parse(errorResult);
+      const validatedErrorResult = this.toolMetadata.resultSchema.parse(errorResult);
 
       return {
         isError: true,
@@ -111,9 +77,11 @@ export class UtilsXcodeAddFilesTool implements Tool {
         ],
       };
     }
-  }
+  };
 
-  private async addFilesToXcodeProject(input: XcodeAddFilesInput): Promise<XcodeAddFilesResult> {
+  private async addFilesToXcodeProject(
+    input: XcodeAddFilesWorkflowInput
+  ): Promise<XcodeAddFilesResult> {
     const { projectPath, xcodeProjectPath, newFilePaths, targetName } = input;
 
     // Construct full path to xcodeproj file
@@ -121,7 +89,7 @@ export class UtilsXcodeAddFilesTool implements Tool {
     const pbxprojPath = path.join(fullXcodeProjectPath, 'project.pbxproj');
 
     // Validate inputs
-    if (!fs.existsSync(pbxprojPath)) {
+    if (!this.fileSystem.existsSync(pbxprojPath)) {
       throw new Error(`Project file not found: ${pbxprojPath}`);
     }
 
