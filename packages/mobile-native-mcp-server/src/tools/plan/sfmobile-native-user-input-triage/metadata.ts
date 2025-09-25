@@ -27,7 +27,8 @@ export const USER_INPUT_TRIAGE_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_
 export const USER_INPUT_TRIAGE_WORKFLOW_RESULT_SCHEMA = z.object({
   extractedProperties: z
     .object({
-      platform: PLATFORM_ENUM.optional().describe(
+      platform: PLATFORM_ENUM
+      .describe(
         'Target mobile platform extracted from user requirements. You must NOT make any assumptions about this value.'
       ),
       projectName: z
