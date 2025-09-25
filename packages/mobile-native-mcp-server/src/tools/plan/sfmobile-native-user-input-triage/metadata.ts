@@ -28,25 +28,21 @@ export const USER_INPUT_TRIAGE_WORKFLOW_RESULT_SCHEMA = z.object({
   extractedProperties: z
     .object({
       platform: PLATFORM_ENUM.optional().describe(
-        'Target mobile platform extracted from user requirements'
+        'Target mobile platform extracted from user requirements. You must NOT make any assumptions about this value.'
       ),
       projectName: z
         .string()
-        .optional()
         .describe('Project name derived from user requirements or app description'),
       packageName: z
         .string()
-        .optional()
         .describe('Package/bundle identifier (e.g., com.company.appname)'),
-      organization: z.string().optional().describe('Organization or company name'),
+      organization: z.string().describe('Organization or company name'),
       connectedAppClientId: z
         .string()
-        .optional()
-        .describe('Salesforce Connected App Client ID if specified'),
+        .describe('Salesforce Connected App Client ID if specified. You must NOT make any assumptions about this value.'),
       connectedAppCallbackUri: z
         .string()
-        .optional()
-        .describe('Salesforce Connected App callback URI if specified'),
+        .describe('Salesforce Connected App callback URI if specified. You must NOT make any assumptions about this value.'),
       loginHost: z
         .string()
         .optional()

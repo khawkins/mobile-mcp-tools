@@ -21,7 +21,7 @@ import {
  */
 export const ORCHESTRATOR_INPUT_SCHEMA = z.object({
   userInput: z
-    .unknown()
+    .any()
     .optional()
     .describe(
       'User input - can be any data structure from initial request or previously executed MCP tool'

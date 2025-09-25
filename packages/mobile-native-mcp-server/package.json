@@ -30,7 +30,8 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "lint": "eslint --config ../../eslint.config.mjs \"{src,tests}/**/*.ts\"",
-    "format": "prettier --write \"{src,tests}/**/*.ts\""
+    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "inspect": "npx @modelcontextprotocol/inspector node dist/index.js"
   },
   "dependencies": {
     "@langchain/langgraph": "^0.4.9",
