@@ -66,18 +66,7 @@ export class SFMobileNativeUserInputTriageTool extends AbstractWorkflowTool<
 
       ## Analysis Guidelines
 
-      Extract as much relevant information as possible from the user input:
-
-      1. **Core Properties**:
-         - Extract platform, project name, package name, and organization
-         - For project name and package name, use information from the app description
-         - Generate a proper package identifier format (e.g., com.company.appname)
-
-      2. **Salesforce Configuration**:
-         - Connected App Client ID and Callback URI are REQUIRED and cannot be assumed
-         - Login Host is optional (e.g., login.salesforce.com, test.salesforce.com, custom domains)
-
-      3. **Analysis Metadata**:
+      Extract as much relevant information as possible from the user input and provide an analysis of the extraction process for assumptions:
          - Provide confidence level (0.0 to 1.0) in your extractions
          - List any missing information
          - Document assumptions made during extraction
@@ -115,7 +104,7 @@ export class SFMobileNativeUserInputTriageTool extends AbstractWorkflowTool<
 
       Your response must strictly follow the expected JSON schema format. Be thorough in your analysis and provide helpful recommendations for any missing information.
 
-      **Important**: If the user input is vague or incomplete for non-required fields, you may use reasonable defaults but clearly document them in your assumptions and recommendations. For required fields, you must obtain explicit values from the user.
+      **Important**: If the user input is vague or incomplete for non-required fields, you may use reasonable defaults but clearly document them in your assumptions and recommendations. For non-assumable fields, you must obtain explicit values from the user.
     `;
   }
 }

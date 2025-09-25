@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import '../../../common/zod-extensions.js';
 import { PLATFORM_ENUM } from '../../../common/schemas.js';
 import {
   WORKFLOW_TOOL_BASE_INPUT_SCHEMA,
@@ -28,9 +29,8 @@ export const USER_INPUT_TRIAGE_WORKFLOW_RESULT_SCHEMA = z.object({
   extractedProperties: z
     .object({
       platform: PLATFORM_ENUM
-      .describe(
-        'Target mobile platform extracted from user requirements. You must NOT make any assumptions about this value.'
-      ),
+        .describe('Target mobile platform extracted from user requirements')
+        .notAssumable(),
       projectName: z
         .string()
         .describe('Project name derived from user requirements or app description'),
@@ -40,10 +40,12 @@ export const USER_INPUT_TRIAGE_WORKFLOW_RESULT_SCHEMA = z.object({
       organization: z.string().describe('Organization or company name'),
       connectedAppClientId: z
         .string()
-        .describe('Salesforce Connected App Client ID if specified. You must NOT make any assumptions about this value.'),
+        .describe('Salesforce Connected App Client ID if specified')
+        .notAssumable(),
       connectedAppCallbackUri: z
         .string()
-        .describe('Salesforce Connected App callback URI if specified. You must NOT make any assumptions about this value.'),
+        .describe('Salesforce Connected App callback URI if specified')
+        .notAssumable(),
       loginHost: z
         .string()
         .optional()

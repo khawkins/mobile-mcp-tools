@@ -107,19 +107,6 @@ describe('SFMobileNativeUserInputTriageTool', () => {
   });
 
   describe('Guidance Content Verification', () => {
-    it('should include platform extraction guidance', async () => {
-      const input = {
-        userUtterance: 'Build me a mobile app',
-        workflowStateData: { thread_id: 'test-thread' },
-      };
-
-      const result = await tool.handleRequest(input);
-      const responseText = result.content[0].text as string;
-      const response = JSON.parse(responseText);
-
-      expect(response.promptForLLM).toContain('Platform');
-      expect(response.promptForLLM).toContain('iOS, Android');
-    });
 
     it('should include project property extraction guidance', async () => {
       const input = {
@@ -134,21 +121,6 @@ describe('SFMobileNativeUserInputTriageTool', () => {
       expect(response.promptForLLM).toContain('Project Name');
       expect(response.promptForLLM).toContain('Package Name');
       expect(response.promptForLLM).toContain('Organization');
-    });
-
-    it('should include Salesforce configuration guidance', async () => {
-      const input = {
-        userUtterance: 'Create an app that connects to Salesforce',
-        workflowStateData: { thread_id: 'test-thread' },
-      };
-
-      const result = await tool.handleRequest(input);
-      const responseText = result.content[0].text as string;
-      const response = JSON.parse(responseText);
-
-      expect(response.promptForLLM).toContain('Connected App');
-      expect(response.promptForLLM).toContain('OAuth');
-      expect(response.promptForLLM).toContain('Login Host');
     });
 
     it('should include concrete examples for guidance', async () => {
