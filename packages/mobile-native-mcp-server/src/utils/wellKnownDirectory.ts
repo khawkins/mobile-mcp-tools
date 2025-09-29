@@ -21,6 +21,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
 /**
  * Well-known directory name - hidden directory at project root
@@ -37,14 +38,14 @@ export const WELL_KNOWN_FILES = {
 
 /**
  * Get the absolute path to the .magen directory
- * Based on current working directory (process.cwd())
+ * Based on user's home directory by default
  *
  * @returns Absolute path to .magen directory
  */
 export function getWellKnownDirectoryPath(): string {
   const wellKnownDir = process.env.PROJECT_PATH
     ? path.resolve(process.env.PROJECT_PATH)
-    : process.cwd();
+    : os.homedir();
   return path.join(wellKnownDir, WELL_KNOWN_DIR_NAME);
 }
 
