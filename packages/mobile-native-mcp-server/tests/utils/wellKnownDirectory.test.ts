@@ -65,7 +65,8 @@ describe('Well-Known Directory Utils', () => {
     });
 
     it('should use PROJECT_PATH environment variable when set', () => {
-      const testPath = '/test/project/path';
+      // Use a path that works on all platforms
+      const testPath = path.resolve('/test/project/path');
       process.env.PROJECT_PATH = testPath;
       const expected = path.join(testPath, WELL_KNOWN_DIR_NAME);
 
