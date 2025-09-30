@@ -48,8 +48,6 @@ export class SFMobileNativeTemplateDiscoveryTool extends AbstractWorkflowTool<
       ${this.generateTemplateDiscoveryStep(2, input)}
 
       ${this.generateDetailedInvestigationStep(3, input)}
-
-      ${this.generateNextStepsSection()}
     `;
   }
 
@@ -98,11 +96,13 @@ export class SFMobileNativeTemplateDiscoveryTool extends AbstractWorkflowTool<
 
       You MUST use the --templatesource=${MOBILE_SDK_TEMPLATES_PATH} flag to specify the templates source, do not use any other source.
 
-      This will show all available templates with their:
-      - Template ID
-      - Description
-      - Features
-      - Use cases
+      This will show a detailed JSON representation of all available templates with their:
+      - path: the relative path to the template from the templates source
+      - description: the description of the template
+      - features: the features of the template
+      - useCase: the use case of the template
+      - complexity: the complexity of the template
+      - customizationPoints: the customization points of the template
 
       Inspect the JSON output from the template discovery command to identify templates that best match the user's requirements and filter the templates to the most promising candidates. Prioritize templates that match multiple keywords and have comprehensive documentation.
     `;
@@ -120,7 +120,7 @@ export class SFMobileNativeTemplateDiscoveryTool extends AbstractWorkflowTool<
       For each promising template, get detailed documentation:
 
       \`\`\`bash
-      sf mobilesdk ${platformLower} describetemplate --templatesource=${MOBILE_SDK_TEMPLATES_PATH} --template=<templateId> --doc --json
+      sf mobilesdk ${platformLower} describetemplate --templatesource=${MOBILE_SDK_TEMPLATES_PATH} --template=<TEMPLATE_PATH> --doc --json
       \`\`\`
 
        Choose the template that best matches:
@@ -128,16 +128,6 @@ export class SFMobileNativeTemplateDiscoveryTool extends AbstractWorkflowTool<
       - **Feature requirements**: General mobile app needs
       - **Use case alignment**: Record management, data display, CRUD operations
       - **Complexity level**: Appropriate for the user's requirements
-    `;
-  }
-
-  private generateNextStepsSection(): string {
-    return dedent`
-      ## Next Steps
-
-      Once you've identified the best template:
-      1. Note the selected template ID
-      2. Proceed to project generation using \`sfmobile-native-project-generation\`
     `;
   }
 }
