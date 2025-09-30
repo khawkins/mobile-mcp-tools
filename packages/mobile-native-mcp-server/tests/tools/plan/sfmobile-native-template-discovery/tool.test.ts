@@ -132,8 +132,8 @@ describe('SFMobileNativeTemplateDiscoveryTool', () => {
       const responseText = result.content[0].text as string;
       const response = JSON.parse(responseText);
 
-      expect(response.promptForLLM).toContain('Next Steps');
-      expect(response.promptForLLM).toContain('sfmobile-native-project-generation');
+      expect(response.promptForLLM).toContain('Post-Tool-Invocation Instructions');
+      expect(response.promptForLLM).toContain('sfmobile-native-project-manager');
     });
   });
 });
