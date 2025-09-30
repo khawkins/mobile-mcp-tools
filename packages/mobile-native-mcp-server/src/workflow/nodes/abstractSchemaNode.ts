@@ -51,7 +51,16 @@ export abstract class AbstractSchemaNode<
 
     this.logger.debug('Tool execution result (post-interrupt)', { result });
 
-    const validatedResult = this.workflowToolMetadata.resultSchema.parse(result);
-    return validatedResult;
+    return this.validateResult(result);
+  }
+
+  /**
+   * Base method for post-aquisition result validation, which by default just parses
+   * the Zod schema of the result. Override to customize the validation process.
+   * @param result The result from the MCP tool invocation
+   * @returns The validated result
+   */
+  protected validateResult(result: unknown): z.infer<TResultSchema> {
+    return this.workflowToolMetadata.resultSchema.parse(result);
   }
 }

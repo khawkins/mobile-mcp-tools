@@ -7,7 +7,6 @@
 
 import { z } from 'zod';
 import '../../../common/zod-extensions.js';
-import { PLATFORM_ENUM } from '../../../common/schemas.js';
 import {
   WORKFLOW_TOOL_BASE_INPUT_SCHEMA,
   MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
@@ -21,52 +20,27 @@ export const USER_INPUT_TRIAGE_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_
   userUtterance: z
     .unknown()
     .describe(
-      'Raw user input - can be text, structured data, or any format describing their mobile app requirements'
+      'Raw user input - can be text, structured data, or any format describing their request'
     ),
+  propertiesToExtract: z
+    .array(
+      z
+        .object({
+          propertyName: z.string().describe('The name of the property'),
+          description: z.string().describe('The description of the property'),
+        })
+        .describe('The name of the property and its description to correlate with the user input')
+    )
+    .describe('The array of properties to extract from the user input'),
 });
 
 export const USER_INPUT_TRIAGE_WORKFLOW_RESULT_SCHEMA = z.object({
   extractedProperties: z
-    .object({
-      platform: PLATFORM_ENUM.describe(
-        'Target mobile platform extracted from user requirements'
-      ).notAssumable(),
-      projectName: z
-        .string()
-        .describe('Project name derived from user requirements or app description'),
-      packageName: z.string().describe('Package/bundle identifier (e.g., com.company.appname)'),
-      organization: z.string().describe('Organization or company name'),
-      connectedAppClientId: z
-        .string()
-        .describe('Salesforce Connected App Client ID if specified')
-        .notAssumable(),
-      connectedAppCallbackUri: z
-        .string()
-        .describe('Salesforce Connected App callback URI if specified')
-        .notAssumable(),
-      loginHost: z
-        .string()
-        .optional()
-        .describe('Salesforce login host (e.g., login.salesforce.com, test.salesforce.com)'),
-    })
-    .describe('Structured properties extracted from user input'),
-
-  analysisDetails: z
-    .object({
-      confidenceLevel: z
-        .number()
-        .min(0)
-        .max(1)
-        .describe('Confidence level (0-1) in the extracted properties'),
-      missingInformation: z
-        .array(z.string())
-        .describe('List of required information that could not be extracted from user input'),
-      assumptions: z.array(z.string()).describe('Assumptions made during extraction process'),
-      recommendations: z
-        .array(z.string())
-        .describe('Recommendations for the user or next steps in the workflow'),
-    })
-    .describe('Analysis metadata about the extraction process'),
+    .record(
+      z.string().describe('The name of the property'),
+      z.unknown().nullable().describe('The value of the property')
+    )
+    .describe('Collection of structured properties extracted from user input'),
 });
 
 export type UserInputTriageWorkflowInput = z.infer<typeof USER_INPUT_TRIAGE_WORKFLOW_INPUT_SCHEMA>;
@@ -80,8 +54,7 @@ export const USER_INPUT_TRIAGE_TOOL: WorkflowToolMetadata<
 > = {
   toolId: 'sfmobile-native-user-input-triage',
   title: 'User Input Triage',
-  description:
-    'Parses user requirements and extracts structured project properties for mobile app development workflow',
+  description: 'Parses user requirements and extracts structured project properties',
   inputSchema: USER_INPUT_TRIAGE_WORKFLOW_INPUT_SCHEMA,
   outputSchema: MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
   resultSchema: USER_INPUT_TRIAGE_WORKFLOW_RESULT_SCHEMA,
