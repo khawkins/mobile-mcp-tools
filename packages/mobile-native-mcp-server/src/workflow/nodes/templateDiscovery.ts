@@ -9,12 +9,12 @@ import { MCPToolInvocationData } from '../../common/metadata.js';
 import { TEMPLATE_DISCOVERY_TOOL } from '../../tools/plan/sfmobile-native-template-discovery/metadata.js';
 import { State } from '../metadata.js';
 import { AbstractSchemaNode } from './abstractSchemaNode.js';
+import { ToolExecutor } from './toolExecutor.js';
+import { Logger } from '../../logging/logger.js';
 
 export class TemplateDiscoveryNode extends AbstractSchemaNode {
-  protected readonly workflowToolMetadata = TEMPLATE_DISCOVERY_TOOL;
-
-  constructor() {
-    super('discoverTemplates');
+  constructor(toolExecutor?: ToolExecutor, logger?: Logger) {
+    super('discoverTemplates', toolExecutor, logger);
   }
 
   execute = (state: State): Partial<State> => {

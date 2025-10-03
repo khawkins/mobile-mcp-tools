@@ -9,12 +9,12 @@ import { MCPToolInvocationData } from '../../common/metadata.js';
 import { State } from '../metadata.js';
 import { AbstractSchemaNode } from './abstractSchemaNode.js';
 import { PROJECT_GENERATION_TOOL } from '../../tools/plan/sfmobile-native-project-generation/metadata.js';
+import { ToolExecutor } from './toolExecutor.js';
+import { Logger } from '../../logging/logger.js';
 
 export class ProjectGenerationNode extends AbstractSchemaNode {
-  protected readonly workflowToolMetadata = PROJECT_GENERATION_TOOL;
-
-  constructor() {
-    super('generateProject');
+  constructor(toolExecutor?: ToolExecutor, logger?: Logger) {
+    super('generateProject', toolExecutor, logger);
   }
 
   execute = (state: State): Partial<State> => {
