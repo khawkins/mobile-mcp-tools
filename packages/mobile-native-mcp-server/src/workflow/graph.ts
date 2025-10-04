@@ -7,7 +7,7 @@
 
 import { END, START, StateGraph } from '@langchain/langgraph';
 import { MobileNativeWorkflowState } from './metadata.js';
-import { UserInputTriageNode } from './nodes/userInputTriage.js';
+import { InitialUserInputExtractionNode } from './nodes/initialUserInputExtraction.js';
 import { EnvironmentValidationNode } from './nodes/environment.js';
 import { TemplateDiscoveryNode } from './nodes/templateDiscovery.js';
 import { ProjectGenerationNode } from './nodes/projectGeneration.js';
@@ -15,7 +15,7 @@ import { BuildValidationNode } from './nodes/buildValidation.js';
 import { DeploymentNode } from './nodes/deploymentNode.js';
 import { CompletionNode } from './nodes/completionNode.js';
 
-const userInputTriageNode = new UserInputTriageNode();
+const initialUserInputExtractionNode = new InitialUserInputExtractionNode();
 const environmentValidationNode = new EnvironmentValidationNode();
 const templateDiscoveryNode = new TemplateDiscoveryNode();
 const projectGenerationNode = new ProjectGenerationNode();
@@ -30,7 +30,7 @@ const completionNode = new CompletionNode();
  */
 export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   // Add all workflow nodes
-  .addNode(userInputTriageNode.name, userInputTriageNode.execute)
+  .addNode(initialUserInputExtractionNode.name, initialUserInputExtractionNode.execute)
   .addNode(environmentValidationNode.name, environmentValidationNode.execute)
   .addNode(templateDiscoveryNode.name, templateDiscoveryNode.execute)
   .addNode(projectGenerationNode.name, projectGenerationNode.execute)
@@ -39,8 +39,8 @@ export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   .addNode(completionNode.name, completionNode.execute)
 
   // Define workflow edges - steel thread linear progression starting with triage
-  .addEdge(START, userInputTriageNode.name)
-  .addEdge(userInputTriageNode.name, environmentValidationNode.name)
+  .addEdge(START, initialUserInputExtractionNode.name)
+  .addEdge(initialUserInputExtractionNode.name, environmentValidationNode.name)
   .addEdge(environmentValidationNode.name, templateDiscoveryNode.name)
   .addEdge(templateDiscoveryNode.name, projectGenerationNode.name)
   .addEdge(projectGenerationNode.name, buildValidationNode.name)

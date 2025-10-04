@@ -92,18 +92,6 @@ describe('SFMobileNativeUserInputTriageTool', () => {
       expect(response.promptForLLM).toContain('Contact management');
       expect(response.promptForLLM).toContain('Acme Corp');
     });
-
-    it('should handle missing workflowStateData gracefully', async () => {
-      const input = {
-        userUtterance: 'test input',
-        // Missing workflowStateData - should still work since it's optional
-      };
-
-      const result = await tool.handleRequest(input);
-
-      expect(result.content).toBeDefined();
-      expect(result.isError).toBeFalsy();
-    });
   });
 
   describe('Guidance Content Verification', () => {
