@@ -5,97 +5,67 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import z from 'zod';
-import { MCPToolInvocationData } from '../../common/metadata.js';
-import { INPUT_EXTRACTION_TOOL } from '../../tools/plan/sfmobile-native-input-extraction/metadata.js';
-import { State, WORKFLOW_USER_INPUT_PROPERTIES, WorkflowUserInputProperties } from '../metadata.js';
-import { AbstractSchemaNode } from './abstractSchemaNode.js';
+import { BaseNode } from './abstractBaseNode.js';
+import { State, WORKFLOW_USER_INPUT_PROPERTIES } from '../metadata.js';
+import {
+  InputExtractionServiceInterface,
+  InputExtractionService,
+} from '../services/inputExtractionService.js';
+import { ToolExecutor } from './toolExecutor.js';
+import { Logger } from '../../logging/logger.js';
 
-export class InitialUserInputExtractionNode extends AbstractSchemaNode {
-  constructor() {
+/**
+ * Workflow node that extracts structured properties from initial user input.
+ *
+ * This node is responsible for the first phase of user input processing in the workflow.
+ * It takes raw user input and attempts to extract as many workflow properties as possible
+ * using LLM-based natural language understanding.
+ *
+ * The node uses the InputExtractionService to:
+ * - Parse user input for property values
+ * - Validate extracted values against property schemas
+ * - Return only successfully extracted and validated properties
+ *
+ * Properties that cannot be extracted from the initial input will need to be collected
+ * through subsequent prompting or multi-turn interaction.
+ *
+ * Dependencies are injectable for testing and flexibility.
+ */
+export class InitialUserInputExtractionNode extends BaseNode {
+  private readonly extractionService: InputExtractionServiceInterface;
+
+  /**
+   * Creates a new InitialUserInputExtractionNode.
+   *
+   * @param extractionService - Service for property extraction (injectable for testing)
+   * @param toolExecutor - Tool executor for service (optional, passed to service)
+   * @param logger - Logger instance (optional, passed to service)
+   */
+  constructor(
+    extractionService?: InputExtractionServiceInterface,
+    toolExecutor?: ToolExecutor,
+    logger?: Logger
+  ) {
     super('triageUserInput');
+    this.extractionService = extractionService ?? new InputExtractionService(toolExecutor, logger);
   }
 
+  /**
+   * Executes the initial user input extraction.
+   *
+   * Takes the raw user input from state and attempts to extract all workflow
+   * properties defined in WORKFLOW_USER_INPUT_PROPERTIES.
+   *
+   * @param state - Current workflow state containing userInput
+   * @returns Partial state with extracted properties (only those successfully extracted)
+   */
   execute = (state: State): Partial<State> => {
-    const toolInvocationData: MCPToolInvocationData<typeof INPUT_EXTRACTION_TOOL.inputSchema> = {
-      llmMetadata: {
-        name: INPUT_EXTRACTION_TOOL.toolId,
-        description: INPUT_EXTRACTION_TOOL.description,
-        inputSchema: INPUT_EXTRACTION_TOOL.inputSchema,
-      },
-      input: {
-        userUtterance: state.userInput,
-        propertiesToExtract: this.createExtractedProperties(),
-      },
-    };
-
-    const validatedResult = this.executeToolWithLogging(
-      toolInvocationData,
-      INPUT_EXTRACTION_TOOL.resultSchema,
-      this.validateResult
+    const result = this.extractionService.extractProperties(
+      state.userInput,
+      WORKFLOW_USER_INPUT_PROPERTIES
     );
 
-    // All of the extracted properties in validatedResult should now map to validated
-    // values ready for entry into the workflow state.
-    const { extractedProperties } = validatedResult;
-    return { ...extractedProperties };
+    // Return extracted properties to be merged into workflow state
+    return { ...result.extractedProperties };
   };
-
-  private validateResult = (
-    result: unknown,
-    resultSchema: typeof INPUT_EXTRACTION_TOOL.resultSchema
-  ) => {
-    const validatedResult = resultSchema.parse(result);
-    const { extractedProperties } = validatedResult;
-    // Invalidate any proeprties that were not collected from the user.
-    for (const [propertyName, value] of Object.entries(extractedProperties)) {
-      if (!value) {
-        delete extractedProperties[propertyName];
-        continue;
-      }
-      const userInputProperty = this.getWorkflowPropertyValue(
-        WORKFLOW_USER_INPUT_PROPERTIES,
-        propertyName
-      );
-      if (!userInputProperty) {
-        delete extractedProperties[propertyName];
-        continue;
-      }
-
-      try {
-        extractedProperties[propertyName] = userInputProperty.zodType.parse(value);
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          delete extractedProperties[propertyName];
-          continue;
-        }
-        throw error;
-      }
-    }
-    return validatedResult;
-  };
-
-  private getWorkflowPropertyValue<K extends keyof WorkflowUserInputProperties>(
-    obj: WorkflowUserInputProperties,
-    key: string
-  ): WorkflowUserInputProperties[K] | undefined {
-    if (key in obj) {
-      return obj[key as K]; // safe cast after runtime check
-    }
-    return undefined;
-  }
-
-  private createExtractedProperties() {
-    const propertiesToExtract: { propertyName: string; description: string }[] = [];
-    for (const propertyName of Object.keys(
-      WORKFLOW_USER_INPUT_PROPERTIES
-    ) as (keyof WorkflowUserInputProperties)[]) {
-      const propertyMetadata = WORKFLOW_USER_INPUT_PROPERTIES[propertyName];
-      propertiesToExtract.push({
-        propertyName,
-        description: propertyMetadata.description,
-      });
-    }
-    return propertiesToExtract;
-  }
 }
