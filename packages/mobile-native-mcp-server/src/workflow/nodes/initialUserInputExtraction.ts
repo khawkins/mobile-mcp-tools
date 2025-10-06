@@ -8,7 +8,7 @@
 import { BaseNode } from './abstractBaseNode.js';
 import { State, WORKFLOW_USER_INPUT_PROPERTIES } from '../metadata.js';
 import {
-  InputExtractionServiceInterface,
+  InputExtractionServiceProvider,
   InputExtractionService,
 } from '../services/inputExtractionService.js';
 import { ToolExecutor } from './toolExecutor.js';
@@ -32,7 +32,7 @@ import { Logger } from '../../logging/logger.js';
  * Dependencies are injectable for testing and flexibility.
  */
 export class InitialUserInputExtractionNode extends BaseNode {
-  private readonly extractionService: InputExtractionServiceInterface;
+  private readonly extractionService: InputExtractionServiceProvider;
 
   /**
    * Creates a new InitialUserInputExtractionNode.
@@ -42,7 +42,7 @@ export class InitialUserInputExtractionNode extends BaseNode {
    * @param logger - Logger instance (optional, passed to service)
    */
   constructor(
-    extractionService?: InputExtractionServiceInterface,
+    extractionService?: InputExtractionServiceProvider,
     toolExecutor?: ToolExecutor,
     logger?: Logger
   ) {

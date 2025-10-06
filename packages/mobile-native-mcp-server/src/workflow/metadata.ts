@@ -22,49 +22,38 @@ export const WORKFLOW_USER_INPUT_PROPERTIES = {
     zodType: PLATFORM_ENUM,
     description: 'Target mobile platform for the mobile app (iOS or Android)',
     friendlyName: 'mobile platform',
-    promptForValue: 'Which mobile platform are you targeting for the mobile app? iOS or Android?',
   } satisfies PropertyMetadata<typeof PLATFORM_ENUM>,
   projectName: {
     zodType: z.string(),
     description: 'The name of the mobile app project',
     friendlyName: 'project name',
-    promptForValue: 'What is the name of the mobile app project?',
   } satisfies PropertyMetadata<z.ZodString>,
   packageName: {
     zodType: z.string(),
     description: 'The package identifier of the mobile app, for example com.company.appname',
     friendlyName: 'package identifier',
-    promptForValue:
-      'What is the package identifier of the mobile app? For example: com.company.appname',
   } satisfies PropertyMetadata<z.ZodString>,
   organization: {
     zodType: z.string(),
     description: 'The organization or company name',
     friendlyName: 'organization or company name',
-    promptForValue: 'What is your organization or company name?',
   } satisfies PropertyMetadata<z.ZodString>,
   connectedAppClientId: {
     zodType: z.string(),
     description:
       'The Salesforce Connected App Consumer Key associated with the mobile app. See https://help.salesforce.com/s/articleView?id=xcloud.connected_app_create_mobile.htm&type=5 for information on how to create a Connected App for mobile apps.',
     friendlyName: 'Salesforce Connected App Consumer Key',
-    promptForValue:
-      'What is the Salesforce Connected App Consumer Key associated with the mobile app?',
   } satisfies PropertyMetadata<z.ZodString>,
   connectedAppCallbackUri: {
     zodType: z.string(),
     description:
       'The Salesforce Connected App Callback URL associated with the mobile app. See https://help.salesforce.com/s/articleView?id=xcloud.connected_app_create_mobile.htm&type=5 for information on how to create a Connected App for mobile apps.',
     friendlyName: 'Salesforce Connected App Callback URL',
-    promptForValue:
-      'What is the Salesforce Connected App Callback URL associated with the mobile app?',
   } satisfies PropertyMetadata<z.ZodString>,
   loginHost: {
     zodType: z.string(),
     description: 'The Salesforce login host for the mobile app.',
     friendlyName: 'Salesforce login host',
-    promptForValue:
-      'What is the Salesforce login host for the mobile app? (e.g. login.salesforce.com)',
   } satisfies PropertyMetadata<z.ZodString>,
 } as const satisfies PropertyMetadataCollection;
 
