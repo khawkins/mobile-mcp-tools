@@ -31,7 +31,7 @@ import { Logger } from '../../logging/logger.js';
  *
  * Dependencies are injectable for testing and flexibility.
  */
-export class InitialUserInputExtractionNode extends BaseNode {
+export class InitialUserInputNode extends BaseNode {
   private readonly extractionService: InputExtractionServiceProvider;
 
   /**

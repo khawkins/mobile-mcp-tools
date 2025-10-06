@@ -7,7 +7,7 @@
 
 import { END, START, StateGraph } from '@langchain/langgraph';
 import { MobileNativeWorkflowState } from './metadata.js';
-import { InitialUserInputExtractionNode } from './nodes/initialUserInputExtraction.js';
+import { InitialUserInputNode } from './nodes/initialUserInput.js';
 import { EnvironmentValidationNode } from './nodes/environment.js';
 import { TemplateDiscoveryNode } from './nodes/templateDiscovery.js';
 import { ProjectGenerationNode } from './nodes/projectGeneration.js';
@@ -15,7 +15,7 @@ import { BuildValidationNode } from './nodes/buildValidation.js';
 import { DeploymentNode } from './nodes/deploymentNode.js';
 import { CompletionNode } from './nodes/completionNode.js';
 
-const initialUserInputExtractionNode = new InitialUserInputExtractionNode();
+const initialUserInputExtractionNode = new InitialUserInputNode();
 const environmentValidationNode = new EnvironmentValidationNode();
 const templateDiscoveryNode = new TemplateDiscoveryNode();
 const projectGenerationNode = new ProjectGenerationNode();

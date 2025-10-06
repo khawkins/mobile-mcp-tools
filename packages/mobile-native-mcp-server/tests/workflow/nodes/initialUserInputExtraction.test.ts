@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { InitialUserInputExtractionNode } from '../../../src/workflow/nodes/initialUserInputExtraction.js';
+import { InitialUserInputNode } from '../../../src/workflow/nodes/initialUserInput.js';
 import { MockToolExecutor } from '../../utils/MockToolExecutor.js';
 import { MockLogger } from '../../utils/MockLogger.js';
 import { MockInputExtractionService } from '../../utils/MockInputExtractionService.js';
@@ -14,15 +14,15 @@ import { createTestState } from '../../utils/stateBuilders.js';
 import { WORKFLOW_USER_INPUT_PROPERTIES } from '../../../src/workflow/metadata.js';
 import { INPUT_EXTRACTION_TOOL } from '../../../src/tools/plan/sfmobile-native-input-extraction/metadata.js';
 
-describe('InitialUserInputExtractionNode', () => {
+describe('InitialUserInputNode', () => {
   let mockToolExecutor: MockToolExecutor;
   let mockLogger: MockLogger;
-  let node: InitialUserInputExtractionNode;
+  let node: InitialUserInputNode;
 
   beforeEach(() => {
     mockToolExecutor = new MockToolExecutor();
     mockLogger = new MockLogger();
-    node = new InitialUserInputExtractionNode(undefined, mockToolExecutor, mockLogger);
+    node = new InitialUserInputNode(undefined, mockToolExecutor, mockLogger);
   });
 
   describe('Node Properties', () => {
@@ -35,25 +35,25 @@ describe('InitialUserInputExtractionNode', () => {
     it('should accept custom extraction service', () => {
       const mockService = new MockInputExtractionService();
 
-      const customNode = new InitialUserInputExtractionNode(mockService);
+      const customNode = new InitialUserInputNode(mockService);
       expect(customNode['extractionService']).toBe(mockService);
     });
 
     it('should create default extraction service when none provided', () => {
-      const defaultNode = new InitialUserInputExtractionNode();
+      const defaultNode = new InitialUserInputNode();
       expect(defaultNode['extractionService']).toBeDefined();
     });
 
     it('should pass tool executor to extraction service', () => {
       const customExecutor = new MockToolExecutor();
-      const customNode = new InitialUserInputExtractionNode(undefined, customExecutor);
+      const customNode = new InitialUserInputNode(undefined, customExecutor);
 
       expect(customNode['extractionService']['toolExecutor']).toBe(customExecutor);
     });
 
     it('should pass logger to extraction service', () => {
       const customLogger = new MockLogger();
-      const customNode = new InitialUserInputExtractionNode(undefined, undefined, customLogger);
+      const customNode = new InitialUserInputNode(undefined, undefined, customLogger);
 
       expect(customNode['extractionService']['logger']).toBe(customLogger);
     });
@@ -332,7 +332,7 @@ describe('InitialUserInputExtractionNode', () => {
       const mockService = new MockInputExtractionService();
       mockService.setResult({ extractedProperties: {} });
 
-      const customNode = new InitialUserInputExtractionNode(mockService);
+      const customNode = new InitialUserInputNode(mockService);
       const inputState = createTestState({ userInput: 'test' });
 
       customNode.execute(inputState);
@@ -344,7 +344,7 @@ describe('InitialUserInputExtractionNode', () => {
       const mockService = new MockInputExtractionService();
       mockService.setResult({ extractedProperties: {} });
 
-      const customNode = new InitialUserInputExtractionNode(mockService);
+      const customNode = new InitialUserInputNode(mockService);
       const userInput = 'test input';
       const inputState = createTestState({ userInput });
 
