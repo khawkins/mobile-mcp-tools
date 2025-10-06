@@ -8,7 +8,7 @@
 import { PropertyMetadataCollection } from '../../src/common/propertyMetadata.js';
 import {
   ExtractionResult,
-  InputExtractionServiceInterface,
+  InputExtractionServiceProvider,
 } from '../../src/workflow/services/inputExtractionService.js';
 
 /**
@@ -22,7 +22,7 @@ import {
  * const node = new InitialUserInputExtractionNode(mockService);
  * ```
  */
-export class MockInputExtractionService implements InputExtractionServiceInterface {
+export class MockInputExtractionService implements InputExtractionServiceProvider {
   private result: ExtractionResult = { extractedProperties: {} };
   private callHistory: Array<{
     userInput: unknown;

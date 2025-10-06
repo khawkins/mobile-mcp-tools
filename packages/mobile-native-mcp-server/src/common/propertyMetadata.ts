@@ -18,14 +18,12 @@ import z from 'zod';
  * @property zodType - Zod schema used for validation and type inference
  * @property description - Detailed description used by LLMs to identify the property in user input
  * @property friendlyName - Human-readable name for display and prompting
- * @property promptForValue - Question text to ask when explicitly prompting user for this property
  *
  * @example
  * const platformProperty: PropertyMetadata<typeof PLATFORM_ENUM> = {
  *   zodType: PLATFORM_ENUM,
  *   description: 'Target mobile platform for the mobile app (iOS or Android)',
  *   friendlyName: 'mobile platform',
- *   promptForValue: 'Which mobile platform are you targeting? iOS or Android?',
  * };
  */
 export interface PropertyMetadata<T extends z.ZodTypeAny = z.ZodTypeAny> {
@@ -37,9 +35,6 @@ export interface PropertyMetadata<T extends z.ZodTypeAny = z.ZodTypeAny> {
 
   /** Human-readable name for display */
   readonly friendlyName: string;
-
-  /** Question text for explicit user prompting */
-  readonly promptForValue: string;
 }
 
 /**
@@ -52,13 +47,11 @@ export interface PropertyMetadata<T extends z.ZodTypeAny = z.ZodTypeAny> {
  *     zodType: z.enum(['iOS', 'Android']),
  *     description: 'Target mobile platform',
  *     friendlyName: 'platform',
- *     promptForValue: 'Which platform?',
  *   },
  *   projectName: {
  *     zodType: z.string(),
  *     description: 'Name of the project',
  *     friendlyName: 'project name',
- *     promptForValue: 'What is the project name?',
  *   },
  * };
  */

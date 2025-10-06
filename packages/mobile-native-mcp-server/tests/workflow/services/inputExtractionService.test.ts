@@ -24,19 +24,16 @@ describe('InputExtractionService', () => {
       zodType: z.enum(['iOS', 'Android']),
       description: 'Target mobile platform',
       friendlyName: 'platform',
-      promptForValue: 'Which platform?',
     },
     projectName: {
       zodType: z.string(),
       description: 'Name of the project',
       friendlyName: 'project name',
-      promptForValue: 'What is the project name?',
     },
     version: {
       zodType: z.string(),
       description: 'Version number',
       friendlyName: 'version',
-      promptForValue: 'What version?',
     },
   };
 
@@ -369,7 +366,6 @@ describe('InputExtractionService', () => {
           ),
           description: 'Test',
           friendlyName: 'test',
-          promptForValue: 'Test?',
         },
       };
 
@@ -501,7 +497,6 @@ describe('InputExtractionService', () => {
           zodType: z.number(),
           description: 'Count value',
           friendlyName: 'count',
-          promptForValue: 'What count?',
         },
       };
 
@@ -522,7 +517,6 @@ describe('InputExtractionService', () => {
           zodType: z.boolean(),
           description: 'Enabled flag',
           friendlyName: 'enabled',
-          promptForValue: 'Enabled?',
         },
       };
 
@@ -543,13 +537,11 @@ describe('InputExtractionService', () => {
           zodType: z.string().optional(),
           description: 'Optional value',
           friendlyName: 'optional',
-          promptForValue: 'Optional?',
         },
         required: {
           zodType: z.string(),
           description: 'Required value',
           friendlyName: 'required',
-          promptForValue: 'Required?',
         },
       };
 

@@ -24,7 +24,7 @@ export interface ExtractionResult {
  * Interface for property extraction service.
  * Allows for dependency injection and testing with mock implementations.
  */
-export interface InputExtractionServiceInterface {
+export interface InputExtractionServiceProvider {
   /**
    * Extracts structured properties from user input.
    *
@@ -55,7 +55,6 @@ export interface InputExtractionServiceInterface {
  *     zodType: z.enum(['iOS', 'Android']),
  *     description: 'Target platform',
  *     friendlyName: 'platform',
- *     promptForValue: 'Which platform?',
  *   },
  * };
  *
@@ -66,7 +65,7 @@ export interface InputExtractionServiceInterface {
  * );
  * // result.extractedProperties = { platform: 'iOS' }
  */
-export class InputExtractionService implements InputExtractionServiceInterface {
+export class InputExtractionService implements InputExtractionServiceProvider {
   private readonly logger: Logger;
   private readonly toolExecutor: ToolExecutor;
 
