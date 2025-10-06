@@ -8,33 +8,41 @@
 import { Annotation } from '@langchain/langgraph';
 import z from 'zod';
 import { PLATFORM_ENUM } from '../common/schemas.js';
+import { PropertyMetadata, PropertyMetadataCollection } from '../common/propertyMetadata.js';
 
+/**
+ * Definition of all user input properties required by the mobile native workflow.
+ * Each property includes metadata for extraction, validation, and user prompting.
+ *
+ * This collection serves as the single source of truth for what data needs to be
+ * collected from users during the workflow initialization phase.
+ */
 export const WORKFLOW_USER_INPUT_PROPERTIES = {
   platform: {
     zodType: PLATFORM_ENUM,
     description: 'Target mobile platform for the mobile app (iOS or Android)',
     friendlyName: 'mobile platform',
     promptForValue: 'Which mobile platform are you targeting for the mobile app? iOS or Android?',
-  },
+  } satisfies PropertyMetadata<typeof PLATFORM_ENUM>,
   projectName: {
     zodType: z.string(),
     description: 'The name of the mobile app project',
     friendlyName: 'project name',
     promptForValue: 'What is the name of the mobile app project?',
-  },
+  } satisfies PropertyMetadata<z.ZodString>,
   packageName: {
     zodType: z.string(),
     description: 'The package identifier of the mobile app, for example com.company.appname',
     friendlyName: 'package identifier',
     promptForValue:
       'What is the package identifier of the mobile app? For example: com.company.appname',
-  },
+  } satisfies PropertyMetadata<z.ZodString>,
   organization: {
     zodType: z.string(),
     description: 'The organization or company name',
     friendlyName: 'organization or company name',
     promptForValue: 'What is your organization or company name?',
-  },
+  } satisfies PropertyMetadata<z.ZodString>,
   connectedAppClientId: {
     zodType: z.string(),
     description:
@@ -42,7 +50,7 @@ export const WORKFLOW_USER_INPUT_PROPERTIES = {
     friendlyName: 'Salesforce Connected App Consumer Key',
     promptForValue:
       'What is the Salesforce Connected App Consumer Key associated with the mobile app?',
-  },
+  } satisfies PropertyMetadata<z.ZodString>,
   connectedAppCallbackUri: {
     zodType: z.string(),
     description:
@@ -50,15 +58,15 @@ export const WORKFLOW_USER_INPUT_PROPERTIES = {
     friendlyName: 'Salesforce Connected App Callback URL',
     promptForValue:
       'What is the Salesforce Connected App Callback URL associated with the mobile app?',
-  },
+  } satisfies PropertyMetadata<z.ZodString>,
   loginHost: {
     zodType: z.string(),
     description: 'The Salesforce login host for the mobile app.',
     friendlyName: 'Salesforce login host',
     promptForValue:
       'What is the Salesforce login host for the mobile app? (e.g. login.salesforce.com)',
-  },
-};
+  } satisfies PropertyMetadata<z.ZodString>,
+} as const satisfies PropertyMetadataCollection;
 
 export type WorkflowUserInputProperties = typeof WORKFLOW_USER_INPUT_PROPERTIES;
 
