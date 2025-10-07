@@ -10,7 +10,7 @@ import { Logger } from '../../../logging/logger.js';
 import { GENERATE_QUESTION_TOOL, GenerateQuestionWorkflowInput } from './metadata.js';
 import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
 
-export class SFMobileNativeInputExtractionTool extends AbstractWorkflowTool<
+export class SFMobileNativeGenerateQuestionTool extends AbstractWorkflowTool<
   typeof GENERATE_QUESTION_TOOL
 > {
   constructor(server: McpServer, logger?: Logger) {

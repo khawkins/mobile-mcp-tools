@@ -15,7 +15,7 @@ import { BuildValidationNode } from './nodes/buildValidation.js';
 import { DeploymentNode } from './nodes/deploymentNode.js';
 import { CompletionNode } from './nodes/completionNode.js';
 
-const initialUserInputExtractionNode = new InitialUserInputNode();
+const initialUserInputNode = new InitialUserInputNode();
 const environmentValidationNode = new EnvironmentValidationNode();
 const templateDiscoveryNode = new TemplateDiscoveryNode();
 const projectGenerationNode = new ProjectGenerationNode();
@@ -30,7 +30,7 @@ const completionNode = new CompletionNode();
  */
 export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   // Add all workflow nodes
-  .addNode(initialUserInputExtractionNode.name, initialUserInputExtractionNode.execute)
+  .addNode(initialUserInputNode.name, initialUserInputNode.execute)
   .addNode(environmentValidationNode.name, environmentValidationNode.execute)
   .addNode(templateDiscoveryNode.name, templateDiscoveryNode.execute)
   .addNode(projectGenerationNode.name, projectGenerationNode.execute)
@@ -39,8 +39,8 @@ export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   .addNode(completionNode.name, completionNode.execute)
 
   // Define workflow edges - steel thread linear progression starting with triage
-  .addEdge(START, initialUserInputExtractionNode.name)
-  .addEdge(initialUserInputExtractionNode.name, environmentValidationNode.name)
+  .addEdge(START, initialUserInputNode.name)
+  .addEdge(initialUserInputNode.name, environmentValidationNode.name)
   .addEdge(environmentValidationNode.name, templateDiscoveryNode.name)
   .addEdge(templateDiscoveryNode.name, projectGenerationNode.name)
   .addEdge(projectGenerationNode.name, buildValidationNode.name)
