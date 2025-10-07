@@ -64,11 +64,11 @@ describe('InputExtractionService', () => {
       const userInput = 'Create an iOS app called MyApp version 1.0';
 
       const toolResult = {
-        extractedProperties: {
-          platform: 'iOS',
-          projectName: 'MyApp',
-          version: '1.0',
-        },
+        extractedProperties: [
+          { propertyName: 'platform', propertyValue: 'iOS' },
+          { propertyName: 'projectName', propertyValue: 'MyApp' },
+          { propertyName: 'version', propertyValue: '1.0' },
+        ],
       };
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, toolResult);
@@ -86,7 +86,7 @@ describe('InputExtractionService', () => {
       const userInput = 'Create an Android app';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: { platform: 'Android' },
+        extractedProperties: [{ propertyName: 'platform', propertyValue: 'Android' }],
       });
 
       service.extractProperties(userInput, testProperties);
@@ -103,7 +103,7 @@ describe('InputExtractionService', () => {
       const userInput = 'test input';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {},
+        extractedProperties: [],
       });
 
       service.extractProperties(userInput, testProperties);
@@ -130,11 +130,11 @@ describe('InputExtractionService', () => {
       const userInput = 'iOS app';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          platform: 'iOS',
-          projectName: null,
-          version: null,
-        },
+        extractedProperties: [
+          { propertyName: 'platform', propertyValue: 'iOS' },
+          { propertyName: 'projectName', propertyValue: null },
+          { propertyName: 'version', propertyValue: null },
+        ],
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -152,11 +152,11 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          platform: 'iOS',
-          projectName: null,
-          version: null,
-        },
+        extractedProperties: [
+          { propertyName: 'platform', propertyValue: 'iOS' },
+          { propertyName: 'projectName', propertyValue: null },
+          { propertyName: 'version', propertyValue: null },
+        ],
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -168,11 +168,11 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          platform: 'iOS',
-          projectName: undefined,
-          version: undefined,
-        },
+        extractedProperties: [
+          { propertyName: 'platform', propertyValue: 'iOS' },
+          { propertyName: 'projectName', propertyValue: undefined },
+          { propertyName: 'version', propertyValue: undefined },
+        ],
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -184,10 +184,10 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          platform: 'Windows', // Invalid - not in enum
-          projectName: 'ValidName',
-        },
+        extractedProperties: [
+          { propertyName: 'platform', propertyValue: 'Windows' }, // Invalid - not in enum
+          { propertyName: 'projectName', propertyValue: 'ValidName' },
+        ],
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -202,11 +202,11 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          platform: 'iOS',
-          unknownProperty: 'some value',
-          anotherUnknown: 123,
-        },
+        extractedProperties: [
+          { propertyName: 'platform', propertyValue: 'iOS' },
+          { propertyName: 'unknownProperty', propertyValue: 'some value' },
+          { propertyName: 'anotherUnknown', propertyValue: 123 },
+        ],
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -220,9 +220,7 @@ describe('InputExtractionService', () => {
       const userInput = 'Android app';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          platform: 'Android',
-        },
+        extractedProperties: [{ propertyName: 'platform', propertyValue: 'Android' }],
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -234,10 +232,10 @@ describe('InputExtractionService', () => {
       const userInput = 'MyProject';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          projectName: 'MyProject',
-          version: '2.0.1',
-        },
+        extractedProperties: [
+          { propertyName: 'projectName', propertyValue: 'MyProject' },
+          { propertyName: 'version', propertyValue: '2.0.1' },
+        ],
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -252,11 +250,11 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          platform: 'iOS', // valid
-          projectName: 123, // invalid type (should be string)
-          version: '1.0', // valid
-        },
+        extractedProperties: [
+          { propertyName: 'platform', propertyValue: 'iOS' }, // valid
+          { propertyName: 'projectName', propertyValue: 123 }, // invalid type (should be string)
+          { propertyName: 'version', propertyValue: '1.0' }, // valid
+        ],
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -274,7 +272,7 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {},
+        extractedProperties: [],
       });
 
       const result = service.extractProperties(userInput, {});
@@ -286,7 +284,7 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {},
+        extractedProperties: [],
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -298,11 +296,11 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          platform: null,
-          projectName: null,
-          version: null,
-        },
+        extractedProperties: [
+          { propertyName: 'platform', propertyValue: null },
+          { propertyName: 'projectName', propertyValue: null },
+          { propertyName: 'version', propertyValue: null },
+        ],
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -317,9 +315,7 @@ describe('InputExtractionService', () => {
       };
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          platform: 'iOS',
-        },
+        extractedProperties: [{ propertyName: 'platform', propertyValue: 'iOS' }],
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -370,9 +366,7 @@ describe('InputExtractionService', () => {
       };
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          test: 'value',
-        },
+        extractedProperties: [{ propertyName: 'test', propertyValue: 'value' }],
       });
 
       expect(() => {
@@ -386,7 +380,7 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {},
+        extractedProperties: [],
       });
 
       mockLogger.reset();
@@ -406,7 +400,7 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {},
+        extractedProperties: [],
       });
 
       mockLogger.reset();
@@ -423,10 +417,10 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          platform: 'iOS',
-          projectName: 'MyApp',
-        },
+        extractedProperties: [
+          { propertyName: 'platform', propertyValue: 'iOS' },
+          { propertyName: 'projectName', propertyValue: 'MyApp' },
+        ],
       });
 
       mockLogger.reset();
@@ -448,10 +442,10 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          platform: 'InvalidPlatform',
-          projectName: 'Valid',
-        },
+        extractedProperties: [
+          { propertyName: 'platform', propertyValue: 'InvalidPlatform' },
+          { propertyName: 'projectName', propertyValue: 'Valid' },
+        ],
       });
 
       mockLogger.reset();
@@ -472,9 +466,7 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          unknownProp: 'value',
-        },
+        extractedProperties: [{ propertyName: 'unknownProp', propertyValue: 'value' }],
       });
 
       mockLogger.reset();
@@ -501,9 +493,7 @@ describe('InputExtractionService', () => {
       };
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          count: 42,
-        },
+        extractedProperties: [{ propertyName: 'count', propertyValue: 42 }],
       });
 
       const result = service.extractProperties('test', numericProperties);
@@ -521,9 +511,7 @@ describe('InputExtractionService', () => {
       };
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          enabled: true,
-        },
+        extractedProperties: [{ propertyName: 'enabled', propertyValue: true }],
       });
 
       const result = service.extractProperties('test', booleanProperties);
@@ -546,10 +534,10 @@ describe('InputExtractionService', () => {
       };
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: {
-          optional: null,
-          required: 'value',
-        },
+        extractedProperties: [
+          { propertyName: 'optional', propertyValue: null },
+          { propertyName: 'required', propertyValue: 'value' },
+        ],
       });
 
       const result = service.extractProperties('test', optionalProperties);

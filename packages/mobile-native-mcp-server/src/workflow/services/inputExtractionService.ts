@@ -178,35 +178,37 @@ export class InputExtractionService implements InputExtractionServiceProvider {
    * Validates and filters extraction results.
    *
    * This method:
-   * 1. Validates the overall result structure
-   * 2. Filters out null/undefined property values
-   * 3. Validates each property value against its Zod schema
-   * 4. Removes properties that fail validation
-   * 5. Returns only valid, successfully extracted properties
+   * 1. Validates the overall result structure (array-of-objects from LLM)
+   * 2. Converts array format to record format for easier consumption
+   * 3. Filters out null/undefined property values
+   * 4. Validates each property value against its Zod schema
+   * 5. Removes properties that fail validation
+   * 6. Returns only valid, successfully extracted properties
    *
-   * @param rawResult - Raw result from tool execution
+   * @param rawResult - Raw result from tool execution (array format from LLM)
    * @param properties - Property metadata for validation
-   * @returns Validated extraction result with only valid properties
+   * @returns Validated extraction result with only valid properties (record format)
    */
   private validateAndFilterResult(
     rawResult: unknown,
     properties: PropertyMetadataCollection
   ): ExtractionResult {
-    // First, validate the overall structure
+    // First, validate the overall structure (array-of-objects format from LLM)
     const structureValidated = INPUT_EXTRACTION_TOOL.resultSchema.parse(rawResult);
-    const { extractedProperties } = structureValidated;
+    const { extractedProperties: extractedPropertiesArray } = structureValidated;
 
     this.logger.debug('Validating extracted properties', {
-      rawProperties: Object.keys(extractedProperties),
+      rawPropertiesCount: extractedPropertiesArray.length,
+      rawPropertyNames: extractedPropertiesArray.map(p => p.propertyName),
     });
 
-    // Now validate and filter individual properties
+    // Convert array format to record format and validate individual properties
     const validatedProperties: Record<string, unknown> = {};
     const invalidProperties: string[] = [];
 
-    for (const [propertyName, value] of Object.entries(extractedProperties)) {
+    for (const { propertyName, propertyValue } of extractedPropertiesArray) {
       // Skip null/undefined values
-      if (value == null) {
+      if (propertyValue == null) {
         this.logger.debug(`Skipping property with null/undefined value`, { propertyName });
         continue;
       }
@@ -220,7 +222,7 @@ export class InputExtractionService implements InputExtractionServiceProvider {
 
       // Validate against Zod schema
       try {
-        const validatedValue = propertyMetadata.zodType.parse(value);
+        const validatedValue = propertyMetadata.zodType.parse(propertyValue);
         validatedProperties[propertyName] = validatedValue;
         this.logger.debug(`Property validated successfully`, {
           propertyName,
@@ -231,7 +233,7 @@ export class InputExtractionService implements InputExtractionServiceProvider {
         if (error instanceof z.ZodError) {
           this.logger.debug(`Property validation failed`, {
             propertyName,
-            value,
+            value: propertyValue,
             errors: error.errors,
           });
         } else {

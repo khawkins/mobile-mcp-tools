@@ -36,11 +36,15 @@ export const INPUT_EXTRACTION_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_S
 
 export const INPUT_EXTRACTION_WORKFLOW_RESULT_SCHEMA = z.object({
   extractedProperties: z
-    .record(
-      z.string().describe('The name of the property'),
-      z.unknown().nullable().describe('The value of the property')
+    .array(
+      z
+        .object({
+          propertyName: z.string().describe('The name of the property'),
+          propertyValue: z.unknown().nullable().describe('The value of the property'),
+        })
+        .describe('Object containing the property name and property value')
     )
-    .describe('Collection of structured properties extracted from user input'),
+    .describe('Array of objects representing property names and property values'),
 });
 
 export type InputExtractionWorkflowInput = z.infer<typeof INPUT_EXTRACTION_WORKFLOW_INPUT_SCHEMA>;

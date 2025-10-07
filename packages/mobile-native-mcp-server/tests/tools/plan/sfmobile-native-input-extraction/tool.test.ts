@@ -173,20 +173,20 @@ describe('SFMobileNativeInputExtractionTool', () => {
   });
 
   describe('Result Schema Validation', () => {
-    it('should validate result with extractedProperties', () => {
+    it('should validate result with extractedProperties (array format)', () => {
       const validResult = {
-        extractedProperties: {
-          platform: 'iOS',
-          projectName: 'MyApp',
-        },
+        extractedProperties: [
+          { propertyName: 'platform', propertyValue: 'iOS' },
+          { propertyName: 'projectName', propertyValue: 'MyApp' },
+        ],
       };
       const result = tool.toolMetadata.resultSchema.safeParse(validResult);
       expect(result.success).toBe(true);
     });
 
-    it('should validate result with empty extractedProperties', () => {
+    it('should validate result with empty extractedProperties array', () => {
       const validResult = {
-        extractedProperties: {},
+        extractedProperties: [],
       };
       const result = tool.toolMetadata.resultSchema.safeParse(validResult);
       expect(result.success).toBe(true);
@@ -194,10 +194,10 @@ describe('SFMobileNativeInputExtractionTool', () => {
 
     it('should validate result with null property values', () => {
       const validResult = {
-        extractedProperties: {
-          platform: null,
-          projectName: 'MyApp',
-        },
+        extractedProperties: [
+          { propertyName: 'platform', propertyValue: null },
+          { propertyName: 'projectName', propertyValue: 'MyApp' },
+        ],
       };
       const result = tool.toolMetadata.resultSchema.safeParse(validResult);
       expect(result.success).toBe(true);
@@ -206,6 +206,17 @@ describe('SFMobileNativeInputExtractionTool', () => {
     it('should reject result missing extractedProperties', () => {
       const invalidResult = {
         somethingElse: {},
+      };
+      const result = tool.toolMetadata.resultSchema.safeParse(invalidResult);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject result with wrong extractedProperties format', () => {
+      const invalidResult = {
+        extractedProperties: {
+          platform: 'iOS',
+          projectName: 'MyApp',
+        },
       };
       const result = tool.toolMetadata.resultSchema.safeParse(invalidResult);
       expect(result.success).toBe(false);
