@@ -7,17 +7,17 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { SFMobileNativeInputExtractionTool } from '../../../../src/tools/plan/sfmobile-native-generate-question/tool.js';
+import { SFMobileNativeGenerateQuestionTool } from '../../../../src/tools/plan/sfmobile-native-generate-question/tool.js';
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 
 describe('SFMobileNativeGenerateQuestionTool', () => {
-  let tool: SFMobileNativeInputExtractionTool;
+  let tool: SFMobileNativeGenerateQuestionTool;
   let mockServer: McpServer;
   let annotations: ToolAnnotations;
 
   beforeEach(() => {
     mockServer = new McpServer({ name: 'test-server', version: '1.0.0' });
-    tool = new SFMobileNativeInputExtractionTool(mockServer);
+    tool = new SFMobileNativeGenerateQuestionTool(mockServer);
     annotations = {
       readOnlyHint: true,
       destructiveHint: false,
