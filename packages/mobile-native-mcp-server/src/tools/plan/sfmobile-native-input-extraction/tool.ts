@@ -20,7 +20,7 @@ export class SFMobileNativeInputExtractionTool extends AbstractWorkflowTool<
   public handleRequest = async (input: InputExtractionWorkflowInput) => {
     try {
       const guidance = this.generateInputExtractionGuidance(input);
-      return this.finalizeWorkflowToolOutput(guidance, input.workflowStateData);
+      return this.finalizeWorkflowToolOutput(guidance, input.workflowStateData, input.resultSchema);
     } catch (error) {
       const toolError = error instanceof Error ? error : new Error('Unknown error occurred');
       return {

@@ -48,6 +48,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const validInput = {
         userUtterance: 'Create an iOS app',
         propertiesToExtract: [{ propertyName: 'platform', description: 'Target platform' }],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
       const result = tool.toolMetadata.inputSchema.safeParse(validInput);
@@ -58,6 +59,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const validInput = {
         userUtterance: 'test',
         propertiesToExtract: [],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-456' },
       };
       const result = tool.toolMetadata.inputSchema.safeParse(validInput);
@@ -68,6 +70,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const validInput = {
         userUtterance: { text: 'complex object', nested: { value: 123 } },
         propertiesToExtract: [],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-789' },
       };
       const result = tool.toolMetadata.inputSchema.safeParse(validInput);
@@ -78,6 +81,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const validInput = {
         userUtterance: 'test',
         propertiesToExtract: [],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
       const result = tool.toolMetadata.inputSchema.safeParse(validInput);
@@ -92,6 +96,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
           { propertyName: 'projectName', description: 'Project name' },
           { propertyName: 'packageName', description: 'Package identifier' },
         ],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
       const result = tool.toolMetadata.inputSchema.safeParse(validInput);
@@ -173,53 +178,41 @@ describe('SFMobileNativeInputExtractionTool', () => {
   });
 
   describe('Result Schema Validation', () => {
-    it('should validate result with extractedProperties (array format)', () => {
-      const validResult = {
-        extractedProperties: [
-          { propertyName: 'platform', propertyValue: 'iOS' },
-          { propertyName: 'projectName', propertyValue: 'MyApp' },
-        ],
-      };
-      const result = tool.toolMetadata.resultSchema.safeParse(validResult);
+    it('should have a nominal result schema (actual validation is dynamic)', () => {
+      // The static result schema is now a placeholder
+      // Real validation happens dynamically based on the input schema
+      const result = tool.toolMetadata.resultSchema.safeParse({
+        resultSchema: '{"type":"object"}',
+      });
       expect(result.success).toBe(true);
     });
 
-    it('should validate result with empty extractedProperties array', () => {
-      const validResult = {
-        extractedProperties: [],
-      };
-      const result = tool.toolMetadata.resultSchema.safeParse(validResult);
-      expect(result.success).toBe(true);
-    });
-
-    it('should validate result with null property values', () => {
-      const validResult = {
-        extractedProperties: [
-          { propertyName: 'platform', propertyValue: null },
-          { propertyName: 'projectName', propertyValue: 'MyApp' },
-        ],
-      };
-      const result = tool.toolMetadata.resultSchema.safeParse(validResult);
-      expect(result.success).toBe(true);
-    });
-
-    it('should reject result missing extractedProperties', () => {
+    it('should require resultSchema field in result', () => {
       const invalidResult = {
-        somethingElse: {},
+        somethingElse: 'value',
       };
       const result = tool.toolMetadata.resultSchema.safeParse(invalidResult);
       expect(result.success).toBe(false);
     });
 
-    it('should reject result with wrong extractedProperties format', () => {
-      const invalidResult = {
-        extractedProperties: {
-          platform: 'iOS',
-          projectName: 'MyApp',
+    it('should accept any valid JSON schema string as resultSchema', () => {
+      const validSchemaString = JSON.stringify({
+        type: 'object',
+        properties: {
+          extractedProperties: {
+            type: 'object',
+            properties: {
+              platform: { type: 'string', nullable: true },
+              projectName: { type: 'string', nullable: true },
+            },
+          },
         },
-      };
-      const result = tool.toolMetadata.resultSchema.safeParse(invalidResult);
-      expect(result.success).toBe(false);
+      });
+
+      const result = tool.toolMetadata.resultSchema.safeParse({
+        resultSchema: validSchemaString,
+      });
+      expect(result.success).toBe(true);
     });
   });
 
@@ -228,6 +221,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const input = {
         userUtterance: 'Create an iOS app called MyApp',
         propertiesToExtract: [{ propertyName: 'platform', description: 'Target platform' }],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -246,6 +240,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const input = {
         userUtterance: 'test',
         propertiesToExtract: [],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -261,6 +256,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const input = {
         userUtterance: 'test',
         propertiesToExtract: [],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -277,6 +273,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const input = {
         userUtterance: 'Create Android app TestApp',
         propertiesToExtract: [],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -295,6 +292,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
           { propertyName: 'platform', description: 'Target platform (iOS or Android)' },
           { propertyName: 'projectName', description: 'Name of the project' },
         ],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -313,6 +311,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const input = {
         userUtterance: 'test',
         propertiesToExtract: [],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -334,6 +333,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
           { propertyName: 'platform', description: 'Target platform' },
           { propertyName: 'projectName', description: 'Project name' },
         ],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -358,6 +358,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const input = {
         userUtterance: 'test',
         propertiesToExtract: [],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -381,6 +382,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
           nested: { value: 123 },
         },
         propertiesToExtract: [],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -405,6 +407,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const input = {
         userUtterance: 'test',
         propertiesToExtract: [],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -425,6 +428,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const input = {
         userUtterance: 'test',
         propertiesToExtract: [],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -440,6 +444,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const input = {
         userUtterance: 'test',
         propertiesToExtract: [],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-workflow-123' },
       };
 
@@ -453,9 +458,22 @@ describe('SFMobileNativeInputExtractionTool', () => {
     });
 
     it('should provide result schema as string', async () => {
+      const testSchema = JSON.stringify({
+        type: 'object',
+        properties: {
+          extractedProperties: {
+            type: 'object',
+            properties: {
+              platform: { type: 'string', nullable: true },
+            },
+          },
+        },
+      });
+
       const input = {
         userUtterance: 'test',
         propertiesToExtract: [],
+        resultSchema: testSchema,
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -464,6 +482,9 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const response = JSON.parse(responseText);
 
       expect(typeof response.resultSchema).toBe('string');
+
+      // Should be the same schema that was passed in
+      expect(response.resultSchema).toBe(testSchema);
 
       // Should be valid JSON schema
       const parsedSchema = JSON.parse(response.resultSchema);
@@ -492,6 +513,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
               'The package identifier of the mobile app, for example com.company.appname',
           },
         ],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -528,6 +550,7 @@ describe('SFMobileNativeInputExtractionTool', () => {
             description: 'The Salesforce login host for the mobile app',
           },
         ],
+        resultSchema: '{"type":"object"}',
         workflowStateData: { thread_id: 'test-123' },
       };
 

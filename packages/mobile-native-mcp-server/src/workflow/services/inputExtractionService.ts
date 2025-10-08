@@ -6,6 +6,7 @@
  */
 
 import z from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 import { PropertyMetadataCollection } from '../../common/propertyMetadata.js';
 import { MCPToolInvocationData } from '../../common/metadata.js';
 import { INPUT_EXTRACTION_TOOL } from '../../tools/plan/sfmobile-native-input-extraction/metadata.js';
@@ -116,6 +117,10 @@ export class InputExtractionService implements InputExtractionServiceProvider {
     // Prepare properties for extraction tool
     const propertiesToExtract = this.preparePropertiesForExtraction(properties);
 
+    // Prepare result schema
+    const resultSchema = this.preparePropertyResultsSchema(properties);
+    const resultSchemaString = JSON.stringify(zodToJsonSchema(resultSchema));
+
     // Create tool invocation data
     const toolInvocationData: MCPToolInvocationData<typeof INPUT_EXTRACTION_TOOL.inputSchema> = {
       llmMetadata: {
@@ -126,6 +131,7 @@ export class InputExtractionService implements InputExtractionServiceProvider {
       input: {
         userUtterance: userInput,
         propertiesToExtract,
+        resultSchema: resultSchemaString,
       },
     };
 
@@ -134,10 +140,10 @@ export class InputExtractionService implements InputExtractionServiceProvider {
     // Execute tool
     const rawResult = this.toolExecutor.execute(toolInvocationData);
 
-    this.logger.debug('Tool execution completed', { rawResult });
+    this.logger.debug('Tool execution completed', { rawResult, rawResultType: typeof rawResult });
 
     // Validate and filter result
-    const validatedResult = this.validateAndFilterResult(rawResult, properties);
+    const validatedResult = this.validateAndFilterResult(rawResult, properties, resultSchema);
 
     this.logger.info('Property extraction completed', {
       extractedCount: Object.keys(validatedResult.extractedProperties).length,
@@ -175,6 +181,35 @@ export class InputExtractionService implements InputExtractionServiceProvider {
   }
 
   /**
+   * Creates the result schema for the extracted properties.
+   *
+   * Note: This schema is primarily structural - it ensures all required properties
+   * are present and provides type hints to the LLM. The actual type/value validation
+   * happens in validateAndFilterResult() where we can gracefully handle and log errors.
+   *
+   * @param properties The properties that will define the result schema.
+   * @returns The result schema for the extracted properties.
+   */
+  private preparePropertyResultsSchema(
+    properties: PropertyMetadataCollection
+  ): z.ZodObject<{ extractedProperties: z.ZodObject<z.ZodRawShape> }> {
+    const extractedPropertiesShape: Record<string, z.ZodType> = {};
+
+    for (const [propertyName, metadata] of Object.entries(properties)) {
+      // Include the full type information in the schema for the LLM's benefit,
+      // but use .catch() so validation errors don't throw - they'll be caught
+      // and logged in the validateAndFilterResult phase
+      extractedPropertiesShape[propertyName] = metadata.zodType
+        .describe(metadata.description)
+        .nullable()
+        .catch((ctx: { input: unknown }) => ctx.input); // Preserve the invalid value for logging during downstream validation.
+    }
+
+    // Use .passthrough() to preserve unknown properties for warning logs
+    return z.object({ extractedProperties: z.object(extractedPropertiesShape).passthrough() });
+  }
+
+  /**
    * Validates and filters extraction results.
    *
    * This method:
@@ -191,22 +226,22 @@ export class InputExtractionService implements InputExtractionServiceProvider {
    */
   private validateAndFilterResult(
     rawResult: unknown,
-    properties: PropertyMetadataCollection
+    properties: PropertyMetadataCollection,
+    resultSchema: z.ZodObject<{ extractedProperties: z.ZodObject<z.ZodRawShape> }>
   ): ExtractionResult {
     // First, validate the overall structure (array-of-objects format from LLM)
-    const structureValidated = INPUT_EXTRACTION_TOOL.resultSchema.parse(rawResult);
-    const { extractedProperties: extractedPropertiesArray } = structureValidated;
+    const structureValidated = resultSchema.parse(rawResult);
+    const { extractedProperties } = structureValidated;
 
     this.logger.debug('Validating extracted properties', {
-      rawPropertiesCount: extractedPropertiesArray.length,
-      rawPropertyNames: extractedPropertiesArray.map(p => p.propertyName),
+      extractedProperties,
     });
 
     // Convert array format to record format and validate individual properties
     const validatedProperties: Record<string, unknown> = {};
     const invalidProperties: string[] = [];
 
-    for (const { propertyName, propertyValue } of extractedPropertiesArray) {
+    for (const [propertyName, propertyValue] of Object.entries(extractedProperties)) {
       // Skip null/undefined values
       if (propertyValue == null) {
         this.logger.debug(`Skipping property with null/undefined value`, { propertyName });

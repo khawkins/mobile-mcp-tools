@@ -32,19 +32,18 @@ export const INPUT_EXTRACTION_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_S
         .describe('The name of the property and its description to correlate with the user input')
     )
     .describe('The array of properties to extract from the user input'),
+  resultSchema: z
+    .string()
+    .describe('The JSON schema definining the extracted properties structure, as a string'),
 });
 
+// NOTE: This is a nominal definition, as the actual schema is dynamic, and needs to come
+// through the input schema. Having this defined is an artifact of needing to reconsider
+// our design for schema representation in our server tools.
 export const INPUT_EXTRACTION_WORKFLOW_RESULT_SCHEMA = z.object({
-  extractedProperties: z
-    .array(
-      z
-        .object({
-          propertyName: z.string().describe('The name of the property'),
-          propertyValue: z.unknown().nullable().describe('The value of the property'),
-        })
-        .describe('Object containing the property name and property value')
-    )
-    .describe('Array of objects representing property names and property values'),
+  resultSchema: z
+    .string()
+    .describe('The JSON schema definining the extracted properties structure, as a string'),
 });
 
 export type InputExtractionWorkflowInput = z.infer<typeof INPUT_EXTRACTION_WORKFLOW_INPUT_SCHEMA>;
