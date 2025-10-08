@@ -196,7 +196,7 @@ describe('SFMobileNativeGetInputTool', () => {
       const response = JSON.parse(responseText);
 
       expect(response.promptForLLM).toContain('# ROLE');
-      expect(response.promptForLLM).toContain('system instruction formatter');
+      expect(response.promptForLLM).toContain('input gathering tool');
     });
 
     it('should include TASK section', async () => {
@@ -210,8 +210,8 @@ describe('SFMobileNativeGetInputTool', () => {
       const response = JSON.parse(responseText);
 
       expect(response.promptForLLM).toContain('# TASK');
-      expect(response.promptForLLM).toContain('take a question');
-      expect(response.promptForLLM).toContain('embed it into a standard response template');
+      expect(response.promptForLLM).toContain('ask the user a question');
+      expect(response.promptForLLM).toContain('gather their input');
     });
 
     it('should include CONTEXT section with the question', async () => {
@@ -240,8 +240,8 @@ describe('SFMobileNativeGetInputTool', () => {
       const response = JSON.parse(responseText);
 
       expect(response.promptForLLM).toContain('# INSTRUCTIONS');
-      expect(response.promptForLLM).toContain('exact question to present to the user');
-      expect(response.promptForLLM).toContain('post-input navigation');
+      expect(response.promptForLLM).toContain('Present the question');
+      expect(response.promptForLLM).toContain('Post-Tool-Invocation');
     });
 
     it('should handle question with quotes', async () => {
