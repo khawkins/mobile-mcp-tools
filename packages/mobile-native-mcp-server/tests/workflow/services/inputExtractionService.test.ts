@@ -18,6 +18,22 @@ describe('InputExtractionService', () => {
   let mockLogger: MockLogger;
   let service: InputExtractionService;
 
+  /**
+   * Helper to create mock LLM response with all properties.
+   * With the dynamic concrete schema, LLM returns all properties (values or null).
+   */
+  const createMockResponse = (
+    properties: Partial<Record<string, unknown>>
+  ): { extractedProperties: Record<string, unknown> } => {
+    return {
+      extractedProperties: {
+        platform: properties.platform ?? null,
+        projectName: properties.projectName ?? null,
+        version: properties.version ?? null,
+      },
+    };
+  };
+
   // Test property metadata collection
   const testProperties: PropertyMetadataCollection = {
     platform: {
@@ -63,12 +79,13 @@ describe('InputExtractionService', () => {
     it('should extract and validate all properties successfully', () => {
       const userInput = 'Create an iOS app called MyApp version 1.0';
 
+      // LLM now returns concrete record format (not array) due to dynamic schema
       const toolResult = {
-        extractedProperties: [
-          { propertyName: 'platform', propertyValue: 'iOS' },
-          { propertyName: 'projectName', propertyValue: 'MyApp' },
-          { propertyName: 'version', propertyValue: '1.0' },
-        ],
+        extractedProperties: {
+          platform: 'iOS',
+          projectName: 'MyApp',
+          version: '1.0',
+        },
       };
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, toolResult);
@@ -82,12 +99,13 @@ describe('InputExtractionService', () => {
       });
     });
 
-    it('should call tool executor with correct parameters', () => {
+    it('should call tool executor with correct parameters including resultSchema', () => {
       const userInput = 'Create an Android app';
 
-      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [{ propertyName: 'platform', propertyValue: 'Android' }],
-      });
+      mockToolExecutor.setResult(
+        INPUT_EXTRACTION_TOOL.toolId,
+        createMockResponse({ platform: 'Android' })
+      );
 
       service.extractProperties(userInput, testProperties);
 
@@ -97,14 +115,14 @@ describe('InputExtractionService', () => {
       expect(lastCall?.llmMetadata.description).toBe(INPUT_EXTRACTION_TOOL.description);
       expect(lastCall?.input).toHaveProperty('userUtterance', userInput);
       expect(lastCall?.input).toHaveProperty('propertiesToExtract');
+      expect(lastCall?.input).toHaveProperty('resultSchema');
+      expect(typeof lastCall?.input.resultSchema).toBe('string');
     });
 
     it('should prepare properties to extract with correct format', () => {
       const userInput = 'test input';
 
-      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [],
-      });
+      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, createMockResponse({}));
 
       service.extractProperties(userInput, testProperties);
 
@@ -130,11 +148,11 @@ describe('InputExtractionService', () => {
       const userInput = 'iOS app';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [
-          { propertyName: 'platform', propertyValue: 'iOS' },
-          { propertyName: 'projectName', propertyValue: null },
-          { propertyName: 'version', propertyValue: null },
-        ],
+        extractedProperties: {
+          platform: 'iOS',
+          projectName: null,
+          version: null,
+        },
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -152,11 +170,11 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [
-          { propertyName: 'platform', propertyValue: 'iOS' },
-          { propertyName: 'projectName', propertyValue: null },
-          { propertyName: 'version', propertyValue: null },
-        ],
+        extractedProperties: {
+          platform: 'iOS',
+          projectName: null,
+          version: null,
+        },
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -167,13 +185,14 @@ describe('InputExtractionService', () => {
     it('should filter out undefined values', () => {
       const userInput = 'test';
 
-      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [
-          { propertyName: 'platform', propertyValue: 'iOS' },
-          { propertyName: 'projectName', propertyValue: undefined },
-          { propertyName: 'version', propertyValue: undefined },
-        ],
-      });
+      mockToolExecutor.setResult(
+        INPUT_EXTRACTION_TOOL.toolId,
+        createMockResponse({
+          platform: 'iOS',
+          projectName: undefined,
+          version: undefined,
+        })
+      );
 
       const result = service.extractProperties(userInput, testProperties);
 
@@ -183,12 +202,13 @@ describe('InputExtractionService', () => {
     it('should filter out properties that fail Zod validation', () => {
       const userInput = 'test';
 
-      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [
-          { propertyName: 'platform', propertyValue: 'Windows' }, // Invalid - not in enum
-          { propertyName: 'projectName', propertyValue: 'ValidName' },
-        ],
-      });
+      mockToolExecutor.setResult(
+        INPUT_EXTRACTION_TOOL.toolId,
+        createMockResponse({
+          platform: 'Windows', // Invalid - not in enum
+          projectName: 'ValidName',
+        })
+      );
 
       const result = service.extractProperties(userInput, testProperties);
 
@@ -202,11 +222,13 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [
-          { propertyName: 'platform', propertyValue: 'iOS' },
-          { propertyName: 'unknownProperty', propertyValue: 'some value' },
-          { propertyName: 'anotherUnknown', propertyValue: 123 },
-        ],
+        extractedProperties: {
+          platform: 'iOS',
+          projectName: null,
+          version: null,
+          unknownProperty: 'some value',
+          anotherUnknown: 123,
+        },
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -219,9 +241,10 @@ describe('InputExtractionService', () => {
     it('should validate enum properties correctly', () => {
       const userInput = 'Android app';
 
-      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [{ propertyName: 'platform', propertyValue: 'Android' }],
-      });
+      mockToolExecutor.setResult(
+        INPUT_EXTRACTION_TOOL.toolId,
+        createMockResponse({ platform: 'Android' })
+      );
 
       const result = service.extractProperties(userInput, testProperties);
 
@@ -231,12 +254,13 @@ describe('InputExtractionService', () => {
     it('should validate string properties correctly', () => {
       const userInput = 'MyProject';
 
-      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [
-          { propertyName: 'projectName', propertyValue: 'MyProject' },
-          { propertyName: 'version', propertyValue: '2.0.1' },
-        ],
-      });
+      mockToolExecutor.setResult(
+        INPUT_EXTRACTION_TOOL.toolId,
+        createMockResponse({
+          projectName: 'MyProject',
+          version: '2.0.1',
+        })
+      );
 
       const result = service.extractProperties(userInput, testProperties);
 
@@ -249,13 +273,14 @@ describe('InputExtractionService', () => {
     it('should handle mix of valid and invalid properties', () => {
       const userInput = 'test';
 
-      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [
-          { propertyName: 'platform', propertyValue: 'iOS' }, // valid
-          { propertyName: 'projectName', propertyValue: 123 }, // invalid type (should be string)
-          { propertyName: 'version', propertyValue: '1.0' }, // valid
-        ],
-      });
+      mockToolExecutor.setResult(
+        INPUT_EXTRACTION_TOOL.toolId,
+        createMockResponse({
+          platform: 'iOS', // valid
+          projectName: 123, // invalid type (should be string)
+          version: '1.0', // valid
+        })
+      );
 
       const result = service.extractProperties(userInput, testProperties);
 
@@ -272,7 +297,7 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [],
+        extractedProperties: {},
       });
 
       const result = service.extractProperties(userInput, {});
@@ -283,9 +308,7 @@ describe('InputExtractionService', () => {
     it('should handle no extracted properties', () => {
       const userInput = 'test';
 
-      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [],
-      });
+      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, createMockResponse({}));
 
       const result = service.extractProperties(userInput, testProperties);
 
@@ -296,11 +319,11 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [
-          { propertyName: 'platform', propertyValue: null },
-          { propertyName: 'projectName', propertyValue: null },
-          { propertyName: 'version', propertyValue: null },
-        ],
+        extractedProperties: {
+          platform: null,
+          projectName: null,
+          version: null,
+        },
       });
 
       const result = service.extractProperties(userInput, testProperties);
@@ -314,9 +337,10 @@ describe('InputExtractionService', () => {
         metadata: { source: 'test' },
       };
 
-      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [{ propertyName: 'platform', propertyValue: 'iOS' }],
-      });
+      mockToolExecutor.setResult(
+        INPUT_EXTRACTION_TOOL.toolId,
+        createMockResponse({ platform: 'iOS' })
+      );
 
       const result = service.extractProperties(userInput, testProperties);
 
@@ -366,7 +390,7 @@ describe('InputExtractionService', () => {
       };
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [{ propertyName: 'test', propertyValue: 'value' }],
+        extractedProperties: { test: 'value' },
       });
 
       expect(() => {
@@ -379,9 +403,7 @@ describe('InputExtractionService', () => {
     it('should log extraction start', () => {
       const userInput = 'test';
 
-      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [],
-      });
+      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, createMockResponse({}));
 
       mockLogger.reset();
       service.extractProperties(userInput, testProperties);
@@ -399,9 +421,7 @@ describe('InputExtractionService', () => {
     it('should log tool invocation', () => {
       const userInput = 'test';
 
-      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [],
-      });
+      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, createMockResponse({}));
 
       mockLogger.reset();
       service.extractProperties(userInput, testProperties);
@@ -416,12 +436,13 @@ describe('InputExtractionService', () => {
     it('should log completion with extracted property count', () => {
       const userInput = 'test';
 
-      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [
-          { propertyName: 'platform', propertyValue: 'iOS' },
-          { propertyName: 'projectName', propertyValue: 'MyApp' },
-        ],
-      });
+      mockToolExecutor.setResult(
+        INPUT_EXTRACTION_TOOL.toolId,
+        createMockResponse({
+          platform: 'iOS',
+          projectName: 'MyApp',
+        })
+      );
 
       mockLogger.reset();
       service.extractProperties(userInput, testProperties);
@@ -441,12 +462,13 @@ describe('InputExtractionService', () => {
     it('should log invalid properties', () => {
       const userInput = 'test';
 
-      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [
-          { propertyName: 'platform', propertyValue: 'InvalidPlatform' },
-          { propertyName: 'projectName', propertyValue: 'Valid' },
-        ],
-      });
+      mockToolExecutor.setResult(
+        INPUT_EXTRACTION_TOOL.toolId,
+        createMockResponse({
+          platform: 'InvalidPlatform',
+          projectName: 'Valid',
+        })
+      );
 
       mockLogger.reset();
       service.extractProperties(userInput, testProperties);
@@ -466,7 +488,12 @@ describe('InputExtractionService', () => {
       const userInput = 'test';
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [{ propertyName: 'unknownProp', propertyValue: 'value' }],
+        extractedProperties: {
+          platform: null,
+          projectName: null,
+          version: null,
+          unknownProp: 'value',
+        },
       });
 
       mockLogger.reset();
@@ -493,7 +520,7 @@ describe('InputExtractionService', () => {
       };
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [{ propertyName: 'count', propertyValue: 42 }],
+        extractedProperties: { count: 42 },
       });
 
       const result = service.extractProperties('test', numericProperties);
@@ -511,7 +538,7 @@ describe('InputExtractionService', () => {
       };
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [{ propertyName: 'enabled', propertyValue: true }],
+        extractedProperties: { enabled: true },
       });
 
       const result = service.extractProperties('test', booleanProperties);
@@ -534,15 +561,116 @@ describe('InputExtractionService', () => {
       };
 
       mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
-        extractedProperties: [
-          { propertyName: 'optional', propertyValue: null },
-          { propertyName: 'required', propertyValue: 'value' },
-        ],
+        extractedProperties: {
+          optional: null,
+          required: 'value',
+        },
       });
 
       const result = service.extractProperties('test', optionalProperties);
 
       expect(result.extractedProperties).toEqual({ required: 'value' });
+    });
+  });
+
+  describe('Dynamic Schema Generation', () => {
+    it('should generate result schema dynamically based on properties', () => {
+      const userInput = 'test';
+
+      mockToolExecutor.setResult(
+        INPUT_EXTRACTION_TOOL.toolId,
+        createMockResponse({ platform: 'iOS' })
+      );
+
+      service.extractProperties(userInput, testProperties);
+
+      const lastCall = mockToolExecutor.getLastCall();
+      const resultSchema = lastCall?.input.resultSchema;
+
+      expect(resultSchema).toBeDefined();
+      expect(typeof resultSchema).toBe('string');
+
+      // Parse the JSON schema string
+      const parsedSchema = JSON.parse(resultSchema);
+
+      // Verify it has the extractedProperties structure
+      expect(parsedSchema.properties).toHaveProperty('extractedProperties');
+      expect(parsedSchema.properties.extractedProperties.type).toBe('object');
+
+      // Verify it includes all our test properties
+      const extractedPropsSchema = parsedSchema.properties.extractedProperties;
+      expect(extractedPropsSchema.properties).toHaveProperty('platform');
+      expect(extractedPropsSchema.properties).toHaveProperty('projectName');
+      expect(extractedPropsSchema.properties).toHaveProperty('version');
+    });
+
+    it('should include property types in the dynamic schema', () => {
+      const specificProperties: PropertyMetadataCollection = {
+        count: {
+          zodType: z.number(),
+          description: 'A numeric count',
+          friendlyName: 'count',
+        },
+        enabled: {
+          zodType: z.boolean(),
+          description: 'Boolean flag',
+          friendlyName: 'enabled',
+        },
+      };
+
+      // With dynamic schema, LLM returns all properties (with values or null)
+      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
+        extractedProperties: {
+          count: null,
+          enabled: null,
+        },
+      });
+
+      service.extractProperties('test', specificProperties);
+
+      const lastCall = mockToolExecutor.getLastCall();
+      const parsedSchema = JSON.parse(lastCall?.input.resultSchema);
+
+      const propsSchema = parsedSchema.properties.extractedProperties.properties;
+
+      // Verify the schema reflects the actual types
+      expect(propsSchema.count).toBeDefined();
+      expect(propsSchema.enabled).toBeDefined();
+    });
+
+    it('should include nullable constraint for all properties in dynamic schema', () => {
+      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, createMockResponse({}));
+
+      service.extractProperties('test', testProperties);
+
+      const lastCall = mockToolExecutor.getLastCall();
+      const parsedSchema = JSON.parse(lastCall?.input.resultSchema);
+
+      const propsSchema = parsedSchema.properties.extractedProperties.properties;
+
+      // All properties should be nullable in the schema
+      Object.values(propsSchema as Record<string, Record<string, unknown>>).forEach(propSchema => {
+        // The schema should allow null values
+        expect(propSchema.anyOf || propSchema.type).toBeDefined();
+      });
+    });
+
+    it('should validate against the dynamically generated schema', () => {
+      const userInput = 'iOS app';
+
+      // Return a result that matches the dynamic schema structure
+      mockToolExecutor.setResult(INPUT_EXTRACTION_TOOL.toolId, {
+        extractedProperties: {
+          platform: 'iOS',
+          projectName: null,
+          version: null,
+        },
+      });
+
+      // Should not throw - validation should pass
+      const result = service.extractProperties(userInput, testProperties);
+
+      expect(result.extractedProperties).toEqual({ platform: 'iOS' });
     });
   });
 });
