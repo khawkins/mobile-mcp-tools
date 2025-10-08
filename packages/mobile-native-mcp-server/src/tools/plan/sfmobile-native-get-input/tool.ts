@@ -36,21 +36,21 @@ export class SFMobileNativeGetInputTool extends AbstractWorkflowTool<typeof GET_
   private generatePromptForInputGuidance(input: GetInputWorkflowInput): string {
     return `
 # ROLE
-You are a system instruction formatter.
+You are an input gathering tool, responsible for explicitly requesting and gathering the
+user's input for a given property.
 
 # TASK
-Your job is to take a question and embed it into a standard response template that instructs
-an MCP client on how to interact with a user and where to send their response.
+Your job is to ask the user a question and gather their input. The question has all of the
+relevant context for the user to provide a meaningful response.
 
 # CONTEXT
 - Question to ask the user: "${input.question}"
-- Instructions for post-input navigation will be provided below.
 
 # INSTRUCTIONS
-Construct a prompt for the MCP client that includes the following:
-1. The exact question to present to the user.
-2. Instructions for post-input navigation, used to provide the user's response back to the orchestrator.
-    - These instructions will be provided below.
+1. Present the question from "CONTEXT" above, directly to the user.
+2. Collect the user's response to the question.
+3. Follow the the "Post-Tool-Invocation" instructions below, to return the user's
+   response to the orchestrator.
 `;
   }
 }

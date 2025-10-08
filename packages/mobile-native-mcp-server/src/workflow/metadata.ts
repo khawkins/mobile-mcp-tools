@@ -66,6 +66,7 @@ export type WorkflowUserInputProperties = typeof WORKFLOW_USER_INPUT_PROPERTIES;
 export const MobileNativeWorkflowState = Annotation.Root({
   // Core workflow data
   userInput: Annotation<unknown>,
+  userInputQuestion: Annotation<string>,
   platform: Annotation<z.infer<typeof WORKFLOW_USER_INPUT_PROPERTIES.platform.zodType>>,
 
   // Plan phase state
