@@ -12,6 +12,10 @@ import { WORKFLOW_USER_INPUT_PROPERTIES } from '../../../src/workflow/metadata.j
 import { PropertyMetadataCollection } from '../../../src/common/propertyMetadata.js';
 
 describe('CheckPropertiesFulFilledRouter', () => {
+  // Test node names
+  const FULFILLED_NODE = 'templateDiscovery';
+  const UNFULFILLED_NODE = 'generateQuestion';
+
   // Test property subsets for focused testing
   const twoPropertySubset: PropertyMetadataCollection = {
     platform: WORKFLOW_USER_INPUT_PROPERTIES.platform,
@@ -25,24 +29,44 @@ describe('CheckPropertiesFulFilledRouter', () => {
   };
 
   describe('Constructor', () => {
+    it('should accept fulfilled and unfulfilled node names', () => {
+      const router = new CheckPropertiesFulFilledRouter('nodeA', 'nodeB');
+      expect(router['propertiesFulfilledNodeName']).toBe('nodeA');
+      expect(router['propertiesUnfulfilledNodeName']).toBe('nodeB');
+    });
+
     it('should accept custom required properties', () => {
       const customProperties: PropertyMetadataCollection = {
         platform: WORKFLOW_USER_INPUT_PROPERTIES.platform,
       };
 
-      const router = new CheckPropertiesFulFilledRouter(customProperties);
+      const router = new CheckPropertiesFulFilledRouter('nodeA', 'nodeB', customProperties);
       expect(router['requiredProperties']).toBe(customProperties);
     });
 
     it('should default to WORKFLOW_USER_INPUT_PROPERTIES when no properties provided', () => {
-      const router = new CheckPropertiesFulFilledRouter();
+      const router = new CheckPropertiesFulFilledRouter('nodeA', 'nodeB');
       expect(router['requiredProperties']).toBe(WORKFLOW_USER_INPUT_PROPERTIES);
+    });
+
+    it('should allow different node names for fulfilled and unfulfilled', () => {
+      const router1 = new CheckPropertiesFulFilledRouter('fulfilled', 'unfulfilled');
+      expect(router1['propertiesFulfilledNodeName']).toBe('fulfilled');
+      expect(router1['propertiesUnfulfilledNodeName']).toBe('unfulfilled');
+
+      const router2 = new CheckPropertiesFulFilledRouter('nextStep', 'promptUser');
+      expect(router2['propertiesFulfilledNodeName']).toBe('nextStep');
+      expect(router2['propertiesUnfulfilledNodeName']).toBe('promptUser');
     });
   });
 
   describe('execute() - Routing Logic', () => {
-    it('should route to validateEnvironment when all properties are fulfilled', () => {
-      const router = new CheckPropertiesFulFilledRouter(twoPropertySubset);
+    it('should route to fulfilled node when all properties are fulfilled', () => {
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        twoPropertySubset
+      );
 
       const inputState = createTestState({
         platform: 'iOS',
@@ -51,11 +75,15 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('validateEnvironment');
+      expect(nextNode).toBe(FULFILLED_NODE);
     });
 
-    it('should route to generateQuestion when any property is missing', () => {
-      const router = new CheckPropertiesFulFilledRouter(twoPropertySubset);
+    it('should route to unfulfilled node when any property is missing', () => {
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        twoPropertySubset
+      );
 
       const inputState = createTestState({
         platform: 'iOS',
@@ -64,11 +92,15 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('generateQuestion');
+      expect(nextNode).toBe(UNFULFILLED_NODE);
     });
 
-    it('should route to generateQuestion when all properties are missing', () => {
-      const router = new CheckPropertiesFulFilledRouter(twoPropertySubset);
+    it('should route to unfulfilled node when all properties are missing', () => {
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        twoPropertySubset
+      );
 
       const inputState = createTestState({
         // Both properties missing
@@ -76,11 +108,15 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('generateQuestion');
+      expect(nextNode).toBe(UNFULFILLED_NODE);
     });
 
-    it('should route to generateQuestion when first property is missing', () => {
-      const router = new CheckPropertiesFulFilledRouter(twoPropertySubset);
+    it('should route to unfulfilled node when first property is missing', () => {
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        twoPropertySubset
+      );
 
       const inputState = createTestState({
         projectName: 'MyApp',
@@ -89,11 +125,15 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('generateQuestion');
+      expect(nextNode).toBe(UNFULFILLED_NODE);
     });
 
-    it('should route to generateQuestion when last property is missing', () => {
-      const router = new CheckPropertiesFulFilledRouter(threePropertySubset);
+    it('should route to unfulfilled node when last property is missing', () => {
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        threePropertySubset
+      );
 
       const inputState = createTestState({
         platform: 'Android',
@@ -103,11 +143,15 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('generateQuestion');
+      expect(nextNode).toBe(UNFULFILLED_NODE);
     });
 
-    it('should route to generateQuestion when middle property is missing', () => {
-      const router = new CheckPropertiesFulFilledRouter(threePropertySubset);
+    it('should route to unfulfilled node when middle property is missing', () => {
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        threePropertySubset
+      );
 
       const inputState = createTestState({
         platform: 'iOS',
@@ -117,11 +161,15 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('generateQuestion');
+      expect(nextNode).toBe(UNFULFILLED_NODE);
     });
 
     it('should handle three properties all fulfilled', () => {
-      const router = new CheckPropertiesFulFilledRouter(threePropertySubset);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        threePropertySubset
+      );
 
       const inputState = createTestState({
         platform: 'Android',
@@ -131,13 +179,17 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('validateEnvironment');
+      expect(nextNode).toBe(FULFILLED_NODE);
     });
   });
 
   describe('execute() - Property Value Checking', () => {
     it('should treat null as unfulfilled', () => {
-      const router = new CheckPropertiesFulFilledRouter(twoPropertySubset);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        twoPropertySubset
+      );
 
       const inputState = createTestState({
         platform: null as unknown as 'iOS' | 'Android',
@@ -146,11 +198,15 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('generateQuestion');
+      expect(nextNode).toBe(UNFULFILLED_NODE);
     });
 
     it('should treat undefined as unfulfilled', () => {
-      const router = new CheckPropertiesFulFilledRouter(twoPropertySubset);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        twoPropertySubset
+      );
 
       const inputState = createTestState({
         platform: undefined,
@@ -159,11 +215,15 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('generateQuestion');
+      expect(nextNode).toBe(UNFULFILLED_NODE);
     });
 
-    it('should treat empty string as fulfilled (truthy check)', () => {
-      const router = new CheckPropertiesFulFilledRouter(twoPropertySubset);
+    it('should treat empty string as unfulfilled (falsy check)', () => {
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        twoPropertySubset
+      );
 
       const inputState = createTestState({
         platform: 'iOS',
@@ -172,30 +232,16 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      // Empty string is falsy, so should route to generateQuestion
-      expect(nextNode).toBe('generateQuestion');
-    });
-
-    it('should treat 0 as fulfilled', () => {
-      // This is a theoretical test since our properties don't use numbers,
-      // but tests the router's truthy/falsy logic
-      const customProperties: PropertyMetadataCollection = {
-        platform: WORKFLOW_USER_INPUT_PROPERTIES.platform,
-      };
-
-      const router = new CheckPropertiesFulFilledRouter(customProperties);
-
-      const inputState = createTestState({
-        platform: 'iOS',
-      });
-
-      const nextNode = router.execute(inputState);
-
-      expect(nextNode).toBe('validateEnvironment');
+      // Empty string is falsy, so should route to unfulfilled node
+      expect(nextNode).toBe(UNFULFILLED_NODE);
     });
 
     it('should accept any truthy value for properties', () => {
-      const router = new CheckPropertiesFulFilledRouter(twoPropertySubset);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        twoPropertySubset
+      );
 
       const inputState = createTestState({
         platform: 'iOS',
@@ -204,7 +250,64 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('validateEnvironment');
+      expect(nextNode).toBe(FULFILLED_NODE);
+    });
+  });
+
+  describe('execute() - Custom Node Names', () => {
+    it('should return custom fulfilled node name', () => {
+      const customFulfilledNode = 'customNextStep';
+      const router = new CheckPropertiesFulFilledRouter(
+        customFulfilledNode,
+        'someOtherNode',
+        twoPropertySubset
+      );
+
+      const inputState = createTestState({
+        platform: 'iOS',
+        projectName: 'MyApp',
+      });
+
+      const nextNode = router.execute(inputState);
+
+      expect(nextNode).toBe(customFulfilledNode);
+    });
+
+    it('should return custom unfulfilled node name', () => {
+      const customUnfulfilledNode = 'promptForMissingData';
+      const router = new CheckPropertiesFulFilledRouter(
+        'someNode',
+        customUnfulfilledNode,
+        twoPropertySubset
+      );
+
+      const inputState = createTestState({
+        platform: 'iOS',
+        // projectName missing
+      });
+
+      const nextNode = router.execute(inputState);
+
+      expect(nextNode).toBe(customUnfulfilledNode);
+    });
+
+    it('should work with workflow-like node names', () => {
+      const router = new CheckPropertiesFulFilledRouter(
+        'validateEnvironment',
+        'generateQuestion',
+        twoPropertySubset
+      );
+
+      const fulfilledState = createTestState({
+        platform: 'iOS',
+        projectName: 'MyApp',
+      });
+      expect(router.execute(fulfilledState)).toBe('validateEnvironment');
+
+      const unfulfilledState = createTestState({
+        platform: 'iOS',
+      });
+      expect(router.execute(unfulfilledState)).toBe('generateQuestion');
     });
   });
 
@@ -214,19 +317,27 @@ describe('CheckPropertiesFulFilledRouter', () => {
         platform: WORKFLOW_USER_INPUT_PROPERTIES.platform,
       };
 
-      const router = new CheckPropertiesFulFilledRouter(singleProperty);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        singleProperty
+      );
 
       // Property fulfilled
       const state1 = createTestState({ platform: 'iOS' });
-      expect(router.execute(state1)).toBe('validateEnvironment');
+      expect(router.execute(state1)).toBe(FULFILLED_NODE);
 
       // Property missing
       const state2 = createTestState({});
-      expect(router.execute(state2)).toBe('generateQuestion');
+      expect(router.execute(state2)).toBe(UNFULFILLED_NODE);
     });
 
     it('should work with all seven workflow properties', () => {
-      const router = new CheckPropertiesFulFilledRouter(WORKFLOW_USER_INPUT_PROPERTIES);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        WORKFLOW_USER_INPUT_PROPERTIES
+      );
 
       const inputState = createTestState({
         platform: 'iOS',
@@ -240,11 +351,15 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('validateEnvironment');
+      expect(nextNode).toBe(FULFILLED_NODE);
     });
 
     it('should detect missing property among many', () => {
-      const router = new CheckPropertiesFulFilledRouter(WORKFLOW_USER_INPUT_PROPERTIES);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        WORKFLOW_USER_INPUT_PROPERTIES
+      );
 
       const inputState = createTestState({
         platform: 'iOS',
@@ -258,7 +373,7 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('generateQuestion');
+      expect(nextNode).toBe(UNFULFILLED_NODE);
     });
 
     it('should work with different property combinations', () => {
@@ -268,7 +383,11 @@ describe('CheckPropertiesFulFilledRouter', () => {
         connectedAppClientId: WORKFLOW_USER_INPUT_PROPERTIES.connectedAppClientId,
       };
 
-      const router = new CheckPropertiesFulFilledRouter(customProperties);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        customProperties
+      );
 
       const inputState = createTestState({
         organization: 'MyOrg',
@@ -278,7 +397,7 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('validateEnvironment');
+      expect(nextNode).toBe(FULFILLED_NODE);
     });
   });
 
@@ -291,7 +410,11 @@ describe('CheckPropertiesFulFilledRouter', () => {
         platform: WORKFLOW_USER_INPUT_PROPERTIES.platform,
       };
 
-      const router = new CheckPropertiesFulFilledRouter(reversedProperties);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        reversedProperties
+      );
 
       const inputState = createTestState({
         platform: 'iOS',
@@ -301,7 +424,7 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('validateEnvironment');
+      expect(nextNode).toBe(FULFILLED_NODE);
     });
 
     it('should check all properties regardless of order', () => {
@@ -310,25 +433,33 @@ describe('CheckPropertiesFulFilledRouter', () => {
         platform: WORKFLOW_USER_INPUT_PROPERTIES.platform,
       };
 
-      const router = new CheckPropertiesFulFilledRouter(reversedProperties);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        reversedProperties
+      );
 
       // Missing first property in reversed order
       const state1 = createTestState({
         platform: 'iOS',
       });
-      expect(router.execute(state1)).toBe('generateQuestion');
+      expect(router.execute(state1)).toBe(UNFULFILLED_NODE);
 
       // Missing second property in reversed order
       const state2 = createTestState({
         projectName: 'MyApp',
       });
-      expect(router.execute(state2)).toBe('generateQuestion');
+      expect(router.execute(state2)).toBe(UNFULFILLED_NODE);
     });
   });
 
   describe('execute() - Edge Cases', () => {
     it('should handle state with extra properties not in required collection', () => {
-      const router = new CheckPropertiesFulFilledRouter(twoPropertySubset);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        twoPropertySubset
+      );
 
       const inputState = createTestState({
         platform: 'iOS',
@@ -339,12 +470,16 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      // Should still route to validateEnvironment since required properties are fulfilled
-      expect(nextNode).toBe('validateEnvironment');
+      // Should still route to fulfilled node since required properties are fulfilled
+      expect(nextNode).toBe(FULFILLED_NODE);
     });
 
     it('should only check properties in required collection', () => {
-      const router = new CheckPropertiesFulFilledRouter(twoPropertySubset);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        twoPropertySubset
+      );
 
       const inputState = createTestState({
         platform: 'iOS',
@@ -354,26 +489,34 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      expect(nextNode).toBe('validateEnvironment');
+      expect(nextNode).toBe(FULFILLED_NODE);
     });
 
     it('should handle empty property collection gracefully', () => {
       const emptyProperties: PropertyMetadataCollection = {};
 
-      const router = new CheckPropertiesFulFilledRouter(emptyProperties);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        emptyProperties
+      );
 
       const inputState = createTestState({});
 
       const nextNode = router.execute(inputState);
 
-      // With no required properties, should always route to validateEnvironment
-      expect(nextNode).toBe('validateEnvironment');
+      // With no required properties, should always route to fulfilled node
+      expect(nextNode).toBe(FULFILLED_NODE);
     });
   });
 
   describe('execute() - State Preservation', () => {
     it('should not modify input state', () => {
-      const router = new CheckPropertiesFulFilledRouter(twoPropertySubset);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        twoPropertySubset
+      );
 
       const originalPlatform = 'iOS';
       const originalProjectName = 'MyApp';
@@ -392,25 +535,35 @@ describe('CheckPropertiesFulFilledRouter', () => {
   });
 
   describe('execute() - Return Type', () => {
-    it('should return valid NextNode type', () => {
-      const router = new CheckPropertiesFulFilledRouter(twoPropertySubset);
+    it('should return valid node name string', () => {
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        twoPropertySubset
+      );
 
       const state1 = createTestState({
         platform: 'iOS',
         projectName: 'MyApp',
       });
       const result1 = router.execute(state1);
-      expect(['validateEnvironment', 'generateQuestion']).toContain(result1);
+      expect(typeof result1).toBe('string');
+      expect([FULFILLED_NODE, UNFULFILLED_NODE]).toContain(result1);
 
       const state2 = createTestState({
         platform: 'iOS',
       });
       const result2 = router.execute(state2);
-      expect(['validateEnvironment', 'generateQuestion']).toContain(result2);
+      expect(typeof result2).toBe('string');
+      expect([FULFILLED_NODE, UNFULFILLED_NODE]).toContain(result2);
     });
 
-    it('should only return one of two possible values', () => {
-      const router = new CheckPropertiesFulFilledRouter(twoPropertySubset);
+    it('should only return one of two possible node names', () => {
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        twoPropertySubset
+      );
 
       const state = createTestState({
         platform: 'iOS',
@@ -418,30 +571,34 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const result = router.execute(state);
 
-      expect(result === 'validateEnvironment' || result === 'generateQuestion').toBe(true);
+      expect(result === FULFILLED_NODE || result === UNFULFILLED_NODE).toBe(true);
     });
   });
 
   describe('execute() - Real World Scenarios', () => {
     it('should handle progressive property collection', () => {
-      const router = new CheckPropertiesFulFilledRouter(threePropertySubset);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        threePropertySubset
+      );
 
       // Step 1: No properties
       const state1 = createTestState({});
-      expect(router.execute(state1)).toBe('generateQuestion');
+      expect(router.execute(state1)).toBe(UNFULFILLED_NODE);
 
       // Step 2: One property collected
       const state2 = createTestState({
         platform: 'iOS',
       });
-      expect(router.execute(state2)).toBe('generateQuestion');
+      expect(router.execute(state2)).toBe(UNFULFILLED_NODE);
 
       // Step 3: Two properties collected
       const state3 = createTestState({
         platform: 'iOS',
         projectName: 'MyApp',
       });
-      expect(router.execute(state3)).toBe('generateQuestion');
+      expect(router.execute(state3)).toBe(UNFULFILLED_NODE);
 
       // Step 4: All properties collected
       const state4 = createTestState({
@@ -449,11 +606,15 @@ describe('CheckPropertiesFulFilledRouter', () => {
         projectName: 'MyApp',
         packageName: 'com.test.myapp',
       });
-      expect(router.execute(state4)).toBe('validateEnvironment');
+      expect(router.execute(state4)).toBe(FULFILLED_NODE);
     });
 
     it('should handle complete initial extraction scenario', () => {
-      const router = new CheckPropertiesFulFilledRouter(threePropertySubset);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        threePropertySubset
+      );
 
       // User provided all information upfront
       const inputState = createTestState({
@@ -464,12 +625,16 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      // Should skip question generation and go straight to validation
-      expect(nextNode).toBe('validateEnvironment');
+      // Should skip question generation and go straight to next step
+      expect(nextNode).toBe(FULFILLED_NODE);
     });
 
     it('should handle partial extraction scenario', () => {
-      const router = new CheckPropertiesFulFilledRouter(threePropertySubset);
+      const router = new CheckPropertiesFulFilledRouter(
+        FULFILLED_NODE,
+        UNFULFILLED_NODE,
+        threePropertySubset
+      );
 
       // User provided some information
       const inputState = createTestState({
@@ -481,7 +646,35 @@ describe('CheckPropertiesFulFilledRouter', () => {
       const nextNode = router.execute(inputState);
 
       // Should route to question generation for missing property
-      expect(nextNode).toBe('generateQuestion');
+      expect(nextNode).toBe(UNFULFILLED_NODE);
+    });
+
+    it('should match production graph configuration', () => {
+      // This tests the actual node names used in graph.ts
+      const router = new CheckPropertiesFulFilledRouter(
+        'templateDiscovery',
+        'generateQuestion',
+        WORKFLOW_USER_INPUT_PROPERTIES
+      );
+
+      // All properties fulfilled - should route to templateDiscovery
+      const fulfilledState = createTestState({
+        platform: 'iOS',
+        projectName: 'MyApp',
+        packageName: 'com.test.myapp',
+        organization: 'TestOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+        loginHost: 'https://login.salesforce.com',
+      });
+      expect(router.execute(fulfilledState)).toBe('templateDiscovery');
+
+      // Some properties missing - should route to generateQuestion
+      const unfulfilledState = createTestState({
+        platform: 'iOS',
+        projectName: 'MyApp',
+      });
+      expect(router.execute(unfulfilledState)).toBe('generateQuestion');
     });
   });
 });

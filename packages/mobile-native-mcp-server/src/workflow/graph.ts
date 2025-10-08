@@ -27,7 +27,10 @@ const projectGenerationNode = new ProjectGenerationNode();
 const buildValidationNode = new BuildValidationNode();
 const deploymentNode = new DeploymentNode();
 const completionNode = new CompletionNode();
-const checkPropertiesFulFilledRouter = new CheckPropertiesFulFilledRouter();
+const checkPropertiesFulFilledRouter = new CheckPropertiesFulFilledRouter(
+  templateDiscoveryNode.name,
+  generateQuestionNode.name
+);
 
 /**
  * The main workflow graph for mobile native app development
@@ -36,10 +39,10 @@ const checkPropertiesFulFilledRouter = new CheckPropertiesFulFilledRouter();
  */
 export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   // Add all workflow nodes
+  .addNode(environmentValidationNode.name, environmentValidationNode.execute)
   .addNode(initialUserInputExtractionNode.name, initialUserInputExtractionNode.execute)
   .addNode(generateQuestionNode.name, generateQuestionNode.execute)
   .addNode(userInputNode.name, userInputNode.execute)
-  .addNode(environmentValidationNode.name, environmentValidationNode.execute)
   .addNode(templateDiscoveryNode.name, templateDiscoveryNode.execute)
   .addNode(projectGenerationNode.name, projectGenerationNode.execute)
   .addNode(buildValidationNode.name, buildValidationNode.execute)
@@ -47,11 +50,11 @@ export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   .addNode(completionNode.name, completionNode.execute)
 
   // Define workflow edges - steel thread linear progression starting with triage
-  .addEdge(START, initialUserInputExtractionNode.name)
+  .addEdge(START, environmentValidationNode.name)
+  .addEdge(environmentValidationNode.name, initialUserInputExtractionNode.name)
   .addConditionalEdges(initialUserInputExtractionNode.name, checkPropertiesFulFilledRouter.execute)
   .addEdge(generateQuestionNode.name, userInputNode.name)
   .addEdge(userInputNode.name, initialUserInputExtractionNode.name)
-  .addEdge(environmentValidationNode.name, templateDiscoveryNode.name)
   .addEdge(templateDiscoveryNode.name, projectGenerationNode.name)
   .addEdge(projectGenerationNode.name, buildValidationNode.name)
   .addEdge(buildValidationNode.name, deploymentNode.name)

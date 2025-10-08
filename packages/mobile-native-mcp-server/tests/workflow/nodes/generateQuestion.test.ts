@@ -54,7 +54,7 @@ describe('GenerateQuestionNode', () => {
     });
 
     it('should accept custom question generation service', () => {
-      const node = new GenerateQuestionNode(undefined, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(undefined, mockQuestionService);
       expect(node['generateQuestionService']).toBe(mockQuestionService);
     });
 
@@ -65,7 +65,7 @@ describe('GenerateQuestionNode', () => {
 
     it('should allow both custom properties and custom service', () => {
       const customProperties = twoPropertySubset;
-      const node = new GenerateQuestionNode(customProperties, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(customProperties, mockQuestionService);
 
       expect(node['requiredProperties']).toBe(customProperties);
       expect(node['generateQuestionService']).toBe(mockQuestionService);
@@ -74,7 +74,7 @@ describe('GenerateQuestionNode', () => {
 
   describe('execute() - Question Generation', () => {
     it('should generate question for first missing property', () => {
-      const node = new GenerateQuestionNode(twoPropertySubset, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(twoPropertySubset, mockQuestionService);
 
       // State with no properties filled
       const inputState = createTestState({
@@ -95,7 +95,7 @@ describe('GenerateQuestionNode', () => {
     });
 
     it('should generate question for second property when first is filled', () => {
-      const node = new GenerateQuestionNode(twoPropertySubset, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(twoPropertySubset, mockQuestionService);
 
       // State with platform already filled
       const inputState = createTestState({
@@ -117,7 +117,7 @@ describe('GenerateQuestionNode', () => {
     });
 
     it('should skip over fulfilled properties to find next missing one', () => {
-      const node = new GenerateQuestionNode(threePropertySubset, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(threePropertySubset, mockQuestionService);
 
       // State with platform and packageName filled, but projectName missing
       const inputState = createTestState({
@@ -146,7 +146,7 @@ describe('GenerateQuestionNode', () => {
         packageName: WORKFLOW_USER_INPUT_PROPERTIES.packageName,
       };
 
-      const node = new GenerateQuestionNode(orderedProperties, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(orderedProperties, mockQuestionService);
 
       // All properties missing
       const inputState = createTestState({});
@@ -163,7 +163,7 @@ describe('GenerateQuestionNode', () => {
 
   describe('execute() - Metadata Passing', () => {
     it('should pass correct metadata to question generation service', () => {
-      const node = new GenerateQuestionNode(twoPropertySubset, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(twoPropertySubset, mockQuestionService);
 
       const inputState = createTestState({});
 
@@ -182,7 +182,7 @@ describe('GenerateQuestionNode', () => {
     });
 
     it('should pass metadata for second property correctly', () => {
-      const node = new GenerateQuestionNode(twoPropertySubset, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(twoPropertySubset, mockQuestionService);
 
       // Platform already filled
       const inputState = createTestState({
@@ -203,7 +203,7 @@ describe('GenerateQuestionNode', () => {
 
   describe('execute() - Service Integration', () => {
     it('should call question generation service exactly once', () => {
-      const node = new GenerateQuestionNode(twoPropertySubset, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(twoPropertySubset, mockQuestionService);
 
       const inputState = createTestState({});
 
@@ -215,7 +215,7 @@ describe('GenerateQuestionNode', () => {
     });
 
     it('should not call question service if all properties are fulfilled', () => {
-      const node = new GenerateQuestionNode(twoPropertySubset, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(twoPropertySubset, mockQuestionService);
 
       // All properties filled
       const inputState = createTestState({
@@ -235,7 +235,7 @@ describe('GenerateQuestionNode', () => {
 
   describe('execute() - Return Value', () => {
     it('should return object with userInputQuestion property', () => {
-      const node = new GenerateQuestionNode(twoPropertySubset, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(twoPropertySubset, mockQuestionService);
 
       const inputState = createTestState({});
 
@@ -249,7 +249,7 @@ describe('GenerateQuestionNode', () => {
     });
 
     it('should return Partial<State> compatible object', () => {
-      const node = new GenerateQuestionNode(twoPropertySubset, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(twoPropertySubset, mockQuestionService);
 
       const inputState = createTestState({});
 
@@ -264,7 +264,7 @@ describe('GenerateQuestionNode', () => {
     });
 
     it('should only include userInputQuestion in return value', () => {
-      const node = new GenerateQuestionNode(twoPropertySubset, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(twoPropertySubset, mockQuestionService);
 
       const inputState = createTestState({});
 
@@ -281,7 +281,7 @@ describe('GenerateQuestionNode', () => {
 
   describe('execute() - Edge Cases', () => {
     it('should handle state with some properties undefined', () => {
-      const node = new GenerateQuestionNode(threePropertySubset, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(threePropertySubset, mockQuestionService);
 
       const inputState = createTestState({
         platform: 'iOS',
@@ -305,7 +305,7 @@ describe('GenerateQuestionNode', () => {
         loginHost: WORKFLOW_USER_INPUT_PROPERTIES.loginHost,
       };
 
-      const node = new GenerateQuestionNode(customProperties, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(customProperties, mockQuestionService);
 
       const inputState = createTestState({});
 
@@ -323,7 +323,7 @@ describe('GenerateQuestionNode', () => {
         platform: WORKFLOW_USER_INPUT_PROPERTIES.platform,
       };
 
-      const node = new GenerateQuestionNode(singleProperty, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(singleProperty, mockQuestionService);
 
       const inputState = createTestState({});
 
@@ -340,7 +340,7 @@ describe('GenerateQuestionNode', () => {
 
   describe('execute() - State Preservation', () => {
     it('should not modify input state', () => {
-      const node = new GenerateQuestionNode(twoPropertySubset, undefined, mockQuestionService);
+      const node = new GenerateQuestionNode(twoPropertySubset, mockQuestionService);
 
       const inputState = createTestState({
         platform: 'iOS',
