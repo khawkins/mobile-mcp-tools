@@ -332,7 +332,7 @@ describe('CheckPropertiesFulFilledRouter', () => {
       expect(router.execute(state2)).toBe(UNFULFILLED_NODE);
     });
 
-    it('should work with all seven workflow properties', () => {
+    it('should work with all workflow user input properties', () => {
       const router = new CheckPropertiesFulFilledRouter(
         FULFILLED_NODE,
         UNFULFILLED_NODE,
@@ -344,8 +344,6 @@ describe('CheckPropertiesFulFilledRouter', () => {
         projectName: 'MyApp',
         packageName: 'com.test.myapp',
         organization: 'TestOrg',
-        connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'myapp://callback',
         loginHost: 'https://login.salesforce.com',
       });
 
@@ -366,9 +364,7 @@ describe('CheckPropertiesFulFilledRouter', () => {
         projectName: 'MyApp',
         packageName: 'com.test.myapp',
         organization: 'TestOrg',
-        connectedAppClientId: 'client123',
-        // connectedAppCallbackUri is missing
-        loginHost: 'https://login.salesforce.com',
+        // loginHost is missing
       });
 
       const nextNode = router.execute(inputState);
@@ -380,7 +376,7 @@ describe('CheckPropertiesFulFilledRouter', () => {
       const customProperties: PropertyMetadataCollection = {
         organization: WORKFLOW_USER_INPUT_PROPERTIES.organization,
         loginHost: WORKFLOW_USER_INPUT_PROPERTIES.loginHost,
-        connectedAppClientId: WORKFLOW_USER_INPUT_PROPERTIES.connectedAppClientId,
+        packageName: WORKFLOW_USER_INPUT_PROPERTIES.packageName,
       };
 
       const router = new CheckPropertiesFulFilledRouter(
@@ -392,7 +388,7 @@ describe('CheckPropertiesFulFilledRouter', () => {
       const inputState = createTestState({
         organization: 'MyOrg',
         loginHost: 'https://test.salesforce.com',
-        connectedAppClientId: '12345',
+        packageName: 'com.test.app',
       });
 
       const nextNode = router.execute(inputState);
@@ -663,8 +659,6 @@ describe('CheckPropertiesFulFilledRouter', () => {
         projectName: 'MyApp',
         packageName: 'com.test.myapp',
         organization: 'TestOrg',
-        connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'myapp://callback',
         loginHost: 'https://login.salesforce.com',
       });
       expect(router.execute(fulfilledState)).toBe('templateDiscovery');

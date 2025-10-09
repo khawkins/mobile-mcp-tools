@@ -329,48 +329,6 @@ describe('GenerateQuestionService', () => {
   });
 
   describe('generateQuestionForProperty - Real World Scenarios', () => {
-    it('should generate question for Salesforce Connected App properties', () => {
-      const connectedAppMetadata: PropertyMetadata<z.ZodString> = {
-        zodType: z.string(),
-        description: 'The Salesforce Connected App Consumer Key used for OAuth authentication',
-        friendlyName: 'Connected App Consumer Key',
-      };
-
-      const question = 'What is your Connected App Consumer Key?';
-
-      mockToolExecutor.setResult(GENERATE_QUESTION_TOOL.toolId, {
-        question,
-      });
-
-      const result = service.generateQuestionForProperty(
-        'connectedAppClientId',
-        connectedAppMetadata
-      );
-
-      expect(result).toBe(question);
-    });
-
-    it('should generate question for callback URI', () => {
-      const callbackMetadata: PropertyMetadata<z.ZodString> = {
-        zodType: z.string(),
-        description: 'The Salesforce Connected App Callback URL (e.g., myapp://oauth/callback)',
-        friendlyName: 'Callback URL',
-      };
-
-      const question = 'What is your Callback URL? (For example: myapp://oauth/callback)';
-
-      mockToolExecutor.setResult(GENERATE_QUESTION_TOOL.toolId, {
-        question,
-      });
-
-      const result = service.generateQuestionForProperty(
-        'connectedAppCallbackUri',
-        callbackMetadata
-      );
-
-      expect(result).toBe(question);
-    });
-
     it('should generate question for login host', () => {
       const loginHostMetadata: PropertyMetadata<z.ZodString> = {
         zodType: z.string(),

@@ -399,9 +399,10 @@ describe('SFMobileNativeGenerateQuestionTool', () => {
     it('should generate guidance for Salesforce-specific properties', async () => {
       const input = {
         propertyMetadata: {
-          propertyName: 'connectedAppClientId',
-          friendlyName: 'Connected App Consumer Key',
-          description: 'The Salesforce Connected App Consumer Key used for OAuth authentication',
+          propertyName: 'loginHost',
+          friendlyName: 'login host',
+          description:
+            'The Salesforce login host (e.g., login.salesforce.com or test.salesforce.com)',
         },
         workflowStateData: { thread_id: 'test-123' },
       };
@@ -410,9 +411,9 @@ describe('SFMobileNativeGenerateQuestionTool', () => {
       const responseText = result.content[0].text as string;
       const response = JSON.parse(responseText);
 
-      expect(response.promptForLLM).toContain('connectedAppClientId');
-      expect(response.promptForLLM).toContain('Connected App Consumer Key');
-      expect(response.promptForLLM).toContain('OAuth authentication');
+      expect(response.promptForLLM).toContain('loginHost');
+      expect(response.promptForLLM).toContain('login host');
+      expect(response.promptForLLM).toContain('Salesforce login host');
     });
 
     it('should generate guidance for date properties with format hints', async () => {

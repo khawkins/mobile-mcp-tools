@@ -50,7 +50,7 @@ export class UserInputExtractionNode extends BaseNode {
     toolExecutor?: ToolExecutor,
     logger?: Logger
   ) {
-    super('initialUserInputExtraction');
+    super('userInputExtraction');
     this.requiredProperties = requiredProperties ?? WORKFLOW_USER_INPUT_PROPERTIES;
     this.extractionService = extractionService ?? new InputExtractionService(toolExecutor, logger);
   }
