@@ -13,16 +13,9 @@ import { TEMPLATE_DISCOVERY_TOOL } from '../../../src/tools/plan/sfmobile-native
 import { createTestState } from '../../utils/stateBuilders.js';
 
 // Helper to create valid discovery result matching schema
-function createDiscoveryResult(selectedTemplate: string, overrides = {}) {
+function createDiscoveryResult(selectedTemplate: string) {
   return {
     selectedTemplate,
-    projectName: 'TestApp',
-    packageName: 'com.test.app',
-    organization: 'Test Org',
-    connectedAppClientId: 'client-123',
-    connectedAppCallbackUri: 'testapp://oauth',
-    loginHost: 'https://login.salesforce.com',
-    ...overrides,
   };
 }
 
@@ -66,8 +59,6 @@ describe('TemplateDiscoveryNode', () => {
       // Verify result is passed through with expected structure
       expect(result).toEqual(discoveryResult);
       expect(result.selectedTemplate).toBe('ios-template');
-      expect(result).toHaveProperty('projectName');
-      expect(result).toHaveProperty('packageName');
     });
 
     it('should log tool execution', () => {
