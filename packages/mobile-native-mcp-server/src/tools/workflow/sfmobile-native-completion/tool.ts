@@ -10,7 +10,7 @@ import { Logger } from '../../../logging/logger.js';
 import { FINISH_TOOL, FinishWorkflowInput } from './metadata.js';
 import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
 
-export class SfMobileNativeCompletionTool extends AbstractWorkflowTool<typeof FINISH_TOOL> {
+export class SFMobileNativeCompletionTool extends AbstractWorkflowTool<typeof FINISH_TOOL> {
   constructor(server: McpServer, logger?: Logger) {
     super(server, FINISH_TOOL, 'FinishTool', logger);
   }

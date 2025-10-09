@@ -14,9 +14,29 @@ export class EnvironmentValidationNode extends BaseNode {
   }
 
   execute = (_state: State): Partial<State> => {
-    // TODO: Implement environment validation.
+    const invalidEnvironmentMessages: string[] = [];
+
+    // For now, you have to set your Connected App information in the environment.
+    const connectedAppClientId = process.env.CONNECTED_APP_CONSUMER_KEY;
+    const connectedAppCallbackUri = process.env.CONNECTED_APP_CALLBACK_URL;
+
+    if (!connectedAppClientId) {
+      invalidEnvironmentMessages.push(
+        'You must set the CONNECTED_APP_CONSUMER_KEY environment variable, with your Salesforce Connected App Consumer Key associated with the mobile app. See https://help.salesforce.com/s/articleView?id=xcloud.connected_app_create_mobile.htm&type=5 for information on how to create a Connected App for mobile apps.'
+      );
+    }
+    if (!connectedAppCallbackUri) {
+      invalidEnvironmentMessages.push(
+        'You must set the CONNECTED_APP_CALLBACK_URL environment variable, with your Salesforce Connected App Callback URL associated with the mobile app. See https://help.salesforce.com/s/articleView?id=xcloud.connected_app_create_mobile.htm&type=5 for information on how to create a Connected App for mobile apps.'
+      );
+    }
+
+    const validEnvironment = invalidEnvironmentMessages.length === 0;
     return {
-      environmentValidated: true,
+      validEnvironment,
+      invalidEnvironmentMessages: validEnvironment ? undefined : invalidEnvironmentMessages,
+      connectedAppClientId,
+      connectedAppCallbackUri,
     };
   };
 }

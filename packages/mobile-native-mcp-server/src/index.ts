@@ -18,6 +18,8 @@ import { SFMobileNativeDeploymentTool } from './tools/run/sfmobile-native-deploy
 import { SFMobileNativeBuildTool } from './tools/plan/sfmobile-native-build/tool.js';
 import { SFMobileNativeProjectGenerationTool } from './tools/plan/sfmobile-native-project-generation/tool.js';
 import { MobileNativeOrchestrator } from './tools/workflow/sfmobile-native-project-manager/tool.js';
+import { SFMobileNativeCompletionTool } from './tools/workflow/sfmobile-native-completion/tool.js';
+import { SFMobileNativeFailureTool } from './tools/workflow/sfmobile-native-failure/tool.js';
 
 import packageJson from '../package.json' with { type: 'json' };
 const version = packageJson.version;
@@ -53,6 +55,8 @@ const projectGenerationTool = new SFMobileNativeProjectGenerationTool(server);
 const buildTool = new SFMobileNativeBuildTool(server);
 const deploymentTool = new SFMobileNativeDeploymentTool(server);
 const xcodeAddFilesTool = new UtilsXcodeAddFilesTool(server);
+const completionTool = new SFMobileNativeCompletionTool(server);
+const failureTool = new SFMobileNativeFailureTool(server);
 
 // Register orchestrator with specific annotations
 orchestrator.register(orchestratorAnnotations);
@@ -66,6 +70,8 @@ projectGenerationTool.register(readOnlyAnnotations);
 buildTool.register(readOnlyAnnotations);
 deploymentTool.register(readOnlyAnnotations);
 xcodeAddFilesTool.register(readOnlyAnnotations);
+completionTool.register(readOnlyAnnotations);
+failureTool.register(readOnlyAnnotations);
 
 export default server;
 
