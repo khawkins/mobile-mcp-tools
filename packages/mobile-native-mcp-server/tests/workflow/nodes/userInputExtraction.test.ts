@@ -34,7 +34,7 @@ describe('UserInputExtractionNode', () => {
   describe('Node Properties', () => {
     it('should have correct node name', () => {
       const node = new UserInputExtractionNode();
-      expect(node.name).toBe('initialUserInputExtraction');
+      expect(node.name).toBe('userInputExtraction');
     });
   });
 

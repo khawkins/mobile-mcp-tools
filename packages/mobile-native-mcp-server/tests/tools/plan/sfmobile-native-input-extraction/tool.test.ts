@@ -535,15 +535,15 @@ describe('SFMobileNativeInputExtractionTool', () => {
     it('should handle Salesforce-specific property extraction', async () => {
       const input = {
         userUtterance:
-          'Setup with client ID abc123, callback testapp://oauth, host login.salesforce.com',
+          'Setup with package com.salesforce.myapp, org SalesforceInc, host login.salesforce.com',
         propertiesToExtract: [
           {
-            propertyName: 'connectedAppClientId',
-            description: 'The Salesforce Connected App Consumer Key',
+            propertyName: 'packageName',
+            description: 'The package identifier of the mobile app',
           },
           {
-            propertyName: 'connectedAppCallbackUri',
-            description: 'The Salesforce Connected App Callback URL',
+            propertyName: 'organization',
+            description: 'The organization or company name',
           },
           {
             propertyName: 'loginHost',
@@ -558,8 +558,8 @@ describe('SFMobileNativeInputExtractionTool', () => {
       const responseText = result.content[0].text as string;
       const response = JSON.parse(responseText);
 
-      expect(response.promptForLLM).toContain('connectedAppClientId');
-      expect(response.promptForLLM).toContain('connectedAppCallbackUri');
+      expect(response.promptForLLM).toContain('packageName');
+      expect(response.promptForLLM).toContain('organization');
       expect(response.promptForLLM).toContain('loginHost');
     });
   });
