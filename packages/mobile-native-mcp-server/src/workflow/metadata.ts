@@ -38,18 +38,6 @@ export const WORKFLOW_USER_INPUT_PROPERTIES = {
     description: 'The organization or company name',
     friendlyName: 'organization or company name',
   } satisfies PropertyMetadata<z.ZodString>,
-  connectedAppClientId: {
-    zodType: z.string(),
-    description:
-      'The Salesforce Connected App Consumer Key associated with the mobile app. See https://help.salesforce.com/s/articleView?id=xcloud.connected_app_create_mobile.htm&type=5 for information on how to create a Connected App for mobile apps.',
-    friendlyName: 'Salesforce Connected App Consumer Key',
-  } satisfies PropertyMetadata<z.ZodString>,
-  connectedAppCallbackUri: {
-    zodType: z.string(),
-    description:
-      'The Salesforce Connected App Callback URL associated with the mobile app. See https://help.salesforce.com/s/articleView?id=xcloud.connected_app_create_mobile.htm&type=5 for information on how to create a Connected App for mobile apps.',
-    friendlyName: 'Salesforce Connected App Callback URL',
-  } satisfies PropertyMetadata<z.ZodString>,
   loginHost: {
     zodType: z.string(),
     description: 'The Salesforce login host for the mobile app.',
@@ -70,18 +58,15 @@ export const MobileNativeWorkflowState = Annotation.Root({
   platform: Annotation<z.infer<typeof WORKFLOW_USER_INPUT_PROPERTIES.platform.zodType>>,
 
   // Plan phase state
-  environmentValidated: Annotation<boolean>,
+  validEnvironment: Annotation<boolean>,
+  invalidEnvironmentMessages: Annotation<string[]>,
   selectedTemplate: Annotation<string>,
   projectName: Annotation<z.infer<typeof WORKFLOW_USER_INPUT_PROPERTIES.projectName.zodType>>,
   projectPath: Annotation<string>,
   packageName: Annotation<z.infer<typeof WORKFLOW_USER_INPUT_PROPERTIES.packageName.zodType>>,
   organization: Annotation<z.infer<typeof WORKFLOW_USER_INPUT_PROPERTIES.organization.zodType>>,
-  connectedAppClientId: Annotation<
-    z.infer<typeof WORKFLOW_USER_INPUT_PROPERTIES.connectedAppClientId.zodType>
-  >,
-  connectedAppCallbackUri: Annotation<
-    z.infer<typeof WORKFLOW_USER_INPUT_PROPERTIES.connectedAppCallbackUri.zodType>
-  >,
+  connectedAppClientId: Annotation<string>,
+  connectedAppCallbackUri: Annotation<string>,
   loginHost: Annotation<z.infer<typeof WORKFLOW_USER_INPUT_PROPERTIES.loginHost.zodType>>,
 
   // Build and deployment state

@@ -17,6 +17,8 @@ import { UserInputExtractionNode } from './nodes/userInputExtraction.js';
 import { CheckPropertiesFulFilledRouter } from './nodes/checkPropertiesFulfilledRouter.js';
 import { GenerateQuestionNode } from './nodes/generateQuestion.js';
 import { GetUserInputNode } from './nodes/getUserInput.js';
+import { FailureNode } from './nodes/failureNode.js';
+import { CheckEnvironmentValidatedRouter } from './nodes/checkEnvironmentValidated.js';
 
 const initialUserInputExtractionNode = new UserInputExtractionNode();
 const generateQuestionNode = new GenerateQuestionNode();
@@ -27,9 +29,14 @@ const projectGenerationNode = new ProjectGenerationNode();
 const buildValidationNode = new BuildValidationNode();
 const deploymentNode = new DeploymentNode();
 const completionNode = new CompletionNode();
+const failureNode = new FailureNode();
 const checkPropertiesFulFilledRouter = new CheckPropertiesFulFilledRouter(
   templateDiscoveryNode.name,
   generateQuestionNode.name
+);
+const checkEnvironmentValidatedRouter = new CheckEnvironmentValidatedRouter(
+  initialUserInputExtractionNode.name,
+  failureNode.name
 );
 
 /**
@@ -48,10 +55,11 @@ export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   .addNode(buildValidationNode.name, buildValidationNode.execute)
   .addNode(deploymentNode.name, deploymentNode.execute)
   .addNode(completionNode.name, completionNode.execute)
+  .addNode(failureNode.name, failureNode.execute)
 
   // Define workflow edges - steel thread linear progression starting with triage
   .addEdge(START, environmentValidationNode.name)
-  .addEdge(environmentValidationNode.name, initialUserInputExtractionNode.name)
+  .addConditionalEdges(environmentValidationNode.name, checkEnvironmentValidatedRouter.execute)
   .addConditionalEdges(initialUserInputExtractionNode.name, checkPropertiesFulFilledRouter.execute)
   .addEdge(generateQuestionNode.name, userInputNode.name)
   .addEdge(userInputNode.name, initialUserInputExtractionNode.name)
@@ -59,4 +67,5 @@ export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   .addEdge(projectGenerationNode.name, buildValidationNode.name)
   .addEdge(buildValidationNode.name, deploymentNode.name)
   .addEdge(deploymentNode.name, completionNode.name)
-  .addEdge(completionNode.name, END);
+  .addEdge(completionNode.name, END)
+  .addEdge(failureNode.name, END);
