@@ -10,16 +10,21 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SFMobileNativeDeploymentTool } from '../../../../src/tools/run/sfmobile-native-deployment/tool.js';
 import { MockLogger } from '../../../utils/MockLogger.js';
 import { DeploymentWorkflowInput } from '../../../../src/tools/run/sfmobile-native-deployment/metadata.js';
+import { TempDirectoryManager } from '../../../../src/common.js';
+import { MockFileSystemProvider } from '../../../utils/MockFileSystemProvider.js';
 
 describe('SFMobileNativeDeploymentTool', () => {
   let tool: SFMobileNativeDeploymentTool;
   let mockServer: McpServer;
   let mockLogger: MockLogger;
+  let mockTempDirManager: TempDirectoryManager;
 
   beforeEach(() => {
     mockServer = new McpServer({ name: 'test-server', version: '1.0.0' });
     mockLogger = new MockLogger();
-    tool = new SFMobileNativeDeploymentTool(mockServer, mockLogger);
+    const mockFs = new MockFileSystemProvider('/mock/temp');
+    mockTempDirManager = new TempDirectoryManager(mockFs);
+    tool = new SFMobileNativeDeploymentTool(mockServer, mockTempDirManager, mockLogger);
   });
 
   describe('Tool Metadata', () => {
@@ -80,12 +85,15 @@ describe('SFMobileNativeDeploymentTool', () => {
       expect(result.structuredContent!.promptForLLM!).toContain(
         'xcrun simctl list devices | grep "iPhone-15-Pro"'
       );
-      expect(result.structuredContent!.promptForLLM!).toContain('xcrun simctl boot iPhone-15-Pro');
       expect(result.structuredContent!.promptForLLM!).toContain(
-        'xcrun simctl install iPhone-15-Pro <your-app>.app'
+        'xcrun simctl boot "iPhone-15-Pro"'
       );
       expect(result.structuredContent!.promptForLLM!).toContain(
-        `xcrun simctl launch iPhone-15-Pro ${input.packageName}.${input.projectName}`
+        'xcrun simctl install "iPhone-15-Pro"'
+      );
+      expect(result.structuredContent!.promptForLLM!).toContain('ExampleApp.app');
+      expect(result.structuredContent!.promptForLLM!).toContain(
+        `xcrun simctl launch "iPhone-15-Pro" "${input.packageName}.${input.projectName}"`
       );
     });
 

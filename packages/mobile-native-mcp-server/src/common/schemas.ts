@@ -18,8 +18,14 @@ import { z } from 'zod';
  * Platform enum used across all mobile tools
  */
 export const PLATFORM_ENUM = z.enum(['iOS', 'Android']).describe('Target mobile platform');
+export type PlatformEnum = z.infer<typeof PLATFORM_ENUM>;
 
 /**
  * Project path field used in multiple tools
  */
 export const PROJECT_PATH_FIELD = z.string().describe('Path to the mobile project directory');
+
+/**
+ * Project name field used in multiple tools
+ */
+export const PROJECT_NAME_FIELD = z.string().describe('Name for the mobile app project');

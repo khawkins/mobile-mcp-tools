@@ -59,6 +59,7 @@ describe('BuildValidationNode', () => {
     it('should invoke build tool with correct tool metadata', () => {
       const inputState = createTestState({
         platform: 'iOS',
+        projectName: 'TestProject',
         projectPath: '/path/to/project',
       });
 
@@ -74,13 +75,15 @@ describe('BuildValidationNode', () => {
       expect(lastCall?.llmMetadata.description).toBe(BUILD_TOOL.description);
     });
 
-    it('should pass platform and projectPath to build tool', () => {
+    it('should pass platform, projectPath, and projectName to build tool', () => {
       const testPlatform = 'iOS';
       const testProjectPath = '/Users/test/MyApp';
+      const testProjectName = 'MyApp';
 
       const inputState = createTestState({
         platform: testPlatform as 'iOS',
         projectPath: testProjectPath,
+        projectName: testProjectName,
       });
 
       mockToolExecutor.setResult(BUILD_TOOL.toolId, {
@@ -93,12 +96,14 @@ describe('BuildValidationNode', () => {
       expect(lastCall?.input).toBeDefined();
       expect(lastCall?.input.platform).toBe(testPlatform);
       expect(lastCall?.input.projectPath).toBe(testProjectPath);
+      expect(lastCall?.input.projectName).toBe(testProjectName);
     });
 
     it('should validate result against build result schema', () => {
       const inputState = createTestState({
         platform: 'iOS',
         projectPath: '/path/to/project',
+        projectName: 'TestProject',
       });
 
       mockToolExecutor.setResult(BUILD_TOOL.toolId, {
@@ -116,6 +121,7 @@ describe('BuildValidationNode', () => {
       const inputState = createTestState({
         platform: 'iOS',
         projectPath: '/Users/dev/ContactListApp-iOS',
+        projectName: 'ContactListApp',
       });
 
       mockToolExecutor.setResult(BUILD_TOOL.toolId, {
@@ -132,6 +138,7 @@ describe('BuildValidationNode', () => {
     it('should pass iOS-specific project paths', () => {
       const inputState = createTestState({
         platform: 'iOS',
+        projectName: 'TestProject',
         projectPath: '/Users/developer/MyApp.xcodeproj',
       });
 
@@ -150,6 +157,7 @@ describe('BuildValidationNode', () => {
     it('should handle Android build validation', () => {
       const inputState = createTestState({
         platform: 'Android',
+        projectName: 'TestProject',
         projectPath: '/home/dev/ContactListApp-Android',
       });
 
@@ -167,6 +175,7 @@ describe('BuildValidationNode', () => {
     it('should pass Android-specific project paths', () => {
       const inputState = createTestState({
         platform: 'Android',
+        projectName: 'TestProject',
         projectPath: '/home/developer/MyApp/app',
       });
 
@@ -185,6 +194,7 @@ describe('BuildValidationNode', () => {
     it('should return build success result', () => {
       const inputState = createTestState({
         platform: 'iOS',
+        projectName: 'TestProject',
         projectPath: '/path/to/project',
       });
 
@@ -202,6 +212,7 @@ describe('BuildValidationNode', () => {
     it('should handle successful build', () => {
       const inputState = createTestState({
         platform: 'iOS',
+        projectName: 'TestProject',
         projectPath: '/path/to/project',
       });
 
@@ -219,6 +230,7 @@ describe('BuildValidationNode', () => {
     it('should handle failed build', () => {
       const inputState = createTestState({
         platform: 'iOS',
+        projectName: 'TestProject',
         projectPath: '/path/to/project',
       });
 
@@ -234,6 +246,7 @@ describe('BuildValidationNode', () => {
     it('should return build failure result', () => {
       const inputState = createTestState({
         platform: 'Android',
+        projectName: 'TestProject',
         projectPath: '/path/to/project',
       });
 
@@ -253,6 +266,7 @@ describe('BuildValidationNode', () => {
     it('should return validated result from tool executor', () => {
       const inputState = createTestState({
         platform: 'iOS',
+        projectName: 'TestProject',
         projectPath: '/path/to/project',
       });
 
@@ -270,6 +284,7 @@ describe('BuildValidationNode', () => {
     it('should return partial state object', () => {
       const inputState = createTestState({
         platform: 'iOS',
+        projectName: 'TestProject',
         projectPath: '/path/to/project',
       });
 
@@ -288,6 +303,7 @@ describe('BuildValidationNode', () => {
     it('should log tool invocation details', () => {
       const inputState = createTestState({
         platform: 'iOS',
+        projectName: 'TestProject',
         projectPath: '/path/to/project',
       });
 
@@ -310,6 +326,7 @@ describe('BuildValidationNode', () => {
     it('should log tool result', () => {
       const inputState = createTestState({
         platform: 'iOS',
+        projectName: 'TestProject',
         projectPath: '/path/to/project',
       });
 
@@ -329,12 +346,12 @@ describe('BuildValidationNode', () => {
   });
 
   describe('execute() - State Independence', () => {
-    it('should only use platform and projectPath from state', () => {
+    it('should only use platform, projectPath, and projectName from state', () => {
       const inputState = createTestState({
         platform: 'iOS',
         projectPath: '/path/to/project',
-        // Other state properties
         projectName: 'TestProject',
+        // Other state properties that should not be passed to the build tool
         packageName: 'com.test.app',
         organization: 'TestOrg',
       });
@@ -346,9 +363,10 @@ describe('BuildValidationNode', () => {
       node.execute(inputState);
 
       const lastCall = mockToolExecutor.getLastCall();
+      expect(lastCall?.input).toBeDefined();
       expect(lastCall?.input.platform).toBe('iOS');
       expect(lastCall?.input.projectPath).toBe('/path/to/project');
-      expect(lastCall?.input).not.toHaveProperty('projectName');
+      expect(lastCall?.input.projectName).toBe('TestProject');
       expect(lastCall?.input).not.toHaveProperty('packageName');
       expect(lastCall?.input).not.toHaveProperty('organization');
     });
@@ -359,6 +377,7 @@ describe('BuildValidationNode', () => {
 
       const inputState = createTestState({
         platform: originalPlatform as 'iOS',
+        projectName: 'OriginalProject',
         projectPath: originalProjectPath,
       });
 
@@ -377,6 +396,7 @@ describe('BuildValidationNode', () => {
     it('should handle absolute paths', () => {
       const inputState = createTestState({
         platform: 'iOS',
+        projectName: 'TestProject',
         projectPath: '/Users/developer/workspace/MyApp',
       });
 
@@ -393,6 +413,7 @@ describe('BuildValidationNode', () => {
     it('should handle relative paths', () => {
       const inputState = createTestState({
         platform: 'Android',
+        projectName: 'TestProject',
         projectPath: './projects/MyApp',
       });
 
@@ -409,6 +430,7 @@ describe('BuildValidationNode', () => {
     it('should handle paths with spaces', () => {
       const inputState = createTestState({
         platform: 'iOS',
+        projectName: 'TestProject',
         projectPath: '/Users/test/My Project/My App',
       });
 
@@ -425,6 +447,7 @@ describe('BuildValidationNode', () => {
     it('should handle Windows paths', () => {
       const inputState = createTestState({
         platform: 'Android',
+        projectName: 'TestProject',
         projectPath: 'C:\\Users\\developer\\MyApp',
       });
 
@@ -443,6 +466,7 @@ describe('BuildValidationNode', () => {
     it('should handle Contact List app iOS build', () => {
       const inputState = createTestState({
         platform: 'iOS',
+        projectName: 'TestProject',
         projectPath: '/Users/developer/ContactListApp-iOS',
       });
 
@@ -461,6 +485,7 @@ describe('BuildValidationNode', () => {
     it('should handle Contact List app Android build', () => {
       const inputState = createTestState({
         platform: 'Android',
+        projectName: 'TestProject',
         projectPath: '/home/developer/ContactListApp-Android',
       });
 
@@ -499,11 +524,13 @@ describe('BuildValidationNode', () => {
     it('should handle multiple sequential invocations', () => {
       const state1 = createTestState({
         platform: 'iOS',
+        projectName: 'TestProject',
         projectPath: '/path/to/project1',
       });
 
       const state2 = createTestState({
         platform: 'Android',
+        projectName: 'TestProject',
         projectPath: '/path/to/project2',
       });
 
