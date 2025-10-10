@@ -27,6 +27,7 @@ export class BuildValidationNode extends AbstractSchemaNode {
       input: {
         platform: state.platform,
         projectPath: state.projectPath,
+        projectName: state.projectName,
       },
     };
 

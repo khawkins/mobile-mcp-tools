@@ -6,7 +6,7 @@
  */
 
 import z from 'zod';
-import { PLATFORM_ENUM, PROJECT_PATH_FIELD } from '../../../common/schemas.js';
+import { PLATFORM_ENUM, PROJECT_PATH_FIELD, PROJECT_NAME_FIELD } from '../../../common/schemas.js';
 import {
   WORKFLOW_TOOL_BASE_INPUT_SCHEMA,
   MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
@@ -26,7 +26,7 @@ export const DEPLOYMENT_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.
     .describe('Build type for deployment'),
   targetDevice: z.string().optional().describe('Target device identifier (optional)'),
   packageName: z.string().describe('Package name for the mobile app (e.g., com.company.appname)'),
-  projectName: z.string().describe('Name for the mobile app project'),
+  projectName: PROJECT_NAME_FIELD,
 });
 
 export type DeploymentWorkflowInput = z.infer<typeof DEPLOYMENT_WORKFLOW_INPUT_SCHEMA>;

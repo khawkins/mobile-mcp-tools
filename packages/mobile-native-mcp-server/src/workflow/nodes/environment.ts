@@ -14,9 +14,21 @@ export class EnvironmentValidationNode extends BaseNode {
   }
 
   execute = (_state: State): Partial<State> => {
-    const invalidEnvironmentMessages: string[] = [];
-
     // For now, you have to set your Connected App information in the environment.
+    const { invalidEnvironmentMessages, connectedAppClientId, connectedAppCallbackUri } =
+      this.validateEnvironmentVariables();
+
+    const validEnvironment = invalidEnvironmentMessages.length === 0;
+    return {
+      validEnvironment,
+      invalidEnvironmentMessages: validEnvironment ? undefined : invalidEnvironmentMessages,
+      connectedAppClientId,
+      connectedAppCallbackUri,
+    };
+  };
+
+  private validateEnvironmentVariables() {
+    const invalidEnvironmentMessages: string[] = [];
     const connectedAppClientId = process.env.CONNECTED_APP_CONSUMER_KEY;
     const connectedAppCallbackUri = process.env.CONNECTED_APP_CALLBACK_URL;
 
@@ -31,12 +43,6 @@ export class EnvironmentValidationNode extends BaseNode {
       );
     }
 
-    const validEnvironment = invalidEnvironmentMessages.length === 0;
-    return {
-      validEnvironment,
-      invalidEnvironmentMessages: validEnvironment ? undefined : invalidEnvironmentMessages,
-      connectedAppClientId,
-      connectedAppCallbackUri,
-    };
-  };
+    return { invalidEnvironmentMessages, connectedAppClientId, connectedAppCallbackUri };
+  }
 }

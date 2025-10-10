@@ -7,7 +7,7 @@
 
 import { Annotation } from '@langchain/langgraph';
 import z from 'zod';
-import { PLATFORM_ENUM } from '../common/schemas.js';
+import { PLATFORM_ENUM, PROJECT_NAME_FIELD } from '../common/schemas.js';
 import { PropertyMetadata, PropertyMetadataCollection } from '../common/propertyMetadata.js';
 
 /**
@@ -24,8 +24,8 @@ export const WORKFLOW_USER_INPUT_PROPERTIES = {
     friendlyName: 'mobile platform',
   } satisfies PropertyMetadata<typeof PLATFORM_ENUM>,
   projectName: {
-    zodType: z.string(),
-    description: 'The name of the mobile app project',
+    zodType: PROJECT_NAME_FIELD,
+    description: PROJECT_NAME_FIELD.description!,
     friendlyName: 'project name',
   } satisfies PropertyMetadata<z.ZodString>,
   packageName: {

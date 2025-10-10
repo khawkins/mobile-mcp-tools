@@ -10,10 +10,18 @@ import dedent from 'dedent';
 import { Logger } from '../../../logging/logger.js';
 import { BUILD_TOOL, BuildWorkflowInput } from './metadata.js';
 import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
+import { TempDirectoryManager, defaultTempDirectoryManager } from '../../../common.js';
 
 export class SFMobileNativeBuildTool extends AbstractWorkflowTool<typeof BUILD_TOOL> {
-  constructor(server: McpServer, logger?: Logger) {
+  private readonly tempDirManager: TempDirectoryManager;
+
+  constructor(
+    server: McpServer,
+    tempDirManager: TempDirectoryManager = defaultTempDirectoryManager,
+    logger?: Logger
+  ) {
     super(server, BUILD_TOOL, 'BuildTool', logger);
+    this.tempDirManager = tempDirManager;
   }
 
   public handleRequest = async (input: BuildWorkflowInput) => {
@@ -29,26 +37,28 @@ export class SFMobileNativeBuildTool extends AbstractWorkflowTool<typeof BUILD_T
      Carry out the steps in the following guideline for them, and share the key outcomes they need to know.
 
      # Salesforce Mobile App Build Guidance for ${input.platform}
-      
 
-      ${input.platform === 'iOS' ? this.msdkAppBuildExecutionIOS(input.projectPath) : this.msdkAppBuildExecutionAndroid(input.projectPath)}
+      ${input.platform === 'iOS' ? this.msdkAppBuildExecutionIOS(input.projectPath, input.projectName) : this.msdkAppBuildExecutionAndroid(input.projectPath)}
       
     `;
   }
 
-  private msdkAppBuildExecutionIOS(projectPath: string) {
+  private msdkAppBuildExecutionIOS(projectPath: string, projectName: string) {
     return dedent`  
       ## iOS Build Execution
-      Navigate to the ${projectPath} directory and run the following command to build the MSDK iOS App:
+      Follow these instructions, step by step, to build the iOS App.
 
-      \`\`\`bash
-      xcodebuild -workspace <your-workspace>.xcworkspace -scheme <your-scheme> -destination 'generic/platform=iOS Simulator' clean build
-      \`\`\`
+      1. Navigate to the ${projectPath} directory
+      2. Run the following \`xcodebuild\` CLI command to build the iOS app:
 
-      Replace <your-workspace>.xcworkspace and <your-scheme> with the actual workspace and scheme names of your project.
-
-      If the output includes **BUILD SUCCEEDED**, the build completed successfully. If you see errors such as **error:** or **Undefined symbol**, resolve them and try again. Refer back to Step 1 for guidance on fixing setup issues.
+         \`\`\`bash
+         { xcodebuild -workspace ${projectName}.xcworkspace -scheme ${projectName} -destination 'generic/platform=iOS Simulator' clean build CONFIGURATION_BUILD_DIR="${this.tempDirManager.getAppArtifactRootPath(projectName)}" > "${this.tempDirManager.getIOSBuildOutputFilePath()}" 2>&1; echo $?; }
+         \`\`\`
       
+      3. The exit code of the command above will be printed to the console. If it is 0, the build completed
+         successfully. If it is not 0, the build failed.
+      4. If the build failed, check the "${this.tempDirManager.getIOSBuildOutputFilePath()}" file for the error
+         message, and attempt to fix the issue.
       
     `;
   }
