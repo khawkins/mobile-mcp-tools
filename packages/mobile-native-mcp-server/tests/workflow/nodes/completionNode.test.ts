@@ -28,7 +28,7 @@ describe('CompletionNode', () => {
       expect(node.name).toBe('finish');
     });
 
-    it('should extend AbstractSchemaNode', () => {
+    it('should extend AbstractToolNode', () => {
       expect(node).toBeDefined();
       expect(node.name).toBeDefined();
       expect(node.execute).toBeDefined();

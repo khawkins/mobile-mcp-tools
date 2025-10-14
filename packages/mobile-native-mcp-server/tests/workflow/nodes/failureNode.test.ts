@@ -28,7 +28,7 @@ describe('FailureNode', () => {
       expect(node.name).toBe('workflowFailure');
     });
 
-    it('should extend AbstractSchemaNode', () => {
+    it('should extend AbstractToolNode', () => {
       expect(node).toBeDefined();
       expect(node.name).toBeDefined();
       expect(node.execute).toBeDefined();
