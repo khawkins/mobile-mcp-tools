@@ -284,32 +284,11 @@ describe('GenerateQuestionService', () => {
 
       const debugLogs = mockLogger.getLogsByLevel('debug');
       const invocationLog = debugLogs.find(log =>
-        log.message.includes('Invoking question generation tool')
+        log.message.includes('Tool invocation data (pre-execution)')
       );
 
       expect(invocationLog).toBeDefined();
       expect(invocationLog?.data).toHaveProperty('toolInvocationData');
-    });
-
-    it('should log completion with generated question', () => {
-      const expectedQuestion = 'What is your mobile platform?';
-
-      mockToolExecutor.setResult(GENERATE_QUESTION_TOOL.toolId, {
-        question: expectedQuestion,
-      });
-
-      mockLogger.reset();
-      service.generateQuestionForProperty('platform', platformMetadata);
-
-      const infoLogs = mockLogger.getLogsByLevel('info');
-      const completionLog = infoLogs.find(log =>
-        log.message.includes('Question generation completed')
-      );
-
-      expect(completionLog).toBeDefined();
-      expect(completionLog?.data).toMatchObject({
-        question: expectedQuestion,
-      });
     });
 
     it('should log tool execution completion', () => {
@@ -321,10 +300,12 @@ describe('GenerateQuestionService', () => {
       service.generateQuestionForProperty('platform', platformMetadata);
 
       const debugLogs = mockLogger.getLogsByLevel('debug');
-      const executionLog = debugLogs.find(log => log.message.includes('Tool execution completed'));
+      const executionLog = debugLogs.find(log =>
+        log.message.includes('Tool execution result (post-execution)')
+      );
 
       expect(executionLog).toBeDefined();
-      expect(executionLog?.data).toHaveProperty('rawResult');
+      expect(executionLog?.data).toHaveProperty('result');
     });
   });
 

@@ -6,9 +6,10 @@
  */
 
 import { MCPToolInvocationData } from '../../common/metadata.js';
-import { ToolExecutor, LangGraphToolExecutor } from '../nodes/toolExecutor.js';
-import { Logger, createComponentLogger } from '../../logging/logger.js';
+import { ToolExecutor } from '../nodes/toolExecutor.js';
+import { Logger } from '../../logging/logger.js';
 import { GET_INPUT_TOOL } from '../../tools/plan/sfmobile-native-get-input/metadata.js';
+import { AbstractService } from './abstractService.js';
 
 /**
  * Provider interface for user input service.
@@ -26,20 +27,19 @@ export interface GetInputServiceProvider {
 
 /**
  * Service for getting user input for a given question.
+ *
+ * This service extends AbstractService to leverage common tool execution
+ * patterns including standardized logging and result validation.
  */
-export class GetInputService implements GetInputServiceProvider {
-  private readonly logger: Logger;
-  private readonly toolExecutor: ToolExecutor;
-
+export class GetInputService extends AbstractService implements GetInputServiceProvider {
   /**
    * Creates a new GetInputService.
    *
-   * @param toolExecutor - Tool executor for invoking the extraction tool (injectable for testing)
+   * @param toolExecutor - Tool executor for invoking the input tool (injectable for testing)
    * @param logger - Logger instance (injectable for testing)
    */
   constructor(toolExecutor?: ToolExecutor, logger?: Logger) {
-    this.toolExecutor = toolExecutor ?? new LangGraphToolExecutor();
-    this.logger = logger ?? createComponentLogger('GetInputService');
+    super('GetInputService', toolExecutor, logger);
   }
 
   getInput(question: string): unknown {
@@ -59,16 +59,11 @@ export class GetInputService implements GetInputServiceProvider {
       },
     };
 
-    this.logger.debug('Invoking request for input tool', { toolInvocationData });
-
-    // Execute tool
-    const rawResult = this.toolExecutor.execute(toolInvocationData);
-    this.logger.debug('Tool execution completed', { rawResult });
-    const validatedResult = GET_INPUT_TOOL.resultSchema.parse(rawResult);
-
-    this.logger.info('Request for input completed', {
-      userUtterance: validatedResult.userUtterance,
-    });
+    // Execute tool with logging and validation
+    const validatedResult = this.executeToolWithLogging(
+      toolInvocationData,
+      GET_INPUT_TOOL.resultSchema
+    );
 
     return validatedResult.userUtterance;
   }

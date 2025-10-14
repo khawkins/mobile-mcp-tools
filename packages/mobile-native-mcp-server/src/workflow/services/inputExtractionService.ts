@@ -10,8 +10,9 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import { PropertyMetadataCollection } from '../../common/propertyMetadata.js';
 import { MCPToolInvocationData } from '../../common/metadata.js';
 import { INPUT_EXTRACTION_TOOL } from '../../tools/plan/sfmobile-native-input-extraction/metadata.js';
-import { ToolExecutor, LangGraphToolExecutor } from '../nodes/toolExecutor.js';
-import { Logger, createComponentLogger } from '../../logging/logger.js';
+import { ToolExecutor } from '../nodes/toolExecutor.js';
+import { Logger } from '../../logging/logger.js';
+import { AbstractService } from './abstractService.js';
 
 /**
  * Result from property extraction containing validated properties.
@@ -43,6 +44,9 @@ export interface InputExtractionServiceProvider {
  * user input and extracting structured property values. It uses an LLM-based extraction
  * tool to identify property values and validates them against their Zod schemas.
  *
+ * This service extends AbstractService to leverage common tool execution
+ * patterns including standardized logging and result validation.
+ *
  * Features:
  * - Accepts any PropertyMetadataCollection for flexible property definitions
  * - Validates extracted values against Zod schemas
@@ -66,10 +70,10 @@ export interface InputExtractionServiceProvider {
  * );
  * // result.extractedProperties = { platform: 'iOS' }
  */
-export class InputExtractionService implements InputExtractionServiceProvider {
-  private readonly logger: Logger;
-  private readonly toolExecutor: ToolExecutor;
-
+export class InputExtractionService
+  extends AbstractService
+  implements InputExtractionServiceProvider
+{
   /**
    * Creates a new InputExtractionService.
    *
@@ -77,8 +81,7 @@ export class InputExtractionService implements InputExtractionServiceProvider {
    * @param logger - Logger instance (injectable for testing)
    */
   constructor(toolExecutor?: ToolExecutor, logger?: Logger) {
-    this.toolExecutor = toolExecutor ?? new LangGraphToolExecutor();
-    this.logger = logger ?? createComponentLogger('InputExtractionService');
+    super('InputExtractionService', toolExecutor, logger);
   }
 
   /**
@@ -135,15 +138,13 @@ export class InputExtractionService implements InputExtractionServiceProvider {
       },
     };
 
-    this.logger.debug('Invoking extraction tool', { toolInvocationData });
-
-    // Execute tool
-    const rawResult = this.toolExecutor.execute(toolInvocationData);
-
-    this.logger.debug('Tool execution completed', { rawResult, rawResultType: typeof rawResult });
-
-    // Validate and filter result
-    const validatedResult = this.validateAndFilterResult(rawResult, properties, resultSchema);
+    // Execute tool with logging and custom validation
+    // The custom validator handles complex validation and filtering logic
+    const validatedResult = this.executeToolWithLogging(
+      toolInvocationData,
+      resultSchema,
+      (rawResult, schema) => this.validateAndFilterResult(rawResult, properties, schema)
+    );
 
     this.logger.info('Property extraction completed', {
       extractedCount: Object.keys(validatedResult.extractedProperties).length,
