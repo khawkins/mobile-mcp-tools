@@ -39,7 +39,9 @@ export class BuildValidationNode extends BaseNode {
 
     return {
       buildSuccessful: result.buildSuccessful,
-      buildAttemptCount: attemptCount,
+      // Reset attempt count to 0 on success, so if we return to build validation
+      // later in the workflow, we start fresh
+      buildAttemptCount: result.buildSuccessful ? 0 : attemptCount,
       buildOutputFilePath: result.buildOutputFilePath,
     };
   };

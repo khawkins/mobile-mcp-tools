@@ -90,7 +90,7 @@ describe('BuildValidationNode', () => {
       expect(lastCall?.input.projectName).toBe(testProjectName);
     });
 
-    it('should increment build attempt count', () => {
+    it('should reset build attempt count to 0 on success', () => {
       const inputState = createTestState({
         platform: 'iOS',
         projectPath: '/path/to/project',
@@ -103,10 +103,11 @@ describe('BuildValidationNode', () => {
 
       const result = node.execute(inputState);
 
-      expect(result.buildAttemptCount).toBe(1);
+      // Counter is reset to 0 on successful build
+      expect(result.buildAttemptCount).toBe(0);
     });
 
-    it('should increment from existing attempt count', () => {
+    it('should reset build attempt count to 0 on success regardless of existing count', () => {
       const inputState = createTestState({
         platform: 'iOS',
         projectPath: '/path/to/project',
@@ -120,6 +121,26 @@ describe('BuildValidationNode', () => {
 
       const result = node.execute(inputState);
 
+      // Counter is always reset to 0 on successful build, even from existing count
+      expect(result.buildAttemptCount).toBe(0);
+    });
+
+    it('should increment attempt count on failure', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        projectPath: '/path/to/project',
+        projectName: 'TestProject',
+        buildAttemptCount: 2,
+      });
+
+      mockToolExecutor.setResult(BUILD_TOOL.toolId, {
+        buildSuccessful: false,
+        buildOutputFilePath: '/path/to/output.txt',
+      });
+
+      const result = node.execute(inputState);
+
+      // Counter is incremented on failed build
       expect(result.buildAttemptCount).toBe(3);
     });
   });
@@ -213,7 +234,8 @@ describe('BuildValidationNode', () => {
       const result = node.execute(inputState);
 
       expect(result.buildSuccessful).toBe(true);
-      expect(result.buildAttemptCount).toBe(1);
+      // Counter is reset to 0 on successful build
+      expect(result.buildAttemptCount).toBe(0);
     });
 
     it('should handle successful build', () => {
@@ -288,7 +310,8 @@ describe('BuildValidationNode', () => {
 
       expect(result).toBeDefined();
       expect(result.buildSuccessful).toBe(true);
-      expect(result.buildAttemptCount).toBe(1);
+      // Counter is reset to 0 on successful build
+      expect(result.buildAttemptCount).toBe(0);
     });
 
     it('should return partial state object', () => {
