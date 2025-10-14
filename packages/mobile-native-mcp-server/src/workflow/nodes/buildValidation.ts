@@ -7,12 +7,12 @@
 
 import { MCPToolInvocationData } from '../../common/metadata.js';
 import { State } from '../metadata.js';
-import { AbstractSchemaNode } from './abstractSchemaNode.js';
+import { AbstractToolNode } from './abstractToolNode.js';
 import { BUILD_TOOL } from '../../tools/plan/sfmobile-native-build/metadata.js';
 import { ToolExecutor } from './toolExecutor.js';
 import { Logger } from '../../logging/logger.js';
 
-export class BuildValidationNode extends AbstractSchemaNode {
+export class BuildValidationNode extends AbstractToolNode {
   constructor(toolExecutor?: ToolExecutor, logger?: Logger) {
     super('validateBuild', toolExecutor, logger);
   }

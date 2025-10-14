@@ -8,11 +8,11 @@
 import { MCPToolInvocationData } from '../../common/metadata.js';
 import { USER_INPUT_TRIAGE_TOOL } from '../../tools/plan/sfmobile-native-user-input-triage/metadata.js';
 import { State } from '../metadata.js';
-import { AbstractSchemaNode } from './abstractSchemaNode.js';
+import { AbstractToolNode } from './abstractToolNode.js';
 import { ToolExecutor } from './toolExecutor.js';
 import { Logger } from '../../logging/logger.js';
 
-export class UserInputTriageNode extends AbstractSchemaNode {
+export class UserInputTriageNode extends AbstractToolNode {
   constructor(toolExecutor?: ToolExecutor, logger?: Logger) {
     super('triageUserInput', toolExecutor, logger);
   }

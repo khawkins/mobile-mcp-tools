@@ -8,11 +8,11 @@
 import { MCPToolInvocationData } from '../../common/metadata.js';
 import { TEMPLATE_DISCOVERY_TOOL } from '../../tools/plan/sfmobile-native-template-discovery/metadata.js';
 import { State } from '../metadata.js';
-import { AbstractSchemaNode } from './abstractSchemaNode.js';
+import { AbstractToolNode } from './abstractToolNode.js';
 import { ToolExecutor } from './toolExecutor.js';
 import { Logger } from '../../logging/logger.js';
 
-export class TemplateDiscoveryNode extends AbstractSchemaNode {
+export class TemplateDiscoveryNode extends AbstractToolNode {
   constructor(toolExecutor?: ToolExecutor, logger?: Logger) {
     super('discoverTemplates', toolExecutor, logger);
   }

@@ -7,19 +7,19 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import z from 'zod';
-import { AbstractSchemaNode } from '../../../src/workflow/nodes/abstractSchemaNode.js';
+import { AbstractToolNode } from '../../../src/workflow/nodes/abstractToolNode.js';
 import { MockToolExecutor } from '../../utils/MockToolExecutor.js';
 import { State } from '../../../src/workflow/metadata.js';
 import { MCPToolInvocationData } from '../../../src/common/metadata.js';
 import { MockLogger } from '../../utils/MockLogger.js';
 
 /**
- * Concrete test implementation of AbstractSchemaNode
+ * Concrete test implementation of AbstractToolNode
  *
- * This implementation tests the parent class functionality provided by AbstractSchemaNode
+ * This implementation tests the parent class functionality provided by AbstractToolNode
  * in isolation, and as such has a nominal implementation of the node itself.
  */
-class TestNode extends AbstractSchemaNode {
+class TestNode extends AbstractToolNode {
   public lastExecutedState?: State;
   public lastToolInvocationData?: MCPToolInvocationData<z.ZodObject<z.ZodRawShape>>;
   public lastResultSchema?: z.ZodObject<z.ZodRawShape>;
@@ -54,7 +54,7 @@ const TestResultSchema = z.object({
   numberField: z.number(),
 });
 
-describe('AbstractSchemaNode', () => {
+describe('AbstractToolNode', () => {
   let mockToolExecutor: MockToolExecutor;
   let mockLogger: MockLogger;
   let testNode: TestNode;
