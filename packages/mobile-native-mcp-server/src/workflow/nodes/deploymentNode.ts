@@ -7,12 +7,12 @@
 
 import { MCPToolInvocationData } from '../../common/metadata.js';
 import { State } from '../metadata.js';
-import { AbstractSchemaNode } from './abstractSchemaNode.js';
+import { AbstractToolNode } from './abstractToolNode.js';
 import { DEPLOYMENT_TOOL } from '../../tools/run/sfmobile-native-deployment/metadata.js';
 import { ToolExecutor } from './toolExecutor.js';
 import { Logger } from '../../logging/logger.js';
 
-export class DeploymentNode extends AbstractSchemaNode {
+export class DeploymentNode extends AbstractToolNode {
   constructor(toolExecutor?: ToolExecutor, logger?: Logger) {
     super('deployApp', toolExecutor, logger);
   }

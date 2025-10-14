@@ -66,7 +66,7 @@ export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   .addNode(completionNode.name, completionNode.execute)
   .addNode(failureNode.name, failureNode.execute)
 
-  // Define workflow edges
+  // Define workflow edges - steel thread linear progression starting with triage
   .addEdge(START, environmentValidationNode.name)
   .addConditionalEdges(environmentValidationNode.name, checkEnvironmentValidatedRouter.execute)
   .addConditionalEdges(initialUserInputExtractionNode.name, checkPropertiesFulFilledRouter.execute)

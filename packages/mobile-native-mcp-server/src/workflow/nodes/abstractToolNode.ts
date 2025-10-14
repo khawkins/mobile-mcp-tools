@@ -11,7 +11,7 @@ import { MCPToolInvocationData } from '../../common/metadata.js';
 import { Logger, createComponentLogger } from '../../logging/logger.js';
 import { ToolExecutor, LangGraphToolExecutor } from './toolExecutor.js';
 
-export abstract class AbstractSchemaNode extends BaseNode {
+export abstract class AbstractToolNode extends BaseNode {
   protected readonly logger: Logger;
   protected readonly componentName: string;
   protected readonly toolExecutor: ToolExecutor;

@@ -28,7 +28,7 @@ describe('DeploymentNode', () => {
       expect(node.name).toBe('deployApp');
     });
 
-    it('should extend AbstractSchemaNode', () => {
+    it('should extend AbstractToolNode', () => {
       expect(node).toBeDefined();
       expect(node.name).toBeDefined();
       expect(node.execute).toBeDefined();

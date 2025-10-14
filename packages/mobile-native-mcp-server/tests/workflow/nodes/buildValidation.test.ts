@@ -31,7 +31,7 @@ describe('BuildValidationNode', () => {
       expect(node.name).toBe('validateBuild');
     });
 
-    it('should extend BaseNode', () => {
+    it('should extend AbstractToolNode', () => {
       expect(node).toBeDefined();
       expect(node.name).toBeDefined();
       expect(node.execute).toBeDefined();

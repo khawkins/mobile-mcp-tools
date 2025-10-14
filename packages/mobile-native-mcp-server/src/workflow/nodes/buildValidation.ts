@@ -6,7 +6,7 @@
  */
 
 import { State } from '../metadata.js';
-import { BaseNode } from './abstractBaseNode.js';
+import { AbstractToolNode } from './abstractToolNode.js';
 import { ToolExecutor } from './toolExecutor.js';
 import { Logger } from '../../logging/logger.js';
 import {
@@ -14,7 +14,7 @@ import {
   BuildValidationServiceProvider,
 } from '../services/buildValidationService.js';
 
-export class BuildValidationNode extends BaseNode {
+export class BuildValidationNode extends AbstractToolNode {
   private readonly buildValidationService: BuildValidationServiceProvider;
 
   constructor(
@@ -22,7 +22,7 @@ export class BuildValidationNode extends BaseNode {
     toolExecutor?: ToolExecutor,
     logger?: Logger
   ) {
-    super('validateBuild');
+    super('validateBuild', toolExecutor, logger);
     this.buildValidationService =
       buildValidationService ?? new BuildValidationService(toolExecutor, logger);
   }

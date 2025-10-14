@@ -28,7 +28,15 @@ export class SFMobileNativeDeploymentTool extends AbstractWorkflowTool<typeof DE
     try {
       // Parsing here is about setting defaults from the input schema (e.g. buildType default).
       const validatedInput = this.toolMetadata.inputSchema.parse(input);
+
+      // TODO: This hard-coded "default" device is just a placeholder for work that we need
+      // to do to uplift this UX. Coming soon, we'll have proper CLI tools for managing our
+      // virtual device flows, and when we do, we'll want to reconsider how we handle the UX
+      // of the user selection of virtual devices more generally. In the meantime, this just
+      // helps the LLM to not have to typically "vibe" a default value in all use cases, since
+      // we don't really take in a virtual device at this point.
       validatedInput.targetDevice = validatedInput.targetDevice ?? 'iPhone 15 Pro';
+
       const guidance = this.generateDeploymentGuidance(validatedInput);
       return this.finalizeWorkflowToolOutput(guidance, validatedInput.workflowStateData);
     } catch (error) {
