@@ -25,7 +25,7 @@ export class FailureNode extends AbstractToolNode {
         inputSchema: FAILURE_TOOL.inputSchema,
       },
       input: {
-        messages: state.invalidEnvironmentMessages,
+        messages: state.workflowFatalErrorMessages,
       },
     };
 

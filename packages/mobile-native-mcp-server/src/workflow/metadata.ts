@@ -59,7 +59,7 @@ export const MobileNativeWorkflowState = Annotation.Root({
 
   // Plan phase state
   validEnvironment: Annotation<boolean>,
-  invalidEnvironmentMessages: Annotation<string[]>,
+  workflowFatalErrorMessages: Annotation<string[]>,
   selectedTemplate: Annotation<string>,
   projectName: Annotation<z.infer<typeof WORKFLOW_USER_INPUT_PROPERTIES.projectName.zodType>>,
   projectPath: Annotation<string>,

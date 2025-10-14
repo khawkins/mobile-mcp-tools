@@ -58,7 +58,7 @@ describe('FailureNode', () => {
   describe('execute() - Tool Invocation', () => {
     it('should invoke failure tool with correct tool metadata', () => {
       const inputState = createTestState({
-        invalidEnvironmentMessages: ['Error message 1'],
+        workflowFatalErrorMessages: ['Error message 1'],
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -71,11 +71,11 @@ describe('FailureNode', () => {
       expect(lastCall?.llmMetadata.description).toBe(FAILURE_TOOL.description);
     });
 
-    it('should pass invalidEnvironmentMessages to failure tool', () => {
+    it('should pass workflowFatalErrorMessages to failure tool', () => {
       const testMessages = ['Environment variable not set', 'Another error occurred'];
 
       const inputState = createTestState({
-        invalidEnvironmentMessages: testMessages,
+        workflowFatalErrorMessages: testMessages,
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -89,7 +89,7 @@ describe('FailureNode', () => {
 
     it('should validate result against failure result schema', () => {
       const inputState = createTestState({
-        invalidEnvironmentMessages: ['Error message'],
+        workflowFatalErrorMessages: ['Error message'],
       });
 
       // Valid result per FAILURE_WORKFLOW_RESULT_SCHEMA (empty object)
@@ -106,7 +106,7 @@ describe('FailureNode', () => {
       const singleMessage = ['CONNECTED_APP_CONSUMER_KEY environment variable not set'];
 
       const inputState = createTestState({
-        invalidEnvironmentMessages: singleMessage,
+        workflowFatalErrorMessages: singleMessage,
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -121,7 +121,7 @@ describe('FailureNode', () => {
       const message = 'A single error message with details';
 
       const inputState = createTestState({
-        invalidEnvironmentMessages: [message],
+        workflowFatalErrorMessages: [message],
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -142,7 +142,7 @@ describe('FailureNode', () => {
       ];
 
       const inputState = createTestState({
-        invalidEnvironmentMessages: multipleMessages,
+        workflowFatalErrorMessages: multipleMessages,
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -157,7 +157,7 @@ describe('FailureNode', () => {
       const orderedMessages = ['First error', 'Second error', 'Third error'];
 
       const inputState = createTestState({
-        invalidEnvironmentMessages: orderedMessages,
+        workflowFatalErrorMessages: orderedMessages,
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -175,7 +175,7 @@ describe('FailureNode', () => {
       const manyMessages = Array.from({ length: 10 }, (_, i) => `Error message ${i + 1}`);
 
       const inputState = createTestState({
-        invalidEnvironmentMessages: manyMessages,
+        workflowFatalErrorMessages: manyMessages,
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -191,7 +191,7 @@ describe('FailureNode', () => {
   describe('execute() - Return Value', () => {
     it('should return validated result from tool executor', () => {
       const inputState = createTestState({
-        invalidEnvironmentMessages: ['Error message'],
+        workflowFatalErrorMessages: ['Error message'],
       });
 
       const expectedResult = {};
@@ -204,7 +204,7 @@ describe('FailureNode', () => {
 
     it('should return partial state object', () => {
       const inputState = createTestState({
-        invalidEnvironmentMessages: ['Error message'],
+        workflowFatalErrorMessages: ['Error message'],
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -219,7 +219,7 @@ describe('FailureNode', () => {
   describe('execute() - Logging', () => {
     it('should log tool invocation details', () => {
       const inputState = createTestState({
-        invalidEnvironmentMessages: ['Test error message'],
+        workflowFatalErrorMessages: ['Test error message'],
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -240,7 +240,7 @@ describe('FailureNode', () => {
 
     it('should log tool result', () => {
       const inputState = createTestState({
-        invalidEnvironmentMessages: ['Test error message'],
+        workflowFatalErrorMessages: ['Test error message'],
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -258,9 +258,9 @@ describe('FailureNode', () => {
   });
 
   describe('execute() - State Independence', () => {
-    it('should only use invalidEnvironmentMessages from state', () => {
+    it('should only use workflowFatalErrorMessages from state', () => {
       const inputState = createTestState({
-        invalidEnvironmentMessages: ['Error message'],
+        workflowFatalErrorMessages: ['Error message'],
         // Other state properties
         projectName: 'TestProject',
         platform: 'iOS',
@@ -282,7 +282,7 @@ describe('FailureNode', () => {
     it('should not modify input state', () => {
       const originalMessages = ['Error message 1', 'Error message 2'];
       const inputState = createTestState({
-        invalidEnvironmentMessages: originalMessages,
+        workflowFatalErrorMessages: originalMessages,
         projectName: 'TestProject',
       });
 
@@ -294,8 +294,8 @@ describe('FailureNode', () => {
 
       // Input state should remain unchanged
       expect(inputState.projectName).toBe(originalProjectName);
-      expect(inputState.invalidEnvironmentMessages).toBe(originalMessages);
-      expect(inputState.invalidEnvironmentMessages).toHaveLength(2);
+      expect(inputState.workflowFatalErrorMessages).toBe(originalMessages);
+      expect(inputState.workflowFatalErrorMessages).toHaveLength(2);
     });
   });
 
@@ -308,7 +308,7 @@ describe('FailureNode', () => {
       ];
 
       const inputState = createTestState({
-        invalidEnvironmentMessages: specialMessages,
+        workflowFatalErrorMessages: specialMessages,
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -326,7 +326,7 @@ describe('FailureNode', () => {
       ];
 
       const inputState = createTestState({
-        invalidEnvironmentMessages: messagesWithNewlines,
+        workflowFatalErrorMessages: messagesWithNewlines,
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -341,7 +341,7 @@ describe('FailureNode', () => {
       const longMessage = 'Error: ' + 'x'.repeat(1000);
 
       const inputState = createTestState({
-        invalidEnvironmentMessages: [longMessage],
+        workflowFatalErrorMessages: [longMessage],
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -361,7 +361,7 @@ describe('FailureNode', () => {
       ];
 
       const inputState = createTestState({
-        invalidEnvironmentMessages: unicodeMessages,
+        workflowFatalErrorMessages: unicodeMessages,
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -382,7 +382,7 @@ describe('FailureNode', () => {
 
       const inputState = createTestState({
         validEnvironment: false,
-        invalidEnvironmentMessages: environmentErrors,
+        workflowFatalErrorMessages: environmentErrors,
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -401,7 +401,7 @@ describe('FailureNode', () => {
 
       const inputState = createTestState({
         validEnvironment: false,
-        invalidEnvironmentMessages: consumerKeyError,
+        workflowFatalErrorMessages: consumerKeyError,
         connectedAppCallbackUri: 'myapp://callback',
       });
 
@@ -419,7 +419,7 @@ describe('FailureNode', () => {
 
       const inputState = createTestState({
         validEnvironment: false,
-        invalidEnvironmentMessages: callbackUrlError,
+        workflowFatalErrorMessages: callbackUrlError,
         connectedAppClientId: '3MVG9Kip4IKAZQEXPNwTYYd.example',
       });
 
@@ -436,7 +436,7 @@ describe('FailureNode', () => {
   describe('execute() - Edge Cases', () => {
     it('should handle empty error messages array', () => {
       const inputState = createTestState({
-        invalidEnvironmentMessages: [],
+        workflowFatalErrorMessages: [],
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -448,9 +448,9 @@ describe('FailureNode', () => {
       expect(lastCall?.input.messages).toHaveLength(0);
     });
 
-    it('should handle undefined invalidEnvironmentMessages', () => {
+    it('should handle undefined workflowFatalErrorMessages', () => {
       const inputState = createTestState({
-        invalidEnvironmentMessages: undefined,
+        workflowFatalErrorMessages: undefined,
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -463,7 +463,7 @@ describe('FailureNode', () => {
 
     it('should handle empty string messages', () => {
       const inputState = createTestState({
-        invalidEnvironmentMessages: ['', ''],
+        workflowFatalErrorMessages: ['', ''],
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
@@ -481,11 +481,11 @@ describe('FailureNode', () => {
       const messages2 = ['Error 2'];
 
       const state1 = createTestState({
-        invalidEnvironmentMessages: messages1,
+        workflowFatalErrorMessages: messages1,
       });
 
       const state2 = createTestState({
-        invalidEnvironmentMessages: messages2,
+        workflowFatalErrorMessages: messages2,
       });
 
       mockToolExecutor.setResult(FAILURE_TOOL.toolId, {});
