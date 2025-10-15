@@ -21,7 +21,7 @@ export class EnvironmentValidationNode extends BaseNode {
     const validEnvironment = invalidEnvironmentMessages.length === 0;
     return {
       validEnvironment,
-      invalidEnvironmentMessages: validEnvironment ? undefined : invalidEnvironmentMessages,
+      workflowFatalErrorMessages: validEnvironment ? undefined : invalidEnvironmentMessages,
       connectedAppClientId,
       connectedAppCallbackUri,
     };

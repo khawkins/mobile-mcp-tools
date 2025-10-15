@@ -50,7 +50,7 @@ describe('CheckEnvironmentValidatedRouter', () => {
 
       const inputState = createTestState({
         validEnvironment: false,
-        invalidEnvironmentMessages: ['Environment variable not set'],
+        workflowFatalErrorMessages: ['Environment variable not set'],
       });
 
       const nextNode = router.execute(inputState);
@@ -92,7 +92,7 @@ describe('CheckEnvironmentValidatedRouter', () => {
 
       const inputState = createTestState({
         validEnvironment: false,
-        invalidEnvironmentMessages: [
+        workflowFatalErrorMessages: [
           'CONNECTED_APP_CONSUMER_KEY environment variable not set',
           'CONNECTED_APP_CALLBACK_URL environment variable not set',
         ],
@@ -108,7 +108,7 @@ describe('CheckEnvironmentValidatedRouter', () => {
 
       const inputState = createTestState({
         validEnvironment: false,
-        invalidEnvironmentMessages: ['CONNECTED_APP_CONSUMER_KEY environment variable not set'],
+        workflowFatalErrorMessages: ['CONNECTED_APP_CONSUMER_KEY environment variable not set'],
       });
 
       const nextNode = router.execute(inputState);
@@ -121,7 +121,7 @@ describe('CheckEnvironmentValidatedRouter', () => {
 
       const inputState = createTestState({
         validEnvironment: false,
-        invalidEnvironmentMessages: [
+        workflowFatalErrorMessages: [
           'Missing environment variable A',
           'Missing environment variable B',
           'Missing environment variable C',
@@ -185,30 +185,30 @@ describe('CheckEnvironmentValidatedRouter', () => {
 
       const inputState = createTestState({
         validEnvironment: originalValidEnvironment,
-        invalidEnvironmentMessages: originalMessages,
+        workflowFatalErrorMessages: originalMessages,
       });
 
       router.execute(inputState);
 
       // State should remain unchanged
       expect(inputState.validEnvironment).toBe(originalValidEnvironment);
-      expect(inputState.invalidEnvironmentMessages).toBe(originalMessages);
+      expect(inputState.workflowFatalErrorMessages).toBe(originalMessages);
     });
 
-    it('should not mutate invalidEnvironmentMessages array', () => {
+    it('should not mutate workflowFatalErrorMessages array', () => {
       const router = new CheckEnvironmentValidatedRouter(VALID_ENV_NODE, INVALID_ENV_NODE);
 
       const originalMessages = ['message 1', 'message 2'];
       const inputState = createTestState({
         validEnvironment: false,
-        invalidEnvironmentMessages: originalMessages,
+        workflowFatalErrorMessages: originalMessages,
       });
 
       router.execute(inputState);
 
       // Array should remain unchanged
-      expect(inputState.invalidEnvironmentMessages).toEqual(originalMessages);
-      expect(inputState.invalidEnvironmentMessages?.length).toBe(2);
+      expect(inputState.workflowFatalErrorMessages).toEqual(originalMessages);
+      expect(inputState.workflowFatalErrorMessages?.length).toBe(2);
     });
   });
 
@@ -267,7 +267,7 @@ describe('CheckEnvironmentValidatedRouter', () => {
       // Environment validation failed
       const inputState = createTestState({
         validEnvironment: false,
-        invalidEnvironmentMessages: [
+        workflowFatalErrorMessages: [
           'You must set the CONNECTED_APP_CONSUMER_KEY environment variable',
           'You must set the CONNECTED_APP_CALLBACK_URL environment variable',
         ],
@@ -292,7 +292,7 @@ describe('CheckEnvironmentValidatedRouter', () => {
       // Invalid environment - should route to workflowFailure
       const invalidState = createTestState({
         validEnvironment: false,
-        invalidEnvironmentMessages: ['Environment validation failed'],
+        workflowFatalErrorMessages: ['Environment validation failed'],
       });
       expect(router.execute(invalidState)).toBe('workflowFailure');
     });
@@ -312,12 +312,12 @@ describe('CheckEnvironmentValidatedRouter', () => {
       expect(nextNode).toBe(INVALID_ENV_NODE);
     });
 
-    it('should handle state with empty invalidEnvironmentMessages array', () => {
+    it('should handle state with empty workflowFatalErrorMessages array', () => {
       const router = new CheckEnvironmentValidatedRouter(VALID_ENV_NODE, INVALID_ENV_NODE);
 
       const inputState = createTestState({
         validEnvironment: false,
-        invalidEnvironmentMessages: [],
+        workflowFatalErrorMessages: [],
       });
 
       const nextNode = router.execute(inputState);
@@ -326,13 +326,13 @@ describe('CheckEnvironmentValidatedRouter', () => {
       expect(nextNode).toBe(INVALID_ENV_NODE);
     });
 
-    it('should not depend on presence of invalidEnvironmentMessages for routing', () => {
+    it('should not depend on presence of workflowFatalErrorMessages for routing', () => {
       const router = new CheckEnvironmentValidatedRouter(VALID_ENV_NODE, INVALID_ENV_NODE);
 
       // Router should only check validEnvironment flag, not the messages
       const stateWithoutMessages = createTestState({
         validEnvironment: true,
-        // No invalidEnvironmentMessages set
+        // No workflowFatalErrorMessages set
       });
 
       const nextNode = router.execute(stateWithoutMessages);
