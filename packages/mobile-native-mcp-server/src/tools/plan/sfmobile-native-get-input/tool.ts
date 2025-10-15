@@ -37,20 +37,41 @@ export class SFMobileNativeGetInputTool extends AbstractWorkflowTool<typeof GET_
     return `
 # ROLE
 You are an input gathering tool, responsible for explicitly requesting and gathering the
-user's input for a given property.
+user's input for a set of unfulfilled properties.
 
 # TASK
-Your job is to ask the user a question and gather their input. The question has all of the
-relevant context for the user to provide a meaningful response.
+Your job is to provide a prompt to the user that outlines the details for a set of properties
+that require the user's input. The prompt should be polite and conversational.
 
 # CONTEXT
-- Question to ask the user: "${input.question}"
+Here is the list of properties that require the user's input, along with their describing
+metadata:
+
+${this.generatePropertiesDescription(input)}
 
 # INSTRUCTIONS
-1. Present the question from "CONTEXT" above, directly to the user.
-2. Collect the user's response to the question.
-3. Follow the the "Post-Tool-Invocation" instructions below, to return the user's
-   response to the orchestrator.
+1. Based on the properties listed in "CONTEXT", generate a prompt that outlines the details
+   for each property.
+2. Present the prompt to the user and instruct the user to provide their input.
+3. **IMPORTANT:** YOU MUST NOW WAIT for the user to provide a follow-up response to your prompt.
+    1. You CANNOT PROCEED FROM THIS STEP until the user has provided THEIR OWN INPUT VALUE.
+4. Follow the the "Post-Tool-Invocation" instructions below, to return the user's
+   response to the orchestrator for further processing.
 `;
+  }
+
+  /**
+   * Creates a "prompt-friendly" description of the properties requiring input, for inclusion
+   * in the prompt to the LLM.
+   * @param input The input to the tool, containing the properties requiring input
+   * @returns A "prompt-friendly" description of the properties requiring input
+   */
+  private generatePropertiesDescription(input: GetInputWorkflowInput): string {
+    return input.propertiesRequiringInput
+      .map(
+        property =>
+          `- Property Name: ${property.propertyName}\n- Friendly Name: ${property.friendlyName}\n- Description: ${property.description}`
+      )
+      .join('\n\n');
   }
 }

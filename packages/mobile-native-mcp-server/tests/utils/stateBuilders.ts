@@ -28,7 +28,6 @@ export function createTestState(overrides: Partial<State> = {}): State {
   return {
     // Core workflow data
     userInput: '',
-    userInputQuestion: undefined,
     platform: undefined,
 
     // Plan phase state

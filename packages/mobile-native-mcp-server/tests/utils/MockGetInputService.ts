@@ -5,7 +5,10 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { GetInputServiceProvider } from '../../src/workflow/services/getInputService.js';
+import {
+  GetInputProperty,
+  GetInputServiceProvider,
+} from '../../src/workflow/services/getInputService.js';
 
 /**
  * Test implementation of GetInputServiceProvider that returns pre-configured user input.
@@ -20,7 +23,7 @@ import { GetInputServiceProvider } from '../../src/workflow/services/getInputSer
  */
 export class MockGetInputService implements GetInputServiceProvider {
   private userInput: unknown = 'Mock user input';
-  private callHistory: Array<{ question: string }> = [];
+  private callHistory: Array<{ unfulfilledProperties: GetInputProperty[] }> = [];
 
   /**
    * Configures the mock to return a specific user input.
@@ -35,11 +38,11 @@ export class MockGetInputService implements GetInputServiceProvider {
    * Mock implementation of getInput.
    * Records the call and returns the pre-configured user input.
    *
-   * @param question The question being asked
+   * @param unfulfilledProperties The properties requiring user input
    * @returns The pre-configured user input
    */
-  getInput(question: string): unknown {
-    this.callHistory.push({ question });
+  getInput(unfulfilledProperties: GetInputProperty[]): unknown {
+    this.callHistory.push({ unfulfilledProperties });
     return this.userInput;
   }
 
@@ -47,14 +50,14 @@ export class MockGetInputService implements GetInputServiceProvider {
    * Returns the history of all input requests.
    * Useful for asserting that the service was called with correct parameters.
    */
-  getCallHistory(): ReadonlyArray<{ question: string }> {
+  getCallHistory(): ReadonlyArray<{ unfulfilledProperties: GetInputProperty[] }> {
     return [...this.callHistory];
   }
 
   /**
    * Returns the most recent call, or undefined if no calls have been made.
    */
-  getLastCall(): { question: string } | undefined {
+  getLastCall(): { unfulfilledProperties: GetInputProperty[] } | undefined {
     return this.callHistory[this.callHistory.length - 1];
   }
 

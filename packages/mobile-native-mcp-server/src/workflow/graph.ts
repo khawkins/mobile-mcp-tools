@@ -15,13 +15,11 @@ import { DeploymentNode } from './nodes/deploymentNode.js';
 import { CompletionNode } from './nodes/completionNode.js';
 import { UserInputExtractionNode } from './nodes/userInputExtraction.js';
 import { CheckPropertiesFulFilledRouter } from './nodes/checkPropertiesFulfilledRouter.js';
-import { GenerateQuestionNode } from './nodes/generateQuestion.js';
 import { GetUserInputNode } from './nodes/getUserInput.js';
 import { FailureNode } from './nodes/failureNode.js';
 import { CheckEnvironmentValidatedRouter } from './nodes/checkEnvironmentValidated.js';
 
 const initialUserInputExtractionNode = new UserInputExtractionNode();
-const generateQuestionNode = new GenerateQuestionNode();
 const userInputNode = new GetUserInputNode();
 const environmentValidationNode = new EnvironmentValidationNode();
 const templateDiscoveryNode = new TemplateDiscoveryNode();
@@ -32,7 +30,7 @@ const completionNode = new CompletionNode();
 const failureNode = new FailureNode();
 const checkPropertiesFulFilledRouter = new CheckPropertiesFulFilledRouter(
   templateDiscoveryNode.name,
-  generateQuestionNode.name
+  userInputNode.name
 );
 const checkEnvironmentValidatedRouter = new CheckEnvironmentValidatedRouter(
   initialUserInputExtractionNode.name,
@@ -48,7 +46,6 @@ export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   // Add all workflow nodes
   .addNode(environmentValidationNode.name, environmentValidationNode.execute)
   .addNode(initialUserInputExtractionNode.name, initialUserInputExtractionNode.execute)
-  .addNode(generateQuestionNode.name, generateQuestionNode.execute)
   .addNode(userInputNode.name, userInputNode.execute)
   .addNode(templateDiscoveryNode.name, templateDiscoveryNode.execute)
   .addNode(projectGenerationNode.name, projectGenerationNode.execute)
@@ -61,7 +58,6 @@ export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   .addEdge(START, environmentValidationNode.name)
   .addConditionalEdges(environmentValidationNode.name, checkEnvironmentValidatedRouter.execute)
   .addConditionalEdges(initialUserInputExtractionNode.name, checkPropertiesFulFilledRouter.execute)
-  .addEdge(generateQuestionNode.name, userInputNode.name)
   .addEdge(userInputNode.name, initialUserInputExtractionNode.name)
   .addEdge(templateDiscoveryNode.name, projectGenerationNode.name)
   .addEdge(projectGenerationNode.name, buildValidationNode.name)

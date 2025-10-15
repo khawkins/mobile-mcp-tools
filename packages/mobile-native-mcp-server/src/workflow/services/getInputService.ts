@@ -5,11 +5,17 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
+import z from 'zod';
 import { MCPToolInvocationData } from '../../common/metadata.js';
 import { ToolExecutor } from '../nodes/toolExecutor.js';
 import { Logger } from '../../logging/logger.js';
-import { GET_INPUT_TOOL } from '../../tools/plan/sfmobile-native-get-input/metadata.js';
+import {
+  GET_INPUT_PROPERTY_SCHEMA,
+  GET_INPUT_TOOL,
+} from '../../tools/plan/sfmobile-native-get-input/metadata.js';
 import { AbstractService } from './abstractService.js';
+
+export type GetInputProperty = z.infer<typeof GET_INPUT_PROPERTY_SCHEMA>;
 
 /**
  * Provider interface for user input service.
@@ -22,7 +28,7 @@ export interface GetInputServiceProvider {
    * @param question - The question to ask the user
    * @returns The user's response (can be any type)
    */
-  getInput(question: string): unknown;
+  getInput(unfulfilledProperties: GetInputProperty[]): unknown;
 }
 
 /**
@@ -42,9 +48,9 @@ export class GetInputService extends AbstractService implements GetInputServiceP
     super('GetInputService', toolExecutor, logger);
   }
 
-  getInput(question: string): unknown {
-    this.logger.debug('Starting input request with question', {
-      question,
+  getInput(unfulfilledProperties: GetInputProperty[]): unknown {
+    this.logger.debug('Starting input request with properties', {
+      unfulfilledProperties,
     });
 
     // Create tool invocation data
@@ -55,7 +61,7 @@ export class GetInputService extends AbstractService implements GetInputServiceP
         inputSchema: GET_INPUT_TOOL.inputSchema,
       },
       input: {
-        question,
+        propertiesRequiringInput: unfulfilledProperties,
       },
     };
 

@@ -16,8 +16,20 @@ import {
 /**
  * Get Input Tool Input Schema
  */
+export const GET_INPUT_PROPERTY_SCHEMA = z
+  .object({
+    propertyName: z.string().describe('The name of the property'),
+    friendlyName: z.string().describe('The friendly name of the property'),
+    description: z.string().describe('The description of the property'),
+  })
+  .describe(
+    'The metadata for the property to be queried, used to formulate a prompting question for input'
+  );
+
 export const GET_INPUT_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.extend({
-  question: z.string().describe('The question to pose to the user to get the input'),
+  propertiesRequiringInput: z
+    .array(GET_INPUT_PROPERTY_SCHEMA)
+    .describe('The metadata for the properties that require input from the user'),
 });
 
 export const GET_INPUT_WORKFLOW_RESULT_SCHEMA = z.object({
@@ -35,7 +47,7 @@ export const GET_INPUT_TOOL: WorkflowToolMetadata<
 > = {
   toolId: 'sfmobile-native-get-input',
   title: 'Get User Input',
-  description: 'Provides a question to the user to elicit their input for a given property',
+  description: 'Provides a prompt to the user to elicit their input for a set of properties',
   inputSchema: GET_INPUT_WORKFLOW_INPUT_SCHEMA,
   outputSchema: MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
   resultSchema: GET_INPUT_WORKFLOW_RESULT_SCHEMA,

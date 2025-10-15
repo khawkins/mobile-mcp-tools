@@ -66,8 +66,9 @@ ${JSON.stringify(input.propertiesToExtract)}
 2. For each property listed in "PROPERTIES TO EXTRACT", search the text for a  
    corresponding value.
 3. If a clear value is found for a property, place it in your output.
-4. If a property's value is not mentioned in the text, you MUST use \`null\` as the  
-   value for that property.
+4. If a property's value is not ABSOLUTELY INFERABLE from USER UTTERANCE TO ANALYZE, you
+   MUST use \`null\` as the value for that property. You MAY NOT infer your own property
+   values, in the absence of their clear specification in the USER UTTERANCE TO ANALYZE.
 5. Ensure the keys in your output JSON object exactly match the \`propertyName\` values  
    from the input list.
 6. The exact format of your output object will be given in the section below.

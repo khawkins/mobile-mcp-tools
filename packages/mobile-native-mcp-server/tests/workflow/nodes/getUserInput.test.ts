@@ -9,9 +9,23 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { GetUserInputNode } from '../../../src/workflow/nodes/getUserInput.js';
 import { MockGetInputService } from '../../utils/MockGetInputService.js';
 import { createTestState } from '../../utils/stateBuilders.js';
+import { WORKFLOW_USER_INPUT_PROPERTIES } from '../../../src/workflow/metadata.js';
+import { PropertyMetadataCollection } from '../../../src/common/propertyMetadata.js';
 
 describe('GetUserInputNode', () => {
   let mockInputService: MockGetInputService;
+
+  // Test property subsets for focused testing
+  const twoPropertySubset: PropertyMetadataCollection = {
+    platform: WORKFLOW_USER_INPUT_PROPERTIES.platform,
+    projectName: WORKFLOW_USER_INPUT_PROPERTIES.projectName,
+  };
+
+  const threePropertySubset: PropertyMetadataCollection = {
+    platform: WORKFLOW_USER_INPUT_PROPERTIES.platform,
+    projectName: WORKFLOW_USER_INPUT_PROPERTIES.projectName,
+    packageName: WORKFLOW_USER_INPUT_PROPERTIES.packageName,
+  };
 
   beforeEach(() => {
     mockInputService = new MockGetInputService();
@@ -25,8 +39,22 @@ describe('GetUserInputNode', () => {
   });
 
   describe('Constructor', () => {
+    it('should accept custom required properties', () => {
+      const customProperties: PropertyMetadataCollection = {
+        platform: WORKFLOW_USER_INPUT_PROPERTIES.platform,
+      };
+
+      const node = new GetUserInputNode(customProperties);
+      expect(node['requiredProperties']).toBe(customProperties);
+    });
+
+    it('should default to WORKFLOW_USER_INPUT_PROPERTIES when no properties provided', () => {
+      const node = new GetUserInputNode();
+      expect(node['requiredProperties']).toBe(WORKFLOW_USER_INPUT_PROPERTIES);
+    });
+
     it('should accept custom input service', () => {
-      const node = new GetUserInputNode(mockInputService);
+      const node = new GetUserInputNode(undefined, mockInputService);
       expect(node['getInputService']).toBe(mockInputService);
     });
 
@@ -34,54 +62,83 @@ describe('GetUserInputNode', () => {
       const node = new GetUserInputNode();
       expect(node['getInputService']).toBeDefined();
     });
+
+    it('should allow both custom properties and custom service', () => {
+      const customProperties = twoPropertySubset;
+      const node = new GetUserInputNode(customProperties, mockInputService);
+
+      expect(node['requiredProperties']).toBe(customProperties);
+      expect(node['getInputService']).toBe(mockInputService);
+    });
   });
 
   describe('execute() - User Input Collection', () => {
-    it('should collect user input using the question from state', () => {
-      const node = new GetUserInputNode(mockInputService);
+    it('should collect user input for all unfulfilled properties', () => {
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
-      const question = 'What platform would you like to target?';
+      // State with no properties filled
       const inputState = createTestState({
-        userInputQuestion: question,
+        userInput: 'test',
       });
 
-      const userResponse = 'iOS';
+      const userResponse = 'iOS and MyApp';
       mockInputService.setUserInput(userResponse);
 
       const result = node.execute(inputState);
 
       expect(result.userInput).toBe(userResponse);
 
-      // Verify service was called with correct question
+      // Verify service was called with unfulfilled properties
       const calls = mockInputService.getCallHistory();
       expect(calls).toHaveLength(1);
-      expect(calls[0].question).toBe(question);
+      expect(calls[0].unfulfilledProperties).toHaveLength(2);
+      expect(calls[0].unfulfilledProperties[0].propertyName).toBe('platform');
+      expect(calls[0].unfulfilledProperties[1].propertyName).toBe('projectName');
     });
 
-    it('should handle text user responses', () => {
-      const node = new GetUserInputNode(mockInputService);
+    it('should collect input only for remaining unfulfilled properties', () => {
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
+      // State with platform already filled
       const inputState = createTestState({
-        userInputQuestion: 'Enter project name:',
+        userInput: 'test',
+        platform: 'iOS',
       });
 
-      mockInputService.setUserInput('MyAwesomeApp');
+      const userResponse = 'MyApp';
+      mockInputService.setUserInput(userResponse);
 
       const result = node.execute(inputState);
 
-      expect(result.userInput).toBe('MyAwesomeApp');
+      expect(result.userInput).toBe(userResponse);
+
+      // Should only ask for projectName
+      const calls = mockInputService.getCallHistory();
+      expect(calls).toHaveLength(1);
+      expect(calls[0].unfulfilledProperties).toHaveLength(1);
+      expect(calls[0].unfulfilledProperties[0].propertyName).toBe('projectName');
+    });
+
+    it('should handle text user responses', () => {
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
+
+      const inputState = createTestState({});
+
+      mockInputService.setUserInput('iOS and MyAwesomeApp');
+
+      const result = node.execute(inputState);
+
+      expect(result.userInput).toBe('iOS and MyAwesomeApp');
     });
 
     it('should handle structured user responses', () => {
-      const node = new GetUserInputNode(mockInputService);
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
-      const inputState = createTestState({
-        userInputQuestion: 'Provide app details:',
-      });
+      const inputState = createTestState({});
 
       const structuredResponse = {
+        platform: 'iOS',
         projectName: 'MyApp',
-        packageName: 'com.example.myapp',
       };
       mockInputService.setUserInput(structuredResponse);
 
@@ -91,11 +148,9 @@ describe('GetUserInputNode', () => {
     });
 
     it('should handle numeric user responses', () => {
-      const node = new GetUserInputNode(mockInputService);
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
-      const inputState = createTestState({
-        userInputQuestion: 'Enter port number:',
-      });
+      const inputState = createTestState({});
 
       mockInputService.setUserInput(8080);
 
@@ -105,11 +160,9 @@ describe('GetUserInputNode', () => {
     });
 
     it('should handle boolean user responses', () => {
-      const node = new GetUserInputNode(mockInputService);
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
-      const inputState = createTestState({
-        userInputQuestion: 'Enable debug mode?',
-      });
+      const inputState = createTestState({});
 
       mockInputService.setUserInput(true);
 
@@ -119,11 +172,9 @@ describe('GetUserInputNode', () => {
     });
 
     it('should handle null user responses', () => {
-      const node = new GetUserInputNode(mockInputService);
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
-      const inputState = createTestState({
-        userInputQuestion: 'Optional field:',
-      });
+      const inputState = createTestState({});
 
       mockInputService.setUserInput(null);
 
@@ -133,13 +184,78 @@ describe('GetUserInputNode', () => {
     });
   });
 
+  describe('execute() - Property Metadata Passing', () => {
+    it('should pass correct metadata to input service', () => {
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
+
+      const inputState = createTestState({});
+
+      mockInputService.setUserInput('test');
+
+      node.execute(inputState);
+
+      const calls = mockInputService.getCallHistory();
+      expect(calls).toHaveLength(1);
+
+      const properties = calls[0].unfulfilledProperties;
+      expect(properties).toHaveLength(2);
+
+      // First property
+      expect(properties[0].propertyName).toBe('platform');
+      expect(properties[0].friendlyName).toBe('mobile platform');
+      expect(properties[0].description).toContain('mobile platform');
+
+      // Second property
+      expect(properties[1].propertyName).toBe('projectName');
+      expect(properties[1].friendlyName).toBe('project name');
+      expect(properties[1].description).toBeDefined();
+    });
+
+    it('should include only unfulfilled properties in metadata', () => {
+      const node = new GetUserInputNode(threePropertySubset, mockInputService);
+
+      // Only packageName is missing
+      const inputState = createTestState({
+        platform: 'iOS',
+        projectName: 'MyApp',
+      });
+
+      mockInputService.setUserInput('com.test.app');
+
+      node.execute(inputState);
+
+      const calls = mockInputService.getCallHistory();
+      const properties = calls[0].unfulfilledProperties;
+
+      expect(properties).toHaveLength(1);
+      expect(properties[0].propertyName).toBe('packageName');
+      expect(properties[0].friendlyName).toBe('package identifier');
+    });
+
+    it('should maintain property order from collection', () => {
+      const node = new GetUserInputNode(threePropertySubset, mockInputService);
+
+      const inputState = createTestState({});
+
+      mockInputService.setUserInput('test');
+
+      node.execute(inputState);
+
+      const calls = mockInputService.getCallHistory();
+      const properties = calls[0].unfulfilledProperties;
+
+      expect(properties).toHaveLength(3);
+      expect(properties[0].propertyName).toBe('platform');
+      expect(properties[1].propertyName).toBe('projectName');
+      expect(properties[2].propertyName).toBe('packageName');
+    });
+  });
+
   describe('execute() - Service Integration', () => {
     it('should call input service exactly once', () => {
-      const node = new GetUserInputNode(mockInputService);
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
-      const inputState = createTestState({
-        userInputQuestion: 'Test question?',
-      });
+      const inputState = createTestState({});
 
       mockInputService.setUserInput('test response');
 
@@ -148,56 +264,29 @@ describe('GetUserInputNode', () => {
       expect(mockInputService.getCallHistory()).toHaveLength(1);
     });
 
-    it('should pass the exact question from state to input service', () => {
-      const node = new GetUserInputNode(mockInputService);
+    it('should pass all unfulfilled properties to service in single call', () => {
+      const node = new GetUserInputNode(threePropertySubset, mockInputService);
 
-      const exactQuestion = 'What is the package identifier for your mobile app?';
       const inputState = createTestState({
-        userInputQuestion: exactQuestion,
+        platform: 'iOS',
+        // projectName and packageName missing
       });
 
-      mockInputService.setUserInput('com.test');
+      mockInputService.setUserInput('MyApp and com.test.app');
 
       node.execute(inputState);
 
-      const lastCall = mockInputService.getLastCall();
-      expect(lastCall?.question).toBe(exactQuestion);
-    });
-
-    it('should work with different questions in sequence', () => {
-      const node = new GetUserInputNode(mockInputService);
-
-      // First call
-      const state1 = createTestState({
-        userInputQuestion: 'Question 1?',
-      });
-      mockInputService.setUserInput('Answer 1');
-      const result1 = node.execute(state1);
-
-      // Second call
-      const state2 = createTestState({
-        userInputQuestion: 'Question 2?',
-      });
-      mockInputService.setUserInput('Answer 2');
-      const result2 = node.execute(state2);
-
-      expect(result1.userInput).toBe('Answer 1');
-      expect(result2.userInput).toBe('Answer 2');
-
       const calls = mockInputService.getCallHistory();
-      expect(calls).toHaveLength(2);
-      expect(calls[0].question).toBe('Question 1?');
-      expect(calls[1].question).toBe('Question 2?');
+      expect(calls).toHaveLength(1);
+      expect(calls[0].unfulfilledProperties).toHaveLength(2);
     });
   });
 
   describe('execute() - Return Value', () => {
     it('should return object with userInput property', () => {
-      const node = new GetUserInputNode(mockInputService);
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
-      const inputState = createTestState({
-        userInputQuestion: 'Test?',
-      });
+      const inputState = createTestState({});
 
       mockInputService.setUserInput('test');
 
@@ -208,11 +297,9 @@ describe('GetUserInputNode', () => {
     });
 
     it('should return Partial<State> compatible object', () => {
-      const node = new GetUserInputNode(mockInputService);
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
-      const inputState = createTestState({
-        userInputQuestion: 'Test?',
-      });
+      const inputState = createTestState({});
 
       mockInputService.setUserInput('test');
 
@@ -225,11 +312,9 @@ describe('GetUserInputNode', () => {
     });
 
     it('should only include userInput in return value', () => {
-      const node = new GetUserInputNode(mockInputService);
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
-      const inputState = createTestState({
-        userInputQuestion: 'Test?',
-      });
+      const inputState = createTestState({});
 
       mockInputService.setUserInput('test');
 
@@ -242,11 +327,9 @@ describe('GetUserInputNode', () => {
     });
 
     it('should preserve the type of user input in return value', () => {
-      const node = new GetUserInputNode(mockInputService);
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
-      const inputState = createTestState({
-        userInputQuestion: 'Test?',
-      });
+      const inputState = createTestState({});
 
       // Test with object
       const objectInput = { key: 'value' };
@@ -264,65 +347,71 @@ describe('GetUserInputNode', () => {
   });
 
   describe('execute() - Edge Cases', () => {
-    it('should handle empty question string', () => {
-      const node = new GetUserInputNode(mockInputService);
+    it('should handle state with some properties undefined', () => {
+      const node = new GetUserInputNode(threePropertySubset, mockInputService);
 
       const inputState = createTestState({
-        userInputQuestion: '',
+        platform: 'iOS',
+        projectName: undefined,
+        packageName: undefined,
       });
 
-      mockInputService.setUserInput('response');
+      mockInputService.setUserInput('MyApp and com.test.app');
 
       const result = node.execute(inputState);
 
-      expect(result.userInput).toBe('response');
+      expect(result.userInput).toBeDefined();
 
-      const lastCall = mockInputService.getLastCall();
-      expect(lastCall?.question).toBe('');
+      const calls = mockInputService.getCallHistory();
+      // Should include projectName and packageName
+      expect(calls[0].unfulfilledProperties).toHaveLength(2);
     });
 
-    it('should handle long question strings', () => {
-      const node = new GetUserInputNode(mockInputService);
+    it('should handle custom property collection', () => {
+      const customProperties: PropertyMetadataCollection = {
+        organization: WORKFLOW_USER_INPUT_PROPERTIES.organization,
+        loginHost: WORKFLOW_USER_INPUT_PROPERTIES.loginHost,
+      };
 
-      const longQuestion = 'A'.repeat(1000);
-      const inputState = createTestState({
-        userInputQuestion: longQuestion,
-      });
+      const node = new GetUserInputNode(customProperties, mockInputService);
 
-      mockInputService.setUserInput('response');
+      const inputState = createTestState({});
+
+      mockInputService.setUserInput('MyOrg and login.salesforce.com');
 
       const result = node.execute(inputState);
 
-      expect(result.userInput).toBe('response');
-
-      const lastCall = mockInputService.getLastCall();
-      expect(lastCall?.question).toBe(longQuestion);
+      const calls = mockInputService.getCallHistory();
+      expect(calls[0].unfulfilledProperties).toHaveLength(2);
+      expect(calls[0].unfulfilledProperties[0].propertyName).toBe('organization');
+      expect(calls[0].unfulfilledProperties[1].propertyName).toBe('loginHost');
+      expect(result.userInput).toBeDefined();
     });
 
-    it('should handle questions with special characters', () => {
-      const node = new GetUserInputNode(mockInputService);
+    it('should handle single property collection', () => {
+      const singleProperty: PropertyMetadataCollection = {
+        platform: WORKFLOW_USER_INPUT_PROPERTIES.platform,
+      };
 
-      const specialQuestion = 'What is your package? (e.g., com.example.app) [required]';
-      const inputState = createTestState({
-        userInputQuestion: specialQuestion,
-      });
+      const node = new GetUserInputNode(singleProperty, mockInputService);
 
-      mockInputService.setUserInput('com.test.app');
+      const inputState = createTestState({});
+
+      mockInputService.setUserInput('iOS');
 
       const result = node.execute(inputState);
 
-      expect(result.userInput).toBe('com.test.app');
-
-      const lastCall = mockInputService.getLastCall();
-      expect(lastCall?.question).toBe(specialQuestion);
+      const calls = mockInputService.getCallHistory();
+      expect(calls).toHaveLength(1);
+      expect(calls[0].unfulfilledProperties).toHaveLength(1);
+      expect(calls[0].unfulfilledProperties[0].propertyName).toBe('platform');
+      expect(result.userInput).toBe('iOS');
     });
 
     it('should handle empty string user responses', () => {
-      const node = new GetUserInputNode(mockInputService);
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
-      const inputState = createTestState({
-        userInputQuestion: 'Optional field:',
-      });
+      const inputState = createTestState({});
 
       mockInputService.setUserInput('');
 
@@ -332,11 +421,9 @@ describe('GetUserInputNode', () => {
     });
 
     it('should handle undefined user responses', () => {
-      const node = new GetUserInputNode(mockInputService);
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
-      const inputState = createTestState({
-        userInputQuestion: 'Test?',
-      });
+      const inputState = createTestState({});
 
       mockInputService.setUserInput(undefined);
 
@@ -348,61 +435,47 @@ describe('GetUserInputNode', () => {
 
   describe('execute() - State Preservation', () => {
     it('should not modify input state', () => {
-      const node = new GetUserInputNode(mockInputService);
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
-      const originalQuestion = 'Original question?';
+      const originalPlatform = 'iOS';
+
       const inputState = createTestState({
-        userInputQuestion: originalQuestion,
-        platform: 'iOS',
+        platform: originalPlatform,
       });
 
-      mockInputService.setUserInput('response');
+      mockInputService.setUserInput('MyApp');
 
       node.execute(inputState);
 
       // Input state should remain unchanged
-      expect(inputState.userInputQuestion).toBe(originalQuestion);
-      expect(inputState.platform).toBe('iOS');
+      expect(inputState.platform).toBe(originalPlatform);
       // userInput should not be set on input state
-      expect(inputState.userInput).not.toBe('response');
+      expect(inputState.userInput).not.toBe('MyApp');
     });
   });
 
   describe('execute() - Real World Scenarios', () => {
-    it('should handle platform selection question', () => {
-      const node = new GetUserInputNode(mockInputService);
+    it('should handle initial prompt for all properties', () => {
+      const node = new GetUserInputNode(twoPropertySubset, mockInputService);
 
-      const inputState = createTestState({
-        userInputQuestion: 'Which mobile platform would you like to target (iOS or Android)?',
-      });
+      const inputState = createTestState({});
 
-      mockInputService.setUserInput('iOS');
+      mockInputService.setUserInput('iOS for mobile app MyFieldService');
 
       const result = node.execute(inputState);
 
-      expect(result.userInput).toBe('iOS');
+      expect(result.userInput).toBe('iOS for mobile app MyFieldService');
+
+      const calls = mockInputService.getCallHistory();
+      expect(calls[0].unfulfilledProperties).toHaveLength(2);
     });
 
-    it('should handle project name question', () => {
-      const node = new GetUserInputNode(mockInputService);
+    it('should handle follow-up prompt for remaining properties', () => {
+      const node = new GetUserInputNode(threePropertySubset, mockInputService);
 
       const inputState = createTestState({
-        userInputQuestion: 'What is the name of your mobile app project?',
-      });
-
-      mockInputService.setUserInput('FieldServiceApp');
-
-      const result = node.execute(inputState);
-
-      expect(result.userInput).toBe('FieldServiceApp');
-    });
-
-    it('should handle package identifier question', () => {
-      const node = new GetUserInputNode(mockInputService);
-
-      const inputState = createTestState({
-        userInputQuestion:
-          'What is the package identifier for your app (e.g., com.company.appname)?',
+        platform: 'Android',
+        projectName: 'FieldService',
       });
 
       mockInputService.setUserInput('com.salesforce.fieldservice');
@@ -410,22 +483,44 @@ describe('GetUserInputNode', () => {
       const result = node.execute(inputState);
 
       expect(result.userInput).toBe('com.salesforce.fieldservice');
+
+      const calls = mockInputService.getCallHistory();
+      expect(calls[0].unfulfilledProperties).toHaveLength(1);
+      expect(calls[0].unfulfilledProperties[0].propertyName).toBe('packageName');
     });
 
     it('should handle multi-property response', () => {
-      const node = new GetUserInputNode(mockInputService);
+      const node = new GetUserInputNode(threePropertySubset, mockInputService);
 
-      const inputState = createTestState({
-        userInputQuestion: 'What platform would you like?',
-      });
+      const inputState = createTestState({});
 
-      // User provides extra information
-      const detailedResponse = 'iOS platform with project name MyApp';
+      // User provides information for multiple properties at once
+      const detailedResponse =
+        'I want an iOS app named MyApp with package identifier com.test.myapp';
       mockInputService.setUserInput(detailedResponse);
 
       const result = node.execute(inputState);
 
       expect(result.userInput).toBe(detailedResponse);
+    });
+
+    it('should handle Salesforce-specific properties', () => {
+      const salesforceProperties: PropertyMetadataCollection = {
+        organization: WORKFLOW_USER_INPUT_PROPERTIES.organization,
+        loginHost: WORKFLOW_USER_INPUT_PROPERTIES.loginHost,
+      };
+
+      const node = new GetUserInputNode(salesforceProperties, mockInputService);
+
+      const inputState = createTestState({});
+
+      mockInputService.setUserInput('Acme Corp and login.salesforce.com');
+
+      node.execute(inputState);
+
+      const calls = mockInputService.getCallHistory();
+      expect(calls[0].unfulfilledProperties[0].friendlyName).toBe('organization or company name');
+      expect(calls[0].unfulfilledProperties[1].friendlyName).toBe('Salesforce login host');
     });
   });
 });

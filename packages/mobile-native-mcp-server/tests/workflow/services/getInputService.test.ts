@@ -7,7 +7,10 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import z from 'zod';
-import { GetInputService } from '../../../src/workflow/services/getInputService.js';
+import {
+  GetInputProperty,
+  GetInputService,
+} from '../../../src/workflow/services/getInputService.js';
 import { MockToolExecutor } from '../../utils/MockToolExecutor.js';
 import { MockLogger } from '../../utils/MockLogger.js';
 import { GET_INPUT_TOOL } from '../../../src/tools/plan/sfmobile-native-get-input/metadata.js';
@@ -16,6 +19,25 @@ describe('GetInputService', () => {
   let mockToolExecutor: MockToolExecutor;
   let mockLogger: MockLogger;
   let service: GetInputService;
+
+  // Test property data
+  const platformProperty: GetInputProperty = {
+    propertyName: 'platform',
+    friendlyName: 'mobile platform',
+    description: 'Target mobile platform for the mobile app (iOS or Android)',
+  };
+
+  const projectNameProperty: GetInputProperty = {
+    propertyName: 'projectName',
+    friendlyName: 'project name',
+    description: 'Name of the mobile application project',
+  };
+
+  const packageNameProperty: GetInputProperty = {
+    propertyName: 'packageName',
+    friendlyName: 'package identifier',
+    description: 'The package identifier of the mobile app, for example com.company.appname',
+  };
 
   beforeEach(() => {
     mockToolExecutor = new MockToolExecutor();
@@ -40,205 +62,243 @@ describe('GetInputService', () => {
   });
 
   describe('getInput - Successful Retrieval', () => {
-    it('should get user input for a question', () => {
-      const question = 'What is your mobile platform?';
+    it('should get user input for properties', () => {
+      const properties = [platformProperty];
       const expectedInput = 'iOS';
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: expectedInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe(expectedInput);
     });
 
     it('should call tool executor with correct parameters', () => {
-      const question = 'What is your project name?';
+      const properties = [projectNameProperty];
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: 'MyApp',
       });
 
-      service.getInput(question);
+      service.getInput(properties);
 
       const lastCall = mockToolExecutor.getLastCall();
       expect(lastCall).toBeDefined();
       expect(lastCall?.llmMetadata.name).toBe(GET_INPUT_TOOL.toolId);
       expect(lastCall?.llmMetadata.description).toBe(GET_INPUT_TOOL.description);
-      expect(lastCall?.input).toHaveProperty('question', question);
+      expect(lastCall?.input).toHaveProperty('propertiesRequiringInput', properties);
     });
 
-    it('should pass question correctly to tool', () => {
-      const question = 'What is your package identifier?';
+    it('should pass properties array correctly to tool', () => {
+      const properties = [platformProperty, projectNameProperty];
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
-        userUtterance: 'com.example.app',
+        userUtterance: 'iOS and MyApp',
       });
 
-      service.getInput(question);
+      service.getInput(properties);
 
       const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.question).toBe(question);
+      expect(lastCall?.input.propertiesRequiringInput).toEqual(properties);
     });
 
     it('should return string user input', () => {
-      const question = 'What is your platform?';
+      const properties = [platformProperty];
       const userInput = 'Android';
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe(userInput);
       expect(typeof result).toBe('string');
     });
 
     it('should return numeric user input', () => {
-      const question = 'What version number?';
+      const properties = [projectNameProperty];
       const userInput = 42;
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe(userInput);
       expect(typeof result).toBe('number');
     });
 
     it('should return boolean user input', () => {
-      const question = 'Enable offline mode?';
+      const properties = [platformProperty];
       const userInput = true;
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe(userInput);
       expect(typeof result).toBe('boolean');
     });
 
     it('should return object user input', () => {
-      const question = 'Provide your settings?';
-      const userInput = { platform: 'iOS', offline: true };
+      const properties = [platformProperty, projectNameProperty];
+      const userInput = { platform: 'iOS', projectName: 'MyApp' };
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toEqual(userInput);
     });
 
     it('should return array user input', () => {
-      const question = 'List your platforms?';
+      const properties = [platformProperty];
       const userInput = ['iOS', 'Android'];
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toEqual(userInput);
     });
 
     it('should return null user input', () => {
-      const question = 'Optional description?';
+      const properties = [projectNameProperty];
       const userInput = null;
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBeNull();
     });
   });
 
-  describe('getInput - Various Question Types', () => {
-    it('should handle simple questions', () => {
-      const question = 'Platform?';
+  describe('getInput - Multiple Properties', () => {
+    it('should handle single property', () => {
+      const properties = [platformProperty];
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: 'iOS',
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe('iOS');
     });
 
-    it('should handle questions with format hints', () => {
-      const question = 'Release date (YYYY-MM-DD)?';
+    it('should handle two properties', () => {
+      const properties = [platformProperty, projectNameProperty];
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
-        userUtterance: '2025-10-06',
+        userUtterance: 'iOS and MyApp',
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
-      expect(result).toBe('2025-10-06');
+      expect(result).toBe('iOS and MyApp');
     });
 
-    it('should handle questions with examples', () => {
-      const question = 'Package name (e.g., com.company.app)?';
+    it('should handle three properties', () => {
+      const properties = [platformProperty, projectNameProperty, packageNameProperty];
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
-        userUtterance: 'com.example.myapp',
+        userUtterance: 'iOS, MyApp, com.test.myapp',
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
-      expect(result).toBe('com.example.myapp');
+      expect(result).toBe('iOS, MyApp, com.test.myapp');
     });
 
-    it('should handle multi-line questions', () => {
-      const question = 'What is your platform?\nChoose iOS or Android.';
-
-      mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
-        userUtterance: 'iOS',
-      });
-
-      const result = service.getInput(question);
-
-      expect(result).toBe('iOS');
-    });
-
-    it('should handle empty string question', () => {
-      const question = '';
+    it('should handle empty properties array', () => {
+      const properties: GetInputProperty[] = [];
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: 'some input',
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe('some input');
     });
   });
 
+  describe('getInput - Property Metadata', () => {
+    it('should pass property names correctly', () => {
+      const properties = [platformProperty, projectNameProperty];
+
+      mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
+        userUtterance: 'test',
+      });
+
+      service.getInput(properties);
+
+      const lastCall = mockToolExecutor.getLastCall();
+      const passedProperties = lastCall?.input.propertiesRequiringInput;
+
+      expect(passedProperties[0].propertyName).toBe('platform');
+      expect(passedProperties[1].propertyName).toBe('projectName');
+    });
+
+    it('should pass friendly names correctly', () => {
+      const properties = [platformProperty, projectNameProperty];
+
+      mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
+        userUtterance: 'test',
+      });
+
+      service.getInput(properties);
+
+      const lastCall = mockToolExecutor.getLastCall();
+      const passedProperties = lastCall?.input.propertiesRequiringInput;
+
+      expect(passedProperties[0].friendlyName).toBe('mobile platform');
+      expect(passedProperties[1].friendlyName).toBe('project name');
+    });
+
+    it('should pass descriptions correctly', () => {
+      const properties = [packageNameProperty];
+
+      mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
+        userUtterance: 'test',
+      });
+
+      service.getInput(properties);
+
+      const lastCall = mockToolExecutor.getLastCall();
+      const passedProperties = lastCall?.input.propertiesRequiringInput;
+
+      expect(passedProperties[0].description).toContain('package identifier');
+      expect(passedProperties[0].description).toContain('com.company.appname');
+    });
+  });
+
   describe('getInput - Error Handling', () => {
     it('should throw if tool result is not an object', () => {
-      const question = 'What is your platform?';
+      const properties = [platformProperty];
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, 'invalid');
 
       expect(() => {
-        service.getInput(question);
+        service.getInput(properties);
       }).toThrow(z.ZodError);
     });
 
     it('should allow any type for userUtterance', () => {
-      const question = 'Input?';
+      const properties = [platformProperty];
 
       // All of these should be valid
       const testCases = ['string', 123, true, false, null, undefined, { key: 'value' }, ['array']];
@@ -249,7 +309,7 @@ describe('GetInputService', () => {
         });
 
         expect(() => {
-          service.getInput(question);
+          service.getInput(properties);
         }).not.toThrow();
       });
     });
@@ -257,33 +317,33 @@ describe('GetInputService', () => {
 
   describe('getInput - Logging', () => {
     it('should log input request start', () => {
-      const question = 'What is your platform?';
+      const properties = [platformProperty];
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: 'iOS',
       });
 
       mockLogger.reset();
-      service.getInput(question);
+      service.getInput(properties);
 
       const debugLogs = mockLogger.getLogsByLevel('debug');
       const startLog = debugLogs.find(log => log.message.includes('Starting input request'));
 
       expect(startLog).toBeDefined();
       expect(startLog?.data).toMatchObject({
-        question,
+        unfulfilledProperties: properties,
       });
     });
 
     it('should log tool invocation', () => {
-      const question = 'What is your project name?';
+      const properties = [projectNameProperty];
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: 'MyApp',
       });
 
       mockLogger.reset();
-      service.getInput(question);
+      service.getInput(properties);
 
       const debugLogs = mockLogger.getLogsByLevel('debug');
       const invocationLog = debugLogs.find(log =>
@@ -295,14 +355,14 @@ describe('GetInputService', () => {
     });
 
     it('should log tool execution completion', () => {
-      const question = 'What is your platform?';
+      const properties = [platformProperty];
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: 'iOS',
       });
 
       mockLogger.reset();
-      service.getInput(question);
+      service.getInput(properties);
 
       const debugLogs = mockLogger.getLogsByLevel('debug');
       const executionLog = debugLogs.find(log =>
@@ -316,122 +376,114 @@ describe('GetInputService', () => {
 
   describe('getInput - Real World Scenarios', () => {
     it('should handle platform selection', () => {
-      const question = 'What is your mobile platform?';
+      const properties = [platformProperty];
       const userInput = 'iOS';
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe(userInput);
     });
 
     it('should handle project name input', () => {
-      const question = 'What is your project name?';
+      const properties = [projectNameProperty];
       const userInput = 'MyAwesomeApp';
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe(userInput);
     });
 
     it('should handle package identifier input', () => {
-      const question = 'What is the package identifier for your app?';
+      const properties = [packageNameProperty];
       const userInput = 'com.example.myapp';
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe(userInput);
     });
 
-    it('should handle Salesforce Connected App Consumer Key', () => {
-      const question = 'What is your Salesforce Connected App Consumer Key?';
-      const userInput = 'ABC123XYZ789';
+    it('should handle multiple properties at once', () => {
+      const properties = [platformProperty, projectNameProperty, packageNameProperty];
+      const userInput = 'iOS platform for MyApp with package com.example.myapp';
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe(userInput);
     });
 
-    it('should handle callback URI input', () => {
-      const question = 'What is your Connected App Callback URL?';
-      const userInput = 'myapp://oauth/callback';
+    it('should handle Salesforce-specific properties', () => {
+      const loginHostProperty: GetInputProperty = {
+        propertyName: 'loginHost',
+        friendlyName: 'Salesforce login host',
+        description: 'The Salesforce login host for the mobile app.',
+      };
 
-      mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
-        userUtterance: userInput,
-      });
-
-      const result = service.getInput(question);
-
-      expect(result).toBe(userInput);
-    });
-
-    it('should handle login host input', () => {
-      const question = 'What is your Salesforce login host?';
+      const properties = [loginHostProperty];
       const userInput = 'login.salesforce.com';
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe(userInput);
     });
 
     it('should handle boolean configuration questions', () => {
-      const question = 'Would you like to enable offline capabilities?';
+      const properties = [platformProperty];
       const userInput = true;
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe(true);
     });
 
     it('should handle numeric inputs', () => {
-      const question = 'What version number would you like to use?';
+      const properties = [projectNameProperty];
       const userInput = 1.5;
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe(1.5);
     });
 
     it('should handle complex structured input', () => {
-      const question = 'Provide your OAuth configuration?';
+      const properties = [platformProperty, projectNameProperty];
       const userInput = {
-        clientId: 'ABC123',
-        callbackUri: 'myapp://oauth',
-        scopes: ['api', 'refresh_token'],
+        platform: 'iOS',
+        projectName: 'MyApp',
       };
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toEqual(userInput);
     });
@@ -441,19 +493,19 @@ describe('GetInputService', () => {
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: 'iOS',
       });
-      const result1 = service.getInput('What is your platform?');
+      const result1 = service.getInput([platformProperty]);
 
       // Second input
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: 'MyApp',
       });
-      const result2 = service.getInput('What is your project name?');
+      const result2 = service.getInput([projectNameProperty]);
 
       // Third input
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: 'com.example.myapp',
       });
-      const result3 = service.getInput('What is your package identifier?');
+      const result3 = service.getInput([packageNameProperty]);
 
       expect(result1).toBe('iOS');
       expect(result2).toBe('MyApp');
@@ -464,86 +516,86 @@ describe('GetInputService', () => {
 
   describe('getInput - Edge Cases', () => {
     it('should handle empty string input', () => {
-      const question = 'Optional description?';
+      const properties = [projectNameProperty];
       const userInput = '';
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe('');
     });
 
     it('should handle whitespace-only input', () => {
-      const question = 'Input?';
+      const properties = [platformProperty];
       const userInput = '   ';
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe('   ');
     });
 
     it('should handle very long input', () => {
-      const question = 'Describe your app?';
+      const properties = [projectNameProperty];
       const userInput = 'A'.repeat(10000);
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe(userInput);
       expect((result as string).length).toBe(10000);
     });
 
     it('should handle input with special characters', () => {
-      const question = 'Input?';
+      const properties = [packageNameProperty];
       const userInput = 'Test\'s "quoted" value & special <chars>';
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe(userInput);
     });
 
     it('should handle input with unicode characters', () => {
-      const question = 'Project name?';
+      const properties = [projectNameProperty];
       const userInput = 'My App 🚀📱';
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBe(userInput);
     });
 
     it('should handle undefined input', () => {
-      const question = 'Input?';
+      const properties = [platformProperty];
       const userInput = undefined;
 
       mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toBeUndefined();
     });
 
     it('should handle deeply nested object input', () => {
-      const question = 'Config?';
+      const properties = [platformProperty];
       const userInput = {
         level1: {
           level2: {
@@ -558,43 +610,9 @@ describe('GetInputService', () => {
         userUtterance: userInput,
       });
 
-      const result = service.getInput(question);
+      const result = service.getInput(properties);
 
       expect(result).toEqual(userInput);
-    });
-  });
-
-  describe('getInput - Integration Scenarios', () => {
-    it('should work with question generated by GenerateQuestionService', () => {
-      // Simulates the output from GenerateQuestionService
-      const generatedQuestion = 'What is your mobile platform?';
-      const userInput = 'iOS';
-
-      mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
-        userUtterance: userInput,
-      });
-
-      const result = service.getInput(generatedQuestion);
-
-      expect(result).toBe(userInput);
-    });
-
-    it('should handle questions with rich formatting', () => {
-      const question =
-        'What is your Callback URL?\n\n' +
-        'Format: scheme://path\n' +
-        'Example: myapp://oauth/callback\n\n' +
-        'Note: This must match your Connected App configuration.';
-
-      const userInput = 'salesforceapp://oauth/callback';
-
-      mockToolExecutor.setResult(GET_INPUT_TOOL.toolId, {
-        userUtterance: userInput,
-      });
-
-      const result = service.getInput(question);
-
-      expect(result).toBe(userInput);
     });
   });
 });

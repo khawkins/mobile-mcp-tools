@@ -31,7 +31,7 @@ describe('SFMobileNativeGetInputTool', () => {
       expect(tool.toolMetadata.toolId).toBe('sfmobile-native-get-input');
       expect(tool.toolMetadata.title).toBe('Get User Input');
       expect(tool.toolMetadata.description).toBe(
-        'Provides a question to the user to elicit their input for a given property'
+        'Provides a prompt to the user to elicit their input for a set of properties'
       );
       expect(tool.toolMetadata.inputSchema).toBeDefined();
       expect(tool.toolMetadata.outputSchema).toBeDefined();
@@ -46,7 +46,33 @@ describe('SFMobileNativeGetInputTool', () => {
   describe('Input Schema Validation', () => {
     it('should accept valid input with all required fields', () => {
       const validInput = {
-        question: 'What is your mobile platform?',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'platform',
+            friendlyName: 'mobile platform',
+            description: 'Target mobile platform (iOS or Android)',
+          },
+        ],
+        workflowStateData: { thread_id: 'test-123' },
+      };
+      const result = tool.toolMetadata.inputSchema.safeParse(validInput);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept multiple properties', () => {
+      const validInput = {
+        propertiesRequiringInput: [
+          {
+            propertyName: 'platform',
+            friendlyName: 'mobile platform',
+            description: 'Target mobile platform (iOS or Android)',
+          },
+          {
+            propertyName: 'projectName',
+            friendlyName: 'project name',
+            description: 'Name of the mobile application project',
+          },
+        ],
         workflowStateData: { thread_id: 'test-123' },
       };
       const result = tool.toolMetadata.inputSchema.safeParse(validInput);
@@ -55,32 +81,29 @@ describe('SFMobileNativeGetInputTool', () => {
 
     it('should accept workflow state data', () => {
       const validInput = {
-        question: 'What is your project name?',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'test',
+            friendlyName: 'test property',
+            description: 'test description',
+          },
+        ],
         workflowStateData: { thread_id: 'test-456', custom: 'data' },
       };
       const result = tool.toolMetadata.inputSchema.safeParse(validInput);
       expect(result.success).toBe(true);
     });
 
-    it('should accept empty string question', () => {
+    it('should accept empty properties array', () => {
       const validInput = {
-        question: '',
+        propertiesRequiringInput: [],
         workflowStateData: { thread_id: 'test-123' },
       };
       const result = tool.toolMetadata.inputSchema.safeParse(validInput);
       expect(result.success).toBe(true);
     });
 
-    it('should accept question with special characters', () => {
-      const validInput = {
-        question: "What's your app's package identifier (e.g., com.company.app)?",
-        workflowStateData: { thread_id: 'test-123' },
-      };
-      const result = tool.toolMetadata.inputSchema.safeParse(validInput);
-      expect(result.success).toBe(true);
-    });
-
-    it('should reject input missing question', () => {
+    it('should reject input missing propertiesRequiringInput', () => {
       const invalidInput = {
         workflowStateData: { thread_id: 'test-123' },
       };
@@ -90,15 +113,54 @@ describe('SFMobileNativeGetInputTool', () => {
 
     it('should reject input missing workflowStateData', () => {
       const invalidInput = {
-        question: 'What is your platform?',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'test',
+            friendlyName: 'test',
+            description: 'test',
+          },
+        ],
       };
       const result = tool.toolMetadata.inputSchema.safeParse(invalidInput);
       expect(result.success).toBe(false);
     });
 
-    it('should reject input with non-string question', () => {
+    it('should reject property without propertyName', () => {
       const invalidInput = {
-        question: 123,
+        propertiesRequiringInput: [
+          {
+            friendlyName: 'test',
+            description: 'test',
+          },
+        ],
+        workflowStateData: { thread_id: 'test-123' },
+      };
+      const result = tool.toolMetadata.inputSchema.safeParse(invalidInput);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject property without friendlyName', () => {
+      const invalidInput = {
+        propertiesRequiringInput: [
+          {
+            propertyName: 'test',
+            description: 'test',
+          },
+        ],
+        workflowStateData: { thread_id: 'test-123' },
+      };
+      const result = tool.toolMetadata.inputSchema.safeParse(invalidInput);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject property without description', () => {
+      const invalidInput = {
+        propertiesRequiringInput: [
+          {
+            propertyName: 'test',
+            friendlyName: 'test',
+          },
+        ],
         workflowStateData: { thread_id: 'test-123' },
       };
       const result = tool.toolMetadata.inputSchema.safeParse(invalidInput);
@@ -168,9 +230,15 @@ describe('SFMobileNativeGetInputTool', () => {
   });
 
   describe('Prompt Generation Guidance', () => {
-    it('should generate guidance with question', async () => {
+    it('should generate guidance with properties', async () => {
       const input = {
-        question: 'What is your mobile platform?',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'platform',
+            friendlyName: 'mobile platform',
+            description: 'Target mobile platform (iOS or Android)',
+          },
+        ],
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -182,12 +250,19 @@ describe('SFMobileNativeGetInputTool', () => {
       const responseText = result.content[0].text as string;
       const response = JSON.parse(responseText);
 
-      expect(response.promptForLLM).toContain('What is your mobile platform?');
+      expect(response.promptForLLM).toContain('platform');
+      expect(response.promptForLLM).toContain('mobile platform');
     });
 
     it('should include ROLE section', async () => {
       const input = {
-        question: 'Test question?',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'test',
+            friendlyName: 'test property',
+            description: 'test description',
+          },
+        ],
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -201,7 +276,13 @@ describe('SFMobileNativeGetInputTool', () => {
 
     it('should include TASK section', async () => {
       const input = {
-        question: 'Test question?',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'test',
+            friendlyName: 'test property',
+            description: 'test description',
+          },
+        ],
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -210,13 +291,18 @@ describe('SFMobileNativeGetInputTool', () => {
       const response = JSON.parse(responseText);
 
       expect(response.promptForLLM).toContain('# TASK');
-      expect(response.promptForLLM).toContain('ask the user a question');
-      expect(response.promptForLLM).toContain('gather their input');
+      expect(response.promptForLLM).toContain('provide a prompt to the user');
     });
 
-    it('should include CONTEXT section with the question', async () => {
+    it('should include CONTEXT section with properties', async () => {
       const input = {
-        question: 'What is your project name?',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'projectName',
+            friendlyName: 'project name',
+            description: 'The name of your mobile application project',
+          },
+        ],
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -225,13 +311,22 @@ describe('SFMobileNativeGetInputTool', () => {
       const response = JSON.parse(responseText);
 
       expect(response.promptForLLM).toContain('# CONTEXT');
-      expect(response.promptForLLM).toContain('Question to ask the user:');
-      expect(response.promptForLLM).toContain('"What is your project name?"');
+      expect(response.promptForLLM).toContain('Property Name: projectName');
+      expect(response.promptForLLM).toContain('Friendly Name: project name');
+      expect(response.promptForLLM).toContain(
+        'Description: The name of your mobile application project'
+      );
     });
 
     it('should include INSTRUCTIONS section', async () => {
       const input = {
-        question: 'Test question?',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'test',
+            friendlyName: 'test property',
+            description: 'test description',
+          },
+        ],
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -240,13 +335,24 @@ describe('SFMobileNativeGetInputTool', () => {
       const response = JSON.parse(responseText);
 
       expect(response.promptForLLM).toContain('# INSTRUCTIONS');
-      expect(response.promptForLLM).toContain('Present the question');
+      expect(response.promptForLLM).toContain('generate a prompt');
       expect(response.promptForLLM).toContain('Post-Tool-Invocation');
     });
 
-    it('should handle question with quotes', async () => {
+    it('should handle multiple properties in context', async () => {
       const input = {
-        question: 'What is your "Connected App" client ID?',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'platform',
+            friendlyName: 'mobile platform',
+            description: 'Target mobile platform (iOS or Android)',
+          },
+          {
+            propertyName: 'projectName',
+            friendlyName: 'project name',
+            description: 'Name of the mobile application project',
+          },
+        ],
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -254,28 +360,23 @@ describe('SFMobileNativeGetInputTool', () => {
       const responseText = result.content[0].text as string;
       const response = JSON.parse(responseText);
 
-      expect(response.promptForLLM).toContain('Connected App');
-    });
-
-    it('should handle multi-line questions', async () => {
-      const input = {
-        question: 'What is your mobile platform?\n(Choose iOS or Android)',
-        workflowStateData: { thread_id: 'test-123' },
-      };
-
-      const result = await tool.handleRequest(input);
-      const responseText = result.content[0].text as string;
-      const response = JSON.parse(responseText);
-
-      expect(response.promptForLLM).toContain('What is your mobile platform?');
-      expect(response.promptForLLM).toContain('(Choose iOS or Android)');
+      expect(response.promptForLLM).toContain('Property Name: platform');
+      expect(response.promptForLLM).toContain('Property Name: projectName');
+      expect(response.promptForLLM).toContain('Friendly Name: mobile platform');
+      expect(response.promptForLLM).toContain('Friendly Name: project name');
     });
   });
 
   describe('Workflow Integration', () => {
     it('should include workflowStateData in response', async () => {
       const input = {
-        question: 'What is your platform?',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'platform',
+            friendlyName: 'mobile platform',
+            description: 'Target mobile platform',
+          },
+        ],
         workflowStateData: { thread_id: 'test-workflow-123' },
       };
 
@@ -290,7 +391,13 @@ describe('SFMobileNativeGetInputTool', () => {
 
     it('should provide result schema as string', async () => {
       const input = {
-        question: 'What is your platform?',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'platform',
+            friendlyName: 'mobile platform',
+            description: 'Target mobile platform',
+          },
+        ],
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -309,9 +416,15 @@ describe('SFMobileNativeGetInputTool', () => {
   });
 
   describe('Real World Scenarios', () => {
-    it('should generate guidance for platform question', async () => {
+    it('should generate guidance for single platform property', async () => {
       const input = {
-        question: 'What is your mobile platform?',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'platform',
+            friendlyName: 'mobile platform',
+            description: 'Target mobile platform for the mobile app (iOS or Android)',
+          },
+        ],
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -323,12 +436,30 @@ describe('SFMobileNativeGetInputTool', () => {
       const responseText = result.content[0].text as string;
       const response = JSON.parse(responseText);
 
-      expect(response.promptForLLM).toContain('What is your mobile platform?');
+      expect(response.promptForLLM).toContain('platform');
+      expect(response.promptForLLM).toContain('iOS or Android');
     });
 
-    it('should generate guidance for package name question', async () => {
+    it('should generate guidance for multiple properties', async () => {
       const input = {
-        question: 'What is the package identifier for your app? (For example: com.company.appname)',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'platform',
+            friendlyName: 'mobile platform',
+            description: 'Target mobile platform (iOS or Android)',
+          },
+          {
+            propertyName: 'projectName',
+            friendlyName: 'project name',
+            description: 'Name of the mobile application project',
+          },
+          {
+            propertyName: 'packageName',
+            friendlyName: 'package identifier',
+            description:
+              'The package identifier of the mobile app, for example com.company.appname',
+          },
+        ],
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -336,13 +467,20 @@ describe('SFMobileNativeGetInputTool', () => {
       const responseText = result.content[0].text as string;
       const response = JSON.parse(responseText);
 
-      expect(response.promptForLLM).toContain('package identifier');
-      expect(response.promptForLLM).toContain('com.company.appname');
+      expect(response.promptForLLM).toContain('platform');
+      expect(response.promptForLLM).toContain('projectName');
+      expect(response.promptForLLM).toContain('packageName');
     });
 
-    it('should generate guidance for Salesforce-specific questions', async () => {
+    it('should generate guidance for Salesforce-specific properties', async () => {
       const input = {
-        question: 'What is your Salesforce Connected App Consumer Key?',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'loginHost',
+            friendlyName: 'Salesforce login host',
+            description: 'The Salesforce login host for the mobile app.',
+          },
+        ],
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -350,56 +488,15 @@ describe('SFMobileNativeGetInputTool', () => {
       const responseText = result.content[0].text as string;
       const response = JSON.parse(responseText);
 
-      expect(response.promptForLLM).toContain('Connected App Consumer Key');
-    });
-
-    it('should generate guidance for date questions with format hints', async () => {
-      const input = {
-        question: 'What is the release date? (Please use YYYY-MM-DD format)',
-        workflowStateData: { thread_id: 'test-123' },
-      };
-
-      const result = await tool.handleRequest(input);
-      const responseText = result.content[0].text as string;
-      const response = JSON.parse(responseText);
-
-      expect(response.promptForLLM).toContain('release date');
-      expect(response.promptForLLM).toContain('YYYY-MM-DD');
-    });
-
-    it('should handle yes/no questions', async () => {
-      const input = {
-        question: 'Would you like to enable offline capabilities?',
-        workflowStateData: { thread_id: 'test-123' },
-      };
-
-      const result = await tool.handleRequest(input);
-      const responseText = result.content[0].text as string;
-      const response = JSON.parse(responseText);
-
-      expect(response.promptForLLM).toContain('enable offline capabilities');
-    });
-
-    it('should handle complex questions with multiple parts', async () => {
-      const input = {
-        question:
-          'Please provide your Salesforce login host. Use login.salesforce.com for production or test.salesforce.com for sandbox environments.',
-        workflowStateData: { thread_id: 'test-123' },
-      };
-
-      const result = await tool.handleRequest(input);
-      const responseText = result.content[0].text as string;
-      const response = JSON.parse(responseText);
-
-      expect(response.promptForLLM).toContain('login.salesforce.com');
-      expect(response.promptForLLM).toContain('test.salesforce.com');
+      expect(response.promptForLLM).toContain('loginHost');
+      expect(response.promptForLLM).toContain('Salesforce login host');
     });
   });
 
   describe('Edge Cases', () => {
-    it('should handle empty string question', async () => {
+    it('should handle empty properties array', async () => {
       const input = {
-        question: '',
+        propertiesRequiringInput: [],
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -412,32 +509,35 @@ describe('SFMobileNativeGetInputTool', () => {
       const response = JSON.parse(responseText);
 
       expect(response.promptForLLM).toBeDefined();
-      expect(response.promptForLLM).toContain('""');
     });
 
-    it('should handle very long questions', async () => {
-      const longQuestion =
-        'What is your mobile platform? Please choose between iOS and Android. ' +
-        'This decision will affect the development environment, programming language, ' +
-        'build tools, deployment process, and available native capabilities for your application. ' +
-        'Consider factors like your target audience, existing infrastructure, and team expertise.';
-
+    it('should handle properties with special characters', async () => {
       const input = {
-        question: longQuestion,
+        propertiesRequiringInput: [
+          {
+            propertyName: 'packageName',
+            friendlyName: 'package identifier',
+            description: 'What is your "package\\name"? Use format: {com.example}',
+          },
+        ],
         workflowStateData: { thread_id: 'test-123' },
       };
 
       const result = await tool.handleRequest(input);
-      const responseText = result.content[0].text as string;
-      const response = JSON.parse(responseText);
 
-      expect(response.promptForLLM).toContain('mobile platform');
-      expect(response.promptForLLM).toContain('iOS and Android');
+      expect(result.isError).toBeUndefined();
+      expect(result.content).toBeDefined();
     });
 
-    it('should handle questions with unicode characters', async () => {
+    it('should handle properties with unicode characters', async () => {
       const input = {
-        question: 'What is your project name? 🚀📱',
+        propertiesRequiringInput: [
+          {
+            propertyName: 'projectName',
+            friendlyName: 'project name',
+            description: 'What is your project name? 🚀📱',
+          },
+        ],
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -446,18 +546,6 @@ describe('SFMobileNativeGetInputTool', () => {
       const response = JSON.parse(responseText);
 
       expect(response.promptForLLM).toContain('project name');
-    });
-
-    it('should handle questions with special JSON characters', async () => {
-      const input = {
-        question: 'What is your "package\\name"? Use format: {com.example}',
-        workflowStateData: { thread_id: 'test-123' },
-      };
-
-      const result = await tool.handleRequest(input);
-
-      expect(result.isError).toBeUndefined();
-      expect(result.content).toBeDefined();
     });
   });
 });

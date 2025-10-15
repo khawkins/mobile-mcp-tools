@@ -14,7 +14,7 @@ import { PropertyMetadataCollection } from '../../../src/common/propertyMetadata
 describe('CheckPropertiesFulFilledRouter', () => {
   // Test node names
   const FULFILLED_NODE = 'templateDiscovery';
-  const UNFULFILLED_NODE = 'generateQuestion';
+  const UNFULFILLED_NODE = 'getUserInput';
 
   // Test property subsets for focused testing
   const twoPropertySubset: PropertyMetadataCollection = {
@@ -294,7 +294,7 @@ describe('CheckPropertiesFulFilledRouter', () => {
     it('should work with workflow-like node names', () => {
       const router = new CheckPropertiesFulFilledRouter(
         'validateEnvironment',
-        'generateQuestion',
+        'getUserInput',
         twoPropertySubset
       );
 
@@ -307,7 +307,7 @@ describe('CheckPropertiesFulFilledRouter', () => {
       const unfulfilledState = createTestState({
         platform: 'iOS',
       });
-      expect(router.execute(unfulfilledState)).toBe('generateQuestion');
+      expect(router.execute(unfulfilledState)).toBe('getUserInput');
     });
   });
 
@@ -641,7 +641,7 @@ describe('CheckPropertiesFulFilledRouter', () => {
 
       const nextNode = router.execute(inputState);
 
-      // Should route to question generation for missing property
+      // Should route to user input gathering for missing property
       expect(nextNode).toBe(UNFULFILLED_NODE);
     });
 
@@ -649,7 +649,7 @@ describe('CheckPropertiesFulFilledRouter', () => {
       // This tests the actual node names used in graph.ts
       const router = new CheckPropertiesFulFilledRouter(
         'templateDiscovery',
-        'generateQuestion',
+        'getUserInput',
         WORKFLOW_USER_INPUT_PROPERTIES
       );
 
@@ -663,12 +663,12 @@ describe('CheckPropertiesFulFilledRouter', () => {
       });
       expect(router.execute(fulfilledState)).toBe('templateDiscovery');
 
-      // Some properties missing - should route to generateQuestion
+      // Some properties missing - should route to getUserInput
       const unfulfilledState = createTestState({
         platform: 'iOS',
         projectName: 'MyApp',
       });
-      expect(router.execute(unfulfilledState)).toBe('generateQuestion');
+      expect(router.execute(unfulfilledState)).toBe('getUserInput');
     });
   });
 });
