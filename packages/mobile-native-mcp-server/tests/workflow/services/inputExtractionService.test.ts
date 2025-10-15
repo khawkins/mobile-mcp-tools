@@ -427,7 +427,9 @@ describe('InputExtractionService', () => {
       service.extractProperties(userInput, testProperties);
 
       const debugLogs = mockLogger.getLogsByLevel('debug');
-      const invocationLog = debugLogs.find(log => log.message.includes('Invoking extraction tool'));
+      const invocationLog = debugLogs.find(log =>
+        log.message.includes('Tool invocation data (pre-execution)')
+      );
 
       expect(invocationLog).toBeDefined();
       expect(invocationLog?.data).toHaveProperty('toolInvocationData');

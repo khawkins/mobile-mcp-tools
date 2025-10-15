@@ -47,7 +47,7 @@ describe('EnvironmentValidationNode', () => {
       const result = node.execute(inputState);
 
       expect(result.validEnvironment).toBe(true);
-      expect(result.invalidEnvironmentMessages).toBeUndefined();
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
       expect(result.connectedAppClientId).toBe('test-consumer-key');
       expect(result.connectedAppCallbackUri).toBe('myapp://callback');
     });
@@ -96,8 +96,8 @@ describe('EnvironmentValidationNode', () => {
       const result = node.execute(inputState);
 
       expect(result.validEnvironment).toBe(false);
-      expect(result.invalidEnvironmentMessages).toBeDefined();
-      expect(result.invalidEnvironmentMessages).toHaveLength(2);
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages).toHaveLength(2);
     });
 
     it('should include error messages for both missing variables', () => {
@@ -108,9 +108,9 @@ describe('EnvironmentValidationNode', () => {
 
       const result = node.execute(inputState);
 
-      expect(result.invalidEnvironmentMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages).toBeDefined();
 
-      const messages = result.invalidEnvironmentMessages!;
+      const messages = result.workflowFatalErrorMessages!;
       expect(messages[0]).toContain('CONNECTED_APP_CONSUMER_KEY');
       expect(messages[0]).toContain('environment variable');
       expect(messages[0]).toContain(
@@ -147,8 +147,8 @@ describe('EnvironmentValidationNode', () => {
       const result = node.execute(inputState);
 
       expect(result.validEnvironment).toBe(false);
-      expect(result.invalidEnvironmentMessages).toBeDefined();
-      expect(result.invalidEnvironmentMessages).toHaveLength(1);
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages).toHaveLength(1);
     });
 
     it('should include error message only for missing consumer key', () => {
@@ -159,7 +159,7 @@ describe('EnvironmentValidationNode', () => {
 
       const result = node.execute(inputState);
 
-      const messages = result.invalidEnvironmentMessages!;
+      const messages = result.workflowFatalErrorMessages!;
       expect(messages[0]).toContain('CONNECTED_APP_CONSUMER_KEY');
       expect(messages[0]).toContain('environment variable');
     });
@@ -189,8 +189,8 @@ describe('EnvironmentValidationNode', () => {
       const result = node.execute(inputState);
 
       expect(result.validEnvironment).toBe(false);
-      expect(result.invalidEnvironmentMessages).toBeDefined();
-      expect(result.invalidEnvironmentMessages).toHaveLength(1);
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages).toHaveLength(1);
     });
 
     it('should include error message only for missing callback URL', () => {
@@ -201,7 +201,7 @@ describe('EnvironmentValidationNode', () => {
 
       const result = node.execute(inputState);
 
-      const messages = result.invalidEnvironmentMessages!;
+      const messages = result.workflowFatalErrorMessages!;
       expect(messages[0]).toContain('CONNECTED_APP_CALLBACK_URL');
       expect(messages[0]).toContain('environment variable');
     });
@@ -231,8 +231,8 @@ describe('EnvironmentValidationNode', () => {
       const result = node.execute(inputState);
 
       expect(result.validEnvironment).toBe(false);
-      expect(result.invalidEnvironmentMessages).toHaveLength(1);
-      expect(result.invalidEnvironmentMessages![0]).toContain('CONNECTED_APP_CONSUMER_KEY');
+      expect(result.workflowFatalErrorMessages).toHaveLength(1);
+      expect(result.workflowFatalErrorMessages![0]).toContain('CONNECTED_APP_CONSUMER_KEY');
     });
 
     it('should treat empty string callback URL as missing', () => {
@@ -244,8 +244,8 @@ describe('EnvironmentValidationNode', () => {
       const result = node.execute(inputState);
 
       expect(result.validEnvironment).toBe(false);
-      expect(result.invalidEnvironmentMessages).toHaveLength(1);
-      expect(result.invalidEnvironmentMessages![0]).toContain('CONNECTED_APP_CALLBACK_URL');
+      expect(result.workflowFatalErrorMessages).toHaveLength(1);
+      expect(result.workflowFatalErrorMessages![0]).toContain('CONNECTED_APP_CALLBACK_URL');
     });
 
     it('should treat both empty strings as missing', () => {
@@ -257,7 +257,7 @@ describe('EnvironmentValidationNode', () => {
       const result = node.execute(inputState);
 
       expect(result.validEnvironment).toBe(false);
-      expect(result.invalidEnvironmentMessages).toHaveLength(2);
+      expect(result.workflowFatalErrorMessages).toHaveLength(2);
     });
   });
 
@@ -323,7 +323,7 @@ describe('EnvironmentValidationNode', () => {
 
       const result = node.execute(inputState);
 
-      const messages = result.invalidEnvironmentMessages!;
+      const messages = result.workflowFatalErrorMessages!;
 
       // Check that messages contain helpful information
       messages.forEach(message => {
@@ -341,7 +341,7 @@ describe('EnvironmentValidationNode', () => {
 
       const result = node.execute(inputState);
 
-      const message = result.invalidEnvironmentMessages![0];
+      const message = result.workflowFatalErrorMessages![0];
       expect(message).toContain(
         'https://help.salesforce.com/s/articleView?id=xcloud.connected_app_create_mobile.htm&type=5'
       );
@@ -386,9 +386,9 @@ describe('EnvironmentValidationNode', () => {
       const result = node.execute(inputState);
 
       expect(result).toHaveProperty('validEnvironment');
-      expect(result).toHaveProperty('invalidEnvironmentMessages');
+      expect(result).toHaveProperty('workflowFatalErrorMessages');
       expect(result.validEnvironment).toBe(false);
-      expect(Array.isArray(result.invalidEnvironmentMessages)).toBe(true);
+      expect(Array.isArray(result.workflowFatalErrorMessages)).toBe(true);
     });
   });
 
@@ -429,10 +429,10 @@ describe('EnvironmentValidationNode', () => {
       const result = node.execute(inputState);
 
       expect(result.validEnvironment).toBe(false);
-      expect(result.invalidEnvironmentMessages).toHaveLength(2);
+      expect(result.workflowFatalErrorMessages).toHaveLength(2);
       // Should provide clear guidance on what needs to be set
-      expect(result.invalidEnvironmentMessages![0]).toContain('CONNECTED_APP_CONSUMER_KEY');
-      expect(result.invalidEnvironmentMessages![1]).toContain('CONNECTED_APP_CALLBACK_URL');
+      expect(result.workflowFatalErrorMessages![0]).toContain('CONNECTED_APP_CONSUMER_KEY');
+      expect(result.workflowFatalErrorMessages![1]).toContain('CONNECTED_APP_CALLBACK_URL');
     });
   });
 

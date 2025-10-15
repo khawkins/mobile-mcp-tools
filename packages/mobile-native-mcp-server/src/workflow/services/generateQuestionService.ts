@@ -8,9 +8,10 @@
 import z from 'zod';
 import { PropertyMetadata } from '../../common/propertyMetadata.js';
 import { MCPToolInvocationData } from '../../common/metadata.js';
-import { ToolExecutor, LangGraphToolExecutor } from '../nodes/toolExecutor.js';
-import { Logger, createComponentLogger } from '../../logging/logger.js';
+import { ToolExecutor } from '../nodes/toolExecutor.js';
+import { Logger } from '../../logging/logger.js';
 import { GENERATE_QUESTION_TOOL } from '../../tools/plan/sfmobile-native-generate-question/metadata.js';
+import { AbstractService } from './abstractService.js';
 
 /**
  * Provider interface for question generation service.
@@ -29,20 +30,22 @@ export interface GenerateQuestionServiceProvider {
 
 /**
  * Service for generating a question to ask the user, as an input prompt for a property.
+ *
+ * This service extends AbstractService to leverage common tool execution
+ * patterns including standardized logging and result validation.
  */
-export class GenerateQuestionService implements GenerateQuestionServiceProvider {
-  private readonly logger: Logger;
-  private readonly toolExecutor: ToolExecutor;
-
+export class GenerateQuestionService
+  extends AbstractService
+  implements GenerateQuestionServiceProvider
+{
   /**
    * Creates a new GenerateQuestionService.
    *
-   * @param toolExecutor - Tool executor for invoking the extraction tool (injectable for testing)
+   * @param toolExecutor - Tool executor for invoking the question generation tool (injectable for testing)
    * @param logger - Logger instance (injectable for testing)
    */
   constructor(toolExecutor?: ToolExecutor, logger?: Logger) {
-    this.toolExecutor = toolExecutor ?? new LangGraphToolExecutor();
-    this.logger = logger ?? createComponentLogger('GenerateQuestionService');
+    super('GenerateQuestionService', toolExecutor, logger);
   }
 
   generateQuestionForProperty(name: string, metadata: PropertyMetadata<z.ZodTypeAny>): string {
@@ -67,16 +70,11 @@ export class GenerateQuestionService implements GenerateQuestionServiceProvider 
       },
     };
 
-    this.logger.debug('Invoking question generation tool', { toolInvocationData });
-
-    // Execute tool
-    const rawResult = this.toolExecutor.execute(toolInvocationData);
-    this.logger.debug('Tool execution completed', { rawResult });
-    const validatedResult = GENERATE_QUESTION_TOOL.resultSchema.parse(rawResult);
-
-    this.logger.info('Question generation completed', {
-      question: validatedResult.question,
-    });
+    // Execute tool with logging and validation
+    const validatedResult = this.executeToolWithLogging(
+      toolInvocationData,
+      GENERATE_QUESTION_TOOL.resultSchema
+    );
 
     return validatedResult.question;
   }

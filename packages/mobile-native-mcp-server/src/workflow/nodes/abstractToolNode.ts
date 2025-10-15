@@ -10,6 +10,7 @@ import { BaseNode } from './abstractBaseNode.js';
 import { MCPToolInvocationData } from '../../common/metadata.js';
 import { Logger, createComponentLogger } from '../../logging/logger.js';
 import { ToolExecutor, LangGraphToolExecutor } from './toolExecutor.js';
+import { executeToolWithLogging } from '../utils/toolExecutionUtils.js';
 
 export abstract class AbstractToolNode extends BaseNode {
   protected readonly logger: Logger;
@@ -29,6 +30,9 @@ export abstract class AbstractToolNode extends BaseNode {
    * By default, results are validated using the provided Zod schema's parse method.
    * Pass a custom validator function to implement additional validation logic.
    *
+   * This method uses the common toolExecutionUtils.executeToolWithLogging function
+   * to ensure consistent behavior across all tool invocations in the codebase.
+   *
    * @param toolInvocationData The tool invocation data to pass to the tool executor
    * @param resultSchema The schema to validate the result against
    * @param validator Optional custom validator function
@@ -39,12 +43,12 @@ export abstract class AbstractToolNode extends BaseNode {
     resultSchema: TResultSchema,
     validator?: (result: unknown, schema: TResultSchema) => z.infer<TResultSchema>
   ): z.infer<TResultSchema> {
-    this.logger.debug('Tool invocation data (pre-execution)', { toolInvocationData });
-
-    const result = this.toolExecutor.execute(toolInvocationData);
-
-    this.logger.debug('Tool execution result (post-execution)', { result });
-
-    return validator ? validator(result, resultSchema) : resultSchema.parse(result);
+    return executeToolWithLogging(
+      this.toolExecutor,
+      this.logger,
+      toolInvocationData,
+      resultSchema,
+      validator
+    );
   }
 }
