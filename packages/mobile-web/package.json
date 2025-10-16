@@ -34,7 +34,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "lint": "eslint --config ../../eslint.config.mjs \"src/**/*.ts\"",
+    "lint": "eslint --max-warnings 0 --config ../../eslint.config.mjs \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\"",
     "update-resources": "tsx src/scripts/update-type-declarations.ts"
   },
