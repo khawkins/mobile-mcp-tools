@@ -15,7 +15,7 @@ import { z } from 'zod';
  */
 
 declare module 'zod' {
-  interface ZodType<> {
+  interface ZodType {
     /**
      * Adds a standard "do not make assumptions" instruction to the schema description
      *
