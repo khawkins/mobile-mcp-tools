@@ -169,7 +169,8 @@ export class MobileNativeOrchestrator extends AbstractTool<typeof ORCHESTRATOR_T
 
     // Workflow completed.
     return {
-      orchestrationInstructionsPrompt: 'The workflow has completed successfully.',
+      orchestrationInstructionsPrompt:
+        'The workflow has concluded. No further workflow actions are forthcoming.',
     };
   }
 

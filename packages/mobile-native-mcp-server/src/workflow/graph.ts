@@ -7,21 +7,35 @@
 
 import { END, START, StateGraph } from '@langchain/langgraph';
 import { MobileNativeWorkflowState } from './metadata.js';
-import { UserInputTriageNode } from './nodes/userInputTriage.js';
 import { EnvironmentValidationNode } from './nodes/environment.js';
 import { TemplateDiscoveryNode } from './nodes/templateDiscovery.js';
 import { ProjectGenerationNode } from './nodes/projectGeneration.js';
 import { BuildValidationNode } from './nodes/buildValidation.js';
 import { DeploymentNode } from './nodes/deploymentNode.js';
 import { CompletionNode } from './nodes/completionNode.js';
+import { UserInputExtractionNode } from './nodes/userInputExtraction.js';
+import { CheckPropertiesFulFilledRouter } from './nodes/checkPropertiesFulfilledRouter.js';
+import { GetUserInputNode } from './nodes/getUserInput.js';
+import { FailureNode } from './nodes/failureNode.js';
+import { CheckEnvironmentValidatedRouter } from './nodes/checkEnvironmentValidated.js';
 
-const userInputTriageNode = new UserInputTriageNode();
+const initialUserInputExtractionNode = new UserInputExtractionNode();
+const userInputNode = new GetUserInputNode();
 const environmentValidationNode = new EnvironmentValidationNode();
 const templateDiscoveryNode = new TemplateDiscoveryNode();
 const projectGenerationNode = new ProjectGenerationNode();
 const buildValidationNode = new BuildValidationNode();
 const deploymentNode = new DeploymentNode();
 const completionNode = new CompletionNode();
+const failureNode = new FailureNode();
+const checkPropertiesFulFilledRouter = new CheckPropertiesFulFilledRouter(
+  templateDiscoveryNode.name,
+  userInputNode.name
+);
+const checkEnvironmentValidatedRouter = new CheckEnvironmentValidatedRouter(
+  initialUserInputExtractionNode.name,
+  failureNode.name
+);
 
 /**
  * The main workflow graph for mobile native app development
@@ -30,20 +44,24 @@ const completionNode = new CompletionNode();
  */
 export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   // Add all workflow nodes
-  .addNode(userInputTriageNode.name, userInputTriageNode.execute)
   .addNode(environmentValidationNode.name, environmentValidationNode.execute)
+  .addNode(initialUserInputExtractionNode.name, initialUserInputExtractionNode.execute)
+  .addNode(userInputNode.name, userInputNode.execute)
   .addNode(templateDiscoveryNode.name, templateDiscoveryNode.execute)
   .addNode(projectGenerationNode.name, projectGenerationNode.execute)
   .addNode(buildValidationNode.name, buildValidationNode.execute)
   .addNode(deploymentNode.name, deploymentNode.execute)
   .addNode(completionNode.name, completionNode.execute)
+  .addNode(failureNode.name, failureNode.execute)
 
   // Define workflow edges - steel thread linear progression starting with triage
-  .addEdge(START, userInputTriageNode.name)
-  .addEdge(userInputTriageNode.name, environmentValidationNode.name)
-  .addEdge(environmentValidationNode.name, templateDiscoveryNode.name)
+  .addEdge(START, environmentValidationNode.name)
+  .addConditionalEdges(environmentValidationNode.name, checkEnvironmentValidatedRouter.execute)
+  .addConditionalEdges(initialUserInputExtractionNode.name, checkPropertiesFulFilledRouter.execute)
+  .addEdge(userInputNode.name, initialUserInputExtractionNode.name)
   .addEdge(templateDiscoveryNode.name, projectGenerationNode.name)
   .addEdge(projectGenerationNode.name, buildValidationNode.name)
   .addEdge(buildValidationNode.name, deploymentNode.name)
   .addEdge(deploymentNode.name, completionNode.name)
-  .addEdge(completionNode.name, END);
+  .addEdge(completionNode.name, END)
+  .addEdge(failureNode.name, END);

@@ -31,7 +31,8 @@ export function createTestState(overrides: Partial<State> = {}): State {
     platform: undefined,
 
     // Plan phase state
-    environmentValidated: undefined,
+    validEnvironment: undefined,
+    workflowFatalErrorMessages: undefined,
     selectedTemplate: undefined,
     projectName: undefined,
     projectPath: undefined,

@@ -27,6 +27,7 @@ export class BuildValidationNode extends AbstractToolNode {
       input: {
         platform: state.platform,
         projectPath: state.projectPath,
+        projectName: state.projectName,
       },
     };
 

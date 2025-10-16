@@ -7,7 +7,7 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import dedent from 'dedent';
-import { MOBILE_SDK_TEMPLATES_PATH } from '../../../constants.js';
+import { MOBILE_SDK_TEMPLATES_PATH } from '../../../common.js';
 import { Logger } from '../../../logging/logger.js';
 import { TEMPLATE_DISCOVERY_TOOL, TemplateDiscoveryWorkflowInput } from './metadata.js';
 import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';

@@ -13,7 +13,6 @@ import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
-import { OrchestratorInput } from '../../src/tools/workflow/sfmobile-native-project-manager/metadata.js';
 
 describe('MobileNativeOrchestrator', () => {
   let mockServer: McpServer;
@@ -70,7 +69,7 @@ describe('MobileNativeOrchestrator', () => {
   describe('Workflow Orchestration', () => {
     it('should handle new workflow initiation', async () => {
       const input = {
-        userInput: 'I want to create an iOS app',
+        userInput: { request: 'I want to create an iOS app' },
         workflowStateData: { thread_id: 'test-123' },
       };
 
@@ -103,7 +102,7 @@ describe('MobileNativeOrchestrator', () => {
       mockLogger.reset();
 
       const input = {
-        userInput: 'Create an Android app',
+        userInput: { request: 'Create an Android app' },
         workflowStateData: { thread_id: 'test-456' },
       };
 
@@ -176,12 +175,11 @@ describe('MobileNativeOrchestrator', () => {
 
     it('should handle missing workflowStateData and use default', async () => {
       const inputWithoutWorkflowState = {
-        userInput: 'Create an app',
+        userInput: { request: 'Create an app' },
       };
 
-      const result = await orchestrator.handleRequest(
-        inputWithoutWorkflowState as OrchestratorInput
-      );
+      // @ts-expect-error: Intentionally missing workflowStateData to test default behavior
+      const result = await orchestrator.handleRequest(inputWithoutWorkflowState);
 
       expect(result.content).toBeDefined();
       expect(result.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
@@ -204,7 +202,7 @@ describe('MobileNativeOrchestrator', () => {
 
     it('should handle workflowStateData with empty thread_id', async () => {
       const inputWithEmptyThreadId = {
-        userInput: 'Create an app',
+        userInput: { request: 'Create an app' },
         workflowStateData: { thread_id: '' },
       };
 
@@ -231,7 +229,7 @@ describe('MobileNativeOrchestrator', () => {
 
     it('should handle workflowStateData with missing thread_id property', async () => {
       const inputWithMissingThreadId = {
-        userInput: 'Create an app',
+        userInput: { request: 'Create an app' },
         workflowStateData: { someOtherField: 'value' },
       } as any;
 
@@ -259,7 +257,7 @@ describe('MobileNativeOrchestrator', () => {
 
     it('should handle workflowStateData with null thread_id', async () => {
       const inputWithNullThreadId = {
-        userInput: 'Create an app',
+        userInput: { request: 'Create an app' },
         workflowStateData: { thread_id: null },
       } as any;
 
@@ -288,7 +286,7 @@ describe('MobileNativeOrchestrator', () => {
     it('should preserve valid thread_id when provided correctly', async () => {
       const validThreadId = 'valid-thread-123';
       const validInput = {
-        userInput: 'Resume workflow',
+        userInput: { request: 'Resume workflow' },
         workflowStateData: { thread_id: validThreadId },
       };
 
@@ -372,7 +370,7 @@ describe('MobileNativeOrchestrator', () => {
 
     it('should handle input with extra unknown fields', async () => {
       const inputWithExtraFields = {
-        userInput: 'Create an app',
+        userInput: { request: 'Create an app' },
         workflowStateData: { thread_id: 'extra-fields-test' },
         randomExtraField: 'should be ignored',
         anotherField: { nested: 'data' },
@@ -443,7 +441,7 @@ describe('MobileNativeOrchestrator', () => {
     it('should use memory checkpointer for testing', async () => {
       // The orchestrator is already configured for memory mode in beforeEach
       const input = {
-        userInput: 'Create a mobile app',
+        userInput: { request: 'Create a mobile app' },
         workflowStateData: { thread_id: 'memory-test-123' },
       };
 
@@ -465,7 +463,7 @@ describe('MobileNativeOrchestrator', () => {
 
       // First request to start workflow
       const initialInput = {
-        userInput: 'Start workflow',
+        userInput: { request: 'Start workflow' },
         workflowStateData: { thread_id: threadId },
       };
 
@@ -519,7 +517,7 @@ describe('MobileNativeOrchestrator', () => {
 
     it('should create and persist state with file checkpointer', async () => {
       const input = {
-        userInput: 'Create app with file persistence',
+        userInput: { request: 'Create app with file persistence' },
         workflowStateData: { thread_id: 'file-test-123' },
       };
 
@@ -550,7 +548,7 @@ describe('MobileNativeOrchestrator', () => {
 
       // Create initial state with properly structured workflow result
       const initialInput = {
-        userInput: 'Initial workflow',
+        userInput: { request: 'Initial workflow' },
         workflowStateData: { thread_id: threadId },
       };
 
@@ -618,7 +616,7 @@ describe('MobileNativeOrchestrator', () => {
       }
 
       const input = {
-        userInput: 'Fresh start',
+        userInput: { request: 'Fresh start' },
         workflowStateData: { thread_id: 'fresh-start-123' },
       };
 
@@ -641,7 +639,7 @@ describe('MobileNativeOrchestrator', () => {
       await fs.writeFile(stateFilePath, 'invalid json content', 'utf-8');
 
       const input = {
-        userInput: 'Handle corruption',
+        userInput: { request: 'Handle corruption' },
         workflowStateData: { thread_id: 'corruption-test-123' },
       };
 
@@ -661,11 +659,13 @@ describe('MobileNativeOrchestrator', () => {
 
   describe('Thread ID Generation and Management', () => {
     it('should generate unique thread IDs', async () => {
-      const input1 = { userInput: 'First request' };
-      const input2 = { userInput: 'Second request' };
+      const input1 = { userInput: { request: 'First request' } };
+      const input2 = { userInput: { request: 'Second request' } };
 
-      const result1 = await orchestrator.handleRequest(input1 as OrchestratorInput);
-      const result2 = await orchestrator.handleRequest(input2 as OrchestratorInput);
+      // @ts-expect-error: Intentionally missing workflowStateData to force thread ID generation
+      const result1 = await orchestrator.handleRequest(input1);
+      // @ts-expect-error: Intentionally missing workflowStateData to force thread ID generation
+      const result2 = await orchestrator.handleRequest(input2);
 
       // Both should have orchestration prompts
       expect(result1.structuredContent?.orchestrationInstructionsPrompt).toBeDefined();
@@ -680,7 +680,7 @@ describe('MobileNativeOrchestrator', () => {
     it('should use provided thread ID when given', async () => {
       const threadId = 'user-provided-thread-456';
       const input = {
-        userInput: 'Use my thread ID',
+        userInput: { request: 'Use my thread ID' },
         workflowStateData: { thread_id: threadId },
       };
 
@@ -704,9 +704,10 @@ describe('MobileNativeOrchestrator', () => {
     });
 
     it('should handle thread ID format correctly', async () => {
-      const input = { userInput: 'Generate thread ID' };
+      const input = { userInput: { request: 'Generate thread ID' } };
 
-      const result = await orchestrator.handleRequest(input as OrchestratorInput);
+      // @ts-expect-error: Intentionally missing workflowStateData to test thread ID generation
+      const result = await orchestrator.handleRequest(input);
 
       expect(result.content).toBeDefined();
 
@@ -731,7 +732,7 @@ describe('MobileNativeOrchestrator', () => {
     it('should include workflow state data in orchestration prompt', async () => {
       const workflowStateData = { thread_id: 'prompt-test-123' };
       const input = {
-        userInput: 'Test state in prompt',
+        userInput: { request: 'Test state in prompt' },
         workflowStateData,
       };
 
@@ -752,7 +753,7 @@ describe('MobileNativeOrchestrator', () => {
       // Note: This is difficult to test without mocking the entire workflow graph
       // For now, we test that the method handles the completion case
       const input = {
-        userInput: 'Complete workflow',
+        userInput: { request: 'Complete workflow' },
         workflowStateData: { thread_id: 'completion-test-123' },
       };
 
@@ -771,7 +772,7 @@ describe('MobileNativeOrchestrator', () => {
       mockLogger.reset();
 
       const input = {
-        userInput: 'Test logging',
+        userInput: { request: 'Test logging' },
         workflowStateData: { thread_id: 'logging-test-123' },
       };
 

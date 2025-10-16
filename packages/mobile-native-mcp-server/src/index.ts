@@ -9,13 +9,16 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { SFMobileNativeUserInputTriageTool } from './tools/plan/sfmobile-native-user-input-triage/tool.js';
 import { SFMobileNativeTemplateDiscoveryTool } from './tools/plan/sfmobile-native-template-discovery/tool.js';
+import { SFMobileNativeGetInputTool } from './tools/plan/sfmobile-native-get-input/tool.js';
+import { SFMobileNativeInputExtractionTool } from './tools/plan/sfmobile-native-input-extraction/tool.js';
 import { UtilsXcodeAddFilesTool } from './tools/utils/utils-xcode-add-files/tool.js';
 import { SFMobileNativeDeploymentTool } from './tools/run/sfmobile-native-deployment/tool.js';
 import { SFMobileNativeBuildTool } from './tools/plan/sfmobile-native-build/tool.js';
 import { SFMobileNativeProjectGenerationTool } from './tools/plan/sfmobile-native-project-generation/tool.js';
 import { MobileNativeOrchestrator } from './tools/workflow/sfmobile-native-project-manager/tool.js';
+import { SFMobileNativeCompletionTool } from './tools/workflow/sfmobile-native-completion/tool.js';
+import { SFMobileNativeFailureTool } from './tools/workflow/sfmobile-native-failure/tool.js';
 
 import packageJson from '../package.json' with { type: 'json' };
 const version = packageJson.version;
@@ -43,23 +46,29 @@ const orchestratorAnnotations: ToolAnnotations = {
 
 // Initialize tools
 const orchestrator = new MobileNativeOrchestrator(server);
-const userInputTriageTool = new SFMobileNativeUserInputTriageTool(server);
+const getInputTool = new SFMobileNativeGetInputTool(server);
+const inputExtractionTool = new SFMobileNativeInputExtractionTool(server);
 const templateDiscoveryTool = new SFMobileNativeTemplateDiscoveryTool(server);
 const projectGenerationTool = new SFMobileNativeProjectGenerationTool(server);
 const buildTool = new SFMobileNativeBuildTool(server);
 const deploymentTool = new SFMobileNativeDeploymentTool(server);
 const xcodeAddFilesTool = new UtilsXcodeAddFilesTool(server);
+const completionTool = new SFMobileNativeCompletionTool(server);
+const failureTool = new SFMobileNativeFailureTool(server);
 
 // Register orchestrator with specific annotations
 orchestrator.register(orchestratorAnnotations);
 
 // Register all other tools with read-only annotations
-userInputTriageTool.register(readOnlyAnnotations);
+getInputTool.register(readOnlyAnnotations);
+inputExtractionTool.register(readOnlyAnnotations);
 templateDiscoveryTool.register(readOnlyAnnotations);
 projectGenerationTool.register(readOnlyAnnotations);
 buildTool.register(readOnlyAnnotations);
 deploymentTool.register(readOnlyAnnotations);
 xcodeAddFilesTool.register(readOnlyAnnotations);
+completionTool.register(readOnlyAnnotations);
+failureTool.register(readOnlyAnnotations);
 
 export default server;
 

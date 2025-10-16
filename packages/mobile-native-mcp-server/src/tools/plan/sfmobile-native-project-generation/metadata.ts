@@ -6,7 +6,7 @@
  */
 
 import z from 'zod';
-import { PLATFORM_ENUM } from '../../../common/schemas.js';
+import { PLATFORM_ENUM, PROJECT_NAME_FIELD } from '../../../common/schemas.js';
 import {
   MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
   WORKFLOW_TOOL_BASE_INPUT_SCHEMA,
@@ -18,7 +18,7 @@ import {
  */
 export const PROJECT_GENERATION_WORKFLOW_INPUT_SCHEMA = WORKFLOW_TOOL_BASE_INPUT_SCHEMA.extend({
   selectedTemplate: z.string().describe('The template ID selected from template discovery'),
-  projectName: z.string().describe('Name for the mobile app project'),
+  projectName: PROJECT_NAME_FIELD,
   platform: PLATFORM_ENUM,
   packageName: z.string().describe('Package name for the mobile app (e.g., com.company.appname)'),
   organization: z.string().describe('Organization name for the mobile app project'),
