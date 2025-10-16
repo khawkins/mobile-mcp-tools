@@ -1312,6 +1312,56 @@ npx -y @salesforce/mobile-native-mcp-server
 
 ---
 
+## MCP Prompts
+
+The server provides MCP prompts that allow users to initiate workflows through slash commands in MCP-compatible hosts (such as Cursor, Claude Desktop, Windsurf, and others). These prompts serve as convenient entry points to the Magen mobile app generation workflow.
+
+### `mobile_app_project` Prompt
+
+**Name:** `mobile_app_project`  
+**Description:** Launch the Magen (Mobile App Generation) workflow to create a new mobile application project for iOS or Android
+
+**Arguments:**
+- `platform` (required): The target mobile platform for the application
+  - Valid values: `iOS` | `Android`
+  - Provides completion suggestions in compatible MCP hosts
+
+**Purpose:**  
+The `mobile_app_project` prompt provides a structured, user-friendly way to initiate the mobile app generation workflow without requiring users to directly invoke the `sfmobile_native_project_manager` orchestrator tool. This is particularly valuable because:
+
+1. **Discovery**: Prompts appear as slash commands in many MCP hosts, making the capability more discoverable
+2. **Simplicity**: Users can start building a mobile app by simply selecting a platform rather than understanding the orchestrator tool's interface
+3. **Guidance**: The prompt response provides clear instructions and context about the workflow, helping users understand what to expect
+
+**Usage Example:**
+
+In a compatible MCP host (e.g., Cursor), users can invoke:
+```
+/mobile_app_project platform:iOS
+```
+or
+```
+/mobile_app_project platform:Android
+```
+
+**Prompt Response:**
+
+When invoked, the prompt returns a structured conversation that:
+1. Acknowledges the user's platform choice
+2. Explains the Magen framework workflow
+3. Describes the workflow phases (requirements gathering, template selection, project generation, build setup, deployment)
+4. Encourages the user to describe the mobile application they want to build
+5. Provides context for the LLM to invoke the `sfmobile_native_project_manager` orchestrator to begin the workflow
+
+**Design Rationale:**
+
+The prompt is designed to be:
+- **Platform-Focused**: The only required argument is platform selection, keeping the initial interaction simple
+- **Extensible**: Future enhancements could add additional optional arguments (e.g., template preferences, project name) without breaking existing usage
+- **Conversational**: The prompt response is crafted to naturally lead into the orchestrator workflow while providing helpful context
+
+---
+
 # Technical Implementation
 
 ## Project Structure
@@ -1327,6 +1377,10 @@ mobile-native/
 │   │   ├── plan/      # Environment validation, template discovery, project creation
 │   │   ├── design-iterate/ # Task planning, feature implementation, changelog management
 │   │   └── run/       # Deployment, validation, live feedback
+│   ├── prompts/   # MCP prompt implementations
+│   │   ├── mobile-app-project/  # Mobile app project prompt
+│   │   │   └── metadata.ts      # Prompt metadata and response generation
+│   │   └── index.ts             # Prompt exports
 │   ├── workflow/  # LangGraph.js workflow engine
 │   │   ├── graph.ts       # StateGraph definition and node implementations
 │   │   ├── state.ts       # Workflow state schema and interfaces
@@ -1340,6 +1394,10 @@ mobile-native/
 │   └── api-docs/      # Mobile SDK API documentation excerpts
 ├── scripts/       # Project utilities and maintenance
 ├── tests/         # Comprehensive testing suite
+│   ├── prompts/   # Prompt-specific tests
+│   │   ├── mobile-app-project.test.ts  # Unit tests for prompt generation
+│   │   └── integration.test.ts         # Integration tests for prompt registration
+│   └── ...
 └── package.json   # Project configuration and dependencies (includes @langchain/langgraph)
 ```
 
