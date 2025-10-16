@@ -13,6 +13,5 @@ export { MobileAppProjectPrompt } from './mobile-app-project/prompt.js';
 export {
   MOBILE_APP_PROJECT_PROMPT_NAME,
   MOBILE_APP_PROJECT_PROMPT_DESCRIPTION,
-  generateMobileAppProjectPrompt,
   type MobileAppProjectPromptArguments,
 } from './mobile-app-project/metadata.js';
