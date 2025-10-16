@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { join } from 'path';
 import { Evaluator } from '../../src/evaluator/evaluator.js';
 import { LwcGenerationEvaluator } from '../../src/evaluator/lwcGenerationEvaluator.js';
@@ -61,14 +61,10 @@ describe('Evaluator', () => {
       evaluate: vi.fn(),
       destroy: vi.fn().mockResolvedValue(undefined),
     } as unknown as LwcReviewRefactorEvaluator;
-    // Mock the static create methods
-    (vi.mocked(LwcGenerationEvaluator.create) as unknown as vi.Mock).mockResolvedValue(
-      mockGenerationEvaluator
-    );
-    (vi.mocked(LwcReviewRefactorEvaluator) as unknown as vi.Mock).mockImplementation(
-      () => mockReviewRefactorEvaluator
-    );
-    (vi.mocked(MobileWebMcpClient) as unknown as vi.Mock).mockImplementation(() => mockMcpClient);
+    // Mock the static create methods and constructors
+    vi.mocked(LwcGenerationEvaluator).create = vi.fn().mockResolvedValue(mockGenerationEvaluator);
+    (LwcReviewRefactorEvaluator as Mock).mockImplementation(() => mockReviewRefactorEvaluator);
+    (MobileWebMcpClient as Mock).mockImplementation(() => mockMcpClient);
   });
 
   afterEach(() => {
@@ -99,8 +95,7 @@ describe('Evaluator', () => {
 
     it('should handle MCP client connection errors', async () => {
       const connectionError = new Error('Connection failed');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockMcpClient.connect as any).mockRejectedValue(connectionError);
+      (mockMcpClient.connect as Mock).mockRejectedValue(connectionError);
 
       const evaluatorLlmClient = mockLlmClient;
       const componentLlmClient = mockLlmClient;
@@ -156,8 +151,7 @@ describe('Evaluator', () => {
         verdict: 'Pass GA Criteria',
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockGenerationEvaluator.evaluate as vi.Mock).mockResolvedValue(expectedScore);
+      (mockGenerationEvaluator.evaluate as Mock).mockResolvedValue(expectedScore);
 
       const result = await evaluator.evaluate('testComponent');
 
@@ -185,8 +179,7 @@ describe('Evaluator', () => {
       };
 
       vi.mocked(loadEvaluationUnit).mockResolvedValue(reviewRefactorEvaluationUnit);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockReviewRefactorEvaluator.evaluate as vi.Mock).mockResolvedValue(expectedScore);
+      (mockReviewRefactorEvaluator.evaluate as Mock).mockResolvedValue(expectedScore);
 
       const result = await evaluator.evaluate('testComponent');
 
@@ -230,8 +223,7 @@ describe('Evaluator', () => {
 
     it('should propagate errors from generation evaluator', async () => {
       const evaluationError = new Error('Generation evaluation failed');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockGenerationEvaluator.evaluate as vi.Mock).mockRejectedValue(evaluationError);
+      (mockGenerationEvaluator.evaluate as Mock).mockRejectedValue(evaluationError);
 
       await expect(evaluator.evaluate('testComponent')).rejects.toThrow(
         'Generation evaluation failed'
@@ -250,8 +242,7 @@ describe('Evaluator', () => {
       vi.mocked(loadEvaluationUnit).mockResolvedValue(reviewRefactorEvaluationUnit);
 
       const evaluationError = new Error('Review-refactor evaluation failed');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockReviewRefactorEvaluator.evaluate as vi.Mock).mockRejectedValue(evaluationError);
+      (mockReviewRefactorEvaluator.evaluate as Mock).mockRejectedValue(evaluationError);
 
       await expect(evaluator.evaluate('testComponent')).rejects.toThrow(
         'Review-refactor evaluation failed'
@@ -301,8 +292,7 @@ describe('Evaluator', () => {
         verdict: 'Pass GA Criteria',
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockGenerationEvaluator.evaluate as vi.Mock).mockResolvedValue(expectedScore);
+      (mockGenerationEvaluator.evaluate as Mock).mockResolvedValue(expectedScore);
       vi.mocked(loadEvaluationUnit).mockResolvedValue(mockEvaluationUnit);
 
       const result = await evaluator.evaluate('component-with-dashes');
