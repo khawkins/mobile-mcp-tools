@@ -28,4 +28,3 @@ export abstract class AbstractPrompt {
    */
   public abstract register(): void;
 }
-
