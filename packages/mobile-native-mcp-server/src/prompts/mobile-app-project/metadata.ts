@@ -6,6 +6,8 @@
  */
 
 import { GetPromptResult } from '@modelcontextprotocol/sdk/types.js';
+import { z } from 'zod';
+import { PLATFORM_ENUM } from '../../common/schemas.js';
 
 export const MOBILE_APP_PROJECT_PROMPT_NAME = 'mobile_app_project';
 
@@ -13,7 +15,7 @@ export const MOBILE_APP_PROJECT_PROMPT_DESCRIPTION =
   'Launch the Magen (Mobile App Generation) workflow to create a new mobile application project for iOS or Android';
 
 export interface MobileAppProjectPromptArguments {
-  platform: 'iOS' | 'Android';
+  platform: z.infer<typeof PLATFORM_ENUM>;
 }
 
 /**

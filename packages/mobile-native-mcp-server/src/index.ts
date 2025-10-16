@@ -20,8 +20,7 @@ import { MobileNativeOrchestrator } from './tools/workflow/sfmobile-native-proje
 import packageJson from '../package.json' with { type: 'json' };
 const version = packageJson.version;
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
-import { generateMobileAppProjectPrompt } from './prompts/index.js';
+import { MobileAppProjectPrompt } from './prompts/index.js';
 
 const server = new McpServer({
   name: 'sfdc-mobile-native-mcp-server',
@@ -52,6 +51,9 @@ const buildTool = new SFMobileNativeBuildTool(server);
 const deploymentTool = new SFMobileNativeDeploymentTool(server);
 const xcodeAddFilesTool = new UtilsXcodeAddFilesTool(server);
 
+// Initialize prompts
+const mobileAppProjectPrompt = new MobileAppProjectPrompt(server);
+
 // Register orchestrator with specific annotations
 orchestrator.register(orchestratorAnnotations);
 
@@ -63,19 +65,8 @@ buildTool.register(readOnlyAnnotations);
 deploymentTool.register(readOnlyAnnotations);
 xcodeAddFilesTool.register(readOnlyAnnotations);
 
-// Register the mobile app project prompt
-server.prompt(
-  'mobile_app_project',
-  'Launch the Magen (Mobile App Generation) workflow to create a new mobile application project for iOS or Android',
-  {
-    platform: z
-      .enum(['iOS', 'Android'])
-      .describe('The target mobile platform for the application (iOS or Android)'),
-  },
-  async args => {
-    return generateMobileAppProjectPrompt(args);
-  }
-);
+// Register prompts
+mobileAppProjectPrompt.register();
 
 export default server;
 

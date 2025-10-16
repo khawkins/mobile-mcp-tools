@@ -1360,6 +1360,31 @@ The prompt is designed to be:
 - **Extensible**: Future enhancements could add additional optional arguments (e.g., template preferences, project name) without breaking existing usage
 - **Conversational**: The prompt response is crafted to naturally lead into the orchestrator workflow while providing helpful context
 
+### Prompt Architecture Pattern
+
+All prompts in the server follow a consistent architectural pattern:
+
+1. **Abstract Base Class**: `AbstractPrompt` provides a common interface for all prompts
+   - Encapsulates the `McpServer` instance
+   - Defines the abstract `register()` method that implementations must provide
+   - Ensures consistent structure across all prompt implementations
+
+2. **Implementation Structure**: Each prompt is organized in its own directory with:
+   - `prompt.ts`: Class extending `AbstractPrompt` with `register()` implementation
+   - `metadata.ts`: Constants, types, and response generation functions
+   - Consistent imports from common schemas (e.g., `PLATFORM_ENUM`)
+
+3. **Registration Pattern**: Similar to tools, prompts are:
+   - Instantiated in `src/index.ts` with the server instance
+   - Registered via their `register()` method
+   - Grouped in a dedicated "Register prompts" section
+
+This pattern enables:
+- **Consistency**: All prompts follow the same structure and conventions
+- **Maintainability**: Easy to add new prompts by following the established pattern
+- **Type Safety**: Leverages TypeScript and Zod for argument validation
+- **Reusability**: Common schemas and types are shared across prompts and tools
+
 ---
 
 # Technical Implementation
@@ -1378,9 +1403,12 @@ mobile-native/
 │   │   ├── design-iterate/ # Task planning, feature implementation, changelog management
 │   │   └── run/       # Deployment, validation, live feedback
 │   ├── prompts/   # MCP prompt implementations
-│   │   ├── mobile-app-project/  # Mobile app project prompt
-│   │   │   └── metadata.ts      # Prompt metadata and response generation
-│   │   └── index.ts             # Prompt exports
+│   │   ├── base/              # Abstract base classes
+│   │   │   └── abstractPrompt.ts  # Base class for all prompts
+│   │   ├── mobile-app-project/    # Mobile app project prompt
+│   │   │   ├── prompt.ts          # Prompt class implementation
+│   │   │   └── metadata.ts        # Prompt metadata and response generation
+│   │   └── index.ts               # Prompt exports
 │   ├── workflow/  # LangGraph.js workflow engine
 │   │   ├── graph.ts       # StateGraph definition and node implementations
 │   │   ├── state.ts       # Workflow state schema and interfaces
