@@ -49,13 +49,19 @@ export abstract class AbstractWorkflowTool<
    *
    * @param prompt The main tool response prompt
    * @param workflowStateData Workflow state data to round-trip back to orchestrator
+   * @param resultSchema The optional result schema to use to format the LLM's output.
+   * If not provided, the tool's default result schema will be used.
    * @returns Complete prompt with post-invocation instructions
    */
   protected finalizeWorkflowToolOutput(
     prompt: string,
-    workflowStateData: WorkflowStateData
+    workflowStateData: WorkflowStateData,
+    resultSchema?: TMetadata['resultSchema'] | string
   ): CallToolResult {
-    const resultSchemaString = JSON.stringify(zodToJsonSchema(this.toolMetadata.resultSchema));
+    let resultSchemaToUse = resultSchema ?? this.toolMetadata.resultSchema;
+    if (!(typeof resultSchemaToUse === 'string')) {
+      resultSchemaToUse = JSON.stringify(zodToJsonSchema(resultSchemaToUse));
+    }
     const postInstructions = `
 
 # Post-Tool-Invocation Instructions
@@ -65,7 +71,7 @@ export abstract class AbstractWorkflowTool<
 The output of your task should conform to the following JSON schema:
 
 \`\`\`json
-${resultSchemaString}
+${resultSchemaToUse}
 \`\`\`
 
 A string representation of this JSON schema can also be found in the \`resultSchema\`
@@ -96,7 +102,7 @@ This will continue the workflow orchestration process.
     const promptForLLM = prompt + postInstructions;
     const result: MCPWorkflowToolOutput = {
       promptForLLM,
-      resultSchema: resultSchemaString,
+      resultSchema: resultSchemaToUse,
     };
     return {
       content: [

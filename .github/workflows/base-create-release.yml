@@ -31,7 +31,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build GitHub Actions Scripts
         run: npx nx build project-maintenance-utilities

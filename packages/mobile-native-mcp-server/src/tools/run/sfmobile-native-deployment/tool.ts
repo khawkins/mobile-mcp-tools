@@ -10,10 +10,18 @@ import dedent from 'dedent';
 import { Logger } from '../../../logging/logger.js';
 import { DEPLOYMENT_TOOL, DeploymentWorkflowInput } from './metadata.js';
 import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
+import { TempDirectoryManager, defaultTempDirectoryManager } from '../../../common.js';
 
 export class SFMobileNativeDeploymentTool extends AbstractWorkflowTool<typeof DEPLOYMENT_TOOL> {
-  constructor(server: McpServer, logger?: Logger) {
+  private readonly tempDirManager: TempDirectoryManager;
+
+  constructor(
+    server: McpServer,
+    tempDirManager: TempDirectoryManager = defaultTempDirectoryManager,
+    logger?: Logger
+  ) {
     super(server, DEPLOYMENT_TOOL, 'DeploymentTool', logger);
+    this.tempDirManager = tempDirManager;
   }
 
   public handleRequest = async (input: DeploymentWorkflowInput) => {
@@ -50,8 +58,6 @@ export class SFMobileNativeDeploymentTool extends AbstractWorkflowTool<typeof DE
       Please execute the instructions of the following plan on behalf of the user, providing them information on the outcomes that they may need to know.
 
       # Mobile Native App Deployment Guidance for ${input.platform}
-
-      First make sure \`sfmobile-native-build\` mcp tool is executed successfully. If not, run the \`sfmobile-native-build\` tool first.
 
       You MUST follow the steps in this guide in order. Do not execute any commands that are not part of the steps in this guide.
 
@@ -90,7 +96,7 @@ export class SFMobileNativeDeploymentTool extends AbstractWorkflowTool<typeof DE
       \`\`\`
 
       ### Check to see if our targeted simulator is running
-      Navigate to the ${input.projectPath} directory and run the following command to check if the simulator is running:
+      Run the following command to check if the simulator is running:
 
       \`\`\`bash
       xcrun simctl list devices | grep "${input.targetDevice}"
@@ -99,7 +105,7 @@ export class SFMobileNativeDeploymentTool extends AbstractWorkflowTool<typeof DE
       If (Shutdown) is shown as the output, the simulator is not running. Start it by running the following command:
 
       \`\`\`bash
-      xcrun simctl boot ${input.targetDevice}
+      xcrun simctl boot "${input.targetDevice}"
       \`\`\`
     `;
   }
@@ -149,10 +155,9 @@ export class SFMobileNativeDeploymentTool extends AbstractWorkflowTool<typeof DE
     return input.platform === 'iOS'
       ? dedent`
         \`\`\`bash
-        xcrun simctl install ${input.targetDevice} <your-app>.app
+        xcrun simctl install "${input.targetDevice}" "${this.tempDirManager.getAppArtifactPath(input.projectName, 'iOS')}"
         \`\`\`
 
-        Replace <your-app>.app with app name built in \`sfmobile-native-build\` tool call.
       `
       : dedent`
         \`\`\`bash
@@ -174,7 +179,7 @@ export class SFMobileNativeDeploymentTool extends AbstractWorkflowTool<typeof DE
     return input.platform === 'iOS'
       ? dedent`
         \`\`\`bash
-        xcrun simctl launch ${input.targetDevice} ${input.packageName}.${input.projectName}
+        xcrun simctl launch "${input.targetDevice}" "${input.packageName}.${input.projectName}"
         \`\`\`
       `
       : dedent`

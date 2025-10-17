@@ -25,15 +25,7 @@ export type TemplateDiscoveryWorkflowInput = z.infer<
 >;
 
 export const TEMPLATE_DISCOVERY_WORKFLOW_RESULT_SCHEMA = z.object({
-  selectedTemplate: z.string().describe('The template ID selected from template discovery'),
-  projectName: z.string().describe('Name for the mobile app project'),
-  packageName: z.string().describe('Package name for the mobile app (e.g., com.company.appname)'),
-  organization: z.string().describe('Organization name for the mobile app project'),
-  connectedAppClientId: z.string().describe('Connected App Client ID for OAuth configuration'),
-  connectedAppCallbackUri: z
-    .string()
-    .describe('Connected App Callback URI for OAuth configuration'),
-  loginHost: z.string().describe('Login host for the mobile app project'),
+  selectedTemplate: z.string().describe('The template name selected from template discovery'),
 });
 
 /**
