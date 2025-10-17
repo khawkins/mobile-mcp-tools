@@ -13,7 +13,7 @@ describe('Prompt Integration', () => {
   describe('Server Registration', () => {
     it('should have the mobile_app_project prompt registered', () => {
       // Access the private _registeredPrompts property for testing
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
 
       expect(registeredPrompts).toBeDefined();
       expect(registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME]).toBeDefined();
@@ -25,7 +25,7 @@ describe('Prompt Integration', () => {
     });
 
     it('should have platform argument schema defined', () => {
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const prompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       expect(prompt.argsSchema).toBeDefined();
@@ -36,7 +36,7 @@ describe('Prompt Integration', () => {
 
   describe('Platform Validation', () => {
     it('should validate iOS platform value', () => {
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const prompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       const platformSchema = prompt.argsSchema.shape.platform;
@@ -44,7 +44,7 @@ describe('Prompt Integration', () => {
     });
 
     it('should validate Android platform value', () => {
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const prompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       const platformSchema = prompt.argsSchema.shape.platform;
@@ -52,7 +52,7 @@ describe('Prompt Integration', () => {
     });
 
     it('should reject invalid platform values', () => {
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const prompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       const platformSchema = prompt.argsSchema.shape.platform;
@@ -65,7 +65,7 @@ describe('Prompt Integration', () => {
 
   describe('Prompt Execution', () => {
     it('should execute and return proper structure for iOS', async () => {
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const prompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       const result = await prompt.callback({ platform: 'iOS' });
@@ -78,7 +78,7 @@ describe('Prompt Integration', () => {
     });
 
     it('should execute and return proper structure for Android', async () => {
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const prompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       const result = await prompt.callback({ platform: 'Android' });
@@ -91,7 +91,7 @@ describe('Prompt Integration', () => {
     });
 
     it('should return messages with user and assistant roles', async () => {
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const prompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       const result = await prompt.callback({ platform: 'iOS' });
