@@ -24,6 +24,7 @@ import { SFMobileNativeFailureTool } from './tools/workflow/sfmobile-native-fail
 import packageJson from '../package.json' with { type: 'json' };
 const version = packageJson.version;
 import { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
+import { MobileAppProjectPrompt } from './prompts/index.js';
 
 const server = new McpServer({
   name: 'sfdc-mobile-native-mcp-server',
@@ -58,6 +59,9 @@ const xcodeAddFilesTool = new UtilsXcodeAddFilesTool(server);
 const completionTool = new SFMobileNativeCompletionTool(server);
 const failureTool = new SFMobileNativeFailureTool(server);
 
+// Initialize prompts
+const mobileAppProjectPrompt = new MobileAppProjectPrompt(server);
+
 // Register orchestrator with specific annotations
 orchestrator.register(orchestratorAnnotations);
 
@@ -72,6 +76,9 @@ deploymentTool.register(readOnlyAnnotations);
 xcodeAddFilesTool.register(readOnlyAnnotations);
 completionTool.register(readOnlyAnnotations);
 failureTool.register(readOnlyAnnotations);
+
+// Register prompts
+mobileAppProjectPrompt.register();
 
 export default server;
 
