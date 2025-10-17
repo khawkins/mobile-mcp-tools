@@ -34,14 +34,14 @@ describe('MobileAppProjectPrompt', () => {
     it('should register the prompt with the server', () => {
       prompt.register();
 
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       expect(registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME]).toBeDefined();
     });
 
     it('should register with correct name and description', () => {
       prompt.register();
 
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const registeredPrompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       expect(registeredPrompt.description).toBe(MOBILE_APP_PROJECT_PROMPT_DESCRIPTION);
@@ -50,7 +50,7 @@ describe('MobileAppProjectPrompt', () => {
     it('should register with platform argument schema', () => {
       prompt.register();
 
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const registeredPrompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       expect(registeredPrompt.argsSchema).toBeDefined();
@@ -61,7 +61,7 @@ describe('MobileAppProjectPrompt', () => {
     it('should validate iOS platform value', () => {
       prompt.register();
 
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const registeredPrompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
       const platformSchema = registeredPrompt.argsSchema.shape.platform;
 
@@ -72,7 +72,7 @@ describe('MobileAppProjectPrompt', () => {
     it('should validate Android platform value', () => {
       prompt.register();
 
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const registeredPrompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
       const platformSchema = registeredPrompt.argsSchema.shape.platform;
 
@@ -83,7 +83,7 @@ describe('MobileAppProjectPrompt', () => {
     it('should reject invalid platform values', () => {
       prompt.register();
 
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const registeredPrompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
       const platformSchema = registeredPrompt.argsSchema.shape.platform;
 
@@ -98,7 +98,7 @@ describe('MobileAppProjectPrompt', () => {
     it('should generate iOS response', async () => {
       prompt.register();
 
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const registeredPrompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       const result = await registeredPrompt.callback({ platform: 'iOS' });
@@ -110,7 +110,7 @@ describe('MobileAppProjectPrompt', () => {
     it('should generate Android response', async () => {
       prompt.register();
 
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const registeredPrompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       const result = await registeredPrompt.callback({ platform: 'Android' });
@@ -122,7 +122,7 @@ describe('MobileAppProjectPrompt', () => {
     it('should include platform in user message', async () => {
       prompt.register();
 
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const registeredPrompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       const result = await registeredPrompt.callback({ platform: 'iOS' });
@@ -139,7 +139,7 @@ describe('MobileAppProjectPrompt', () => {
     it('should include platform in assistant message', async () => {
       prompt.register();
 
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const registeredPrompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       const result = await registeredPrompt.callback({ platform: 'Android' });
@@ -156,7 +156,7 @@ describe('MobileAppProjectPrompt', () => {
     it('should describe workflow steps', async () => {
       prompt.register();
 
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const registeredPrompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       const result = await registeredPrompt.callback({ platform: 'iOS' });
@@ -176,7 +176,7 @@ describe('MobileAppProjectPrompt', () => {
     it('should mention orchestrator tool', async () => {
       prompt.register();
 
-      const registeredPrompts = (server as any)._registeredPrompts;
+      const registeredPrompts = server['_registeredPrompts'];
       const registeredPrompt = registeredPrompts[MOBILE_APP_PROJECT_PROMPT_NAME];
 
       const result = await registeredPrompt.callback({ platform: 'iOS' });
