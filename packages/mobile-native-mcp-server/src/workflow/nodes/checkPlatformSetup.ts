@@ -60,7 +60,7 @@ export class PlatformCheckNode extends BaseNode {
       this.logger.debug(`Executing command (pre-execution)`, { command });
       const output = execSync(command, { encoding: 'utf-8', timeout: 20000 });
 
-      const platformCheckResult = this.parsePlatformCheckOutput(output);
+      const platformCheckResult = this.parsePlatformCheckOutput(output, command);
 
       this.logger.debug(`Executing command (post-execution)`, { output });
       return {
@@ -80,7 +80,10 @@ export class PlatformCheckNode extends BaseNode {
   };
 
   // Parse and validate the JSON output
-  private parsePlatformCheckOutput(output: string): {
+  private parsePlatformCheckOutput(
+    output: string,
+    command: string
+  ): {
     allRequirementsMet: boolean;
     errorMessages: string[];
   } {
@@ -94,7 +97,7 @@ export class PlatformCheckNode extends BaseNode {
         allRequirementsMet: platformCheckResult.hasMetAllRequirements,
         errorMessages: platformCheckResult.tests
           .filter(test => !test.hasPassed)
-          .map(test => test.message),
+          .map(test => `Platform setup check for "${command}" failed: ${test.message}`),
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : `${error}`;
