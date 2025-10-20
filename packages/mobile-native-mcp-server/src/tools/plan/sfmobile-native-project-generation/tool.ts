@@ -139,6 +139,7 @@ export class SFMobileNativeProjectGenerationTool extends AbstractWorkflowTool<
             <string>${connectedAppCallbackUri}</string>
             <key>oauthScopes</key>
             <array>
+                <string>id</string>
                 <string>web</string>
                 <string>api</string>
             </array>
