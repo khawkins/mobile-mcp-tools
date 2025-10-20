@@ -202,7 +202,7 @@ describe('PlatformCheckNode', () => {
   describe('execute() - Invalid Platform', () => {
     it('should handle invalid platform', () => {
       const inputState = createTestState({
-        platform: 'Windows' as any,
+        platform: 'Windows' as 'iOS' | 'Android',
       });
 
       const result = node.execute(inputState);
@@ -228,7 +228,7 @@ describe('PlatformCheckNode', () => {
 
     it('should not execute command for invalid platform', () => {
       const inputState = createTestState({
-        platform: 'Linux' as any,
+        platform: 'Linux' as 'iOS' | 'Android',
       });
 
       node.execute(inputState);
@@ -632,7 +632,8 @@ describe('PlatformCheckNode', () => {
           log.data &&
           typeof log.data === 'object' &&
           'command' in log.data &&
-          (log.data as any).command?.includes('sf force lightning local setup')
+          typeof (log.data as Record<string, unknown>).command === 'string' &&
+          (log.data as Record<string, string>).command.includes('sf force lightning local setup')
       );
       expect(commandLog).toBeDefined();
     });
@@ -1150,4 +1151,3 @@ describe('PlatformCheckNode', () => {
     });
   });
 });
-
