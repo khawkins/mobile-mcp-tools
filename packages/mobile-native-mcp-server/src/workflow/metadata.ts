@@ -47,11 +47,22 @@ export const WORKFLOW_USER_INPUT_PROPERTIES = {
 
 export type WorkflowUserInputProperties = typeof WORKFLOW_USER_INPUT_PROPERTIES;
 
+export const PRODUCT_BRIEF_USER_INPUT_PROPERTIES = {
+  purpose: {
+    zodType: z.string(),
+    description: 'The purpose of this feature.',
+    friendlyName: 'purpose',
+  } satisfies PropertyMetadata<z.ZodString>,
+} as const satisfies PropertyMetadataCollection;
+
+export type ProductBriefUserInputProperties = typeof PRODUCT_BRIEF_USER_INPUT_PROPERTIES;
+
 /**
  * Workflow state annotation for LangGraph
  * Defines the structure of state that flows through the workflow nodes
  */
 export const MobileNativeWorkflowState = Annotation.Root({
+  projectDirectory: Annotation<string>,
   // Core workflow data
   userInput: Annotation<unknown>,
   platform: Annotation<z.infer<typeof WORKFLOW_USER_INPUT_PROPERTIES.platform.zodType>>,
@@ -81,3 +92,9 @@ export const MobileNativeWorkflowState = Annotation.Root({
 });
 
 export type State = typeof MobileNativeWorkflowState.State;
+
+export const PRDGenerationWorkflowState = Annotation.Root({
+  projectDirectory: Annotation<string>,
+});
+
+export type PRDGenerationWorkflowState = typeof PRDGenerationWorkflowState.State;

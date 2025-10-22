@@ -20,6 +20,7 @@ import { CheckPropertiesFulFilledRouter } from './nodes/checkPropertiesFulfilled
 import { GetUserInputNode } from './nodes/getUserInput.js';
 import { FailureNode } from './nodes/failureNode.js';
 import { CheckEnvironmentValidatedRouter } from './nodes/checkEnvironmentValidated.js';
+import { MagiInitializationNode } from './nodes/magiInitialization.js';
 
 const initialUserInputExtractionNode = new UserInputExtractionNode();
 const userInputNode = new GetUserInputNode();
@@ -77,3 +78,10 @@ export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   .addEdge(deploymentNode.name, completionNode.name)
   .addEdge(completionNode.name, END)
   .addEdge(failureNode.name, END);
+
+const magiInitializationNode = new MagiInitializationNode();
+
+export const prdGenerationWorkflow = new StateGraph(MobileNativeWorkflowState) // Different WorkflowState object TBD
+  .addNode(magiInitializationNode.name, magiInitializationNode.execute)
+  .addEdge(START, magiInitializationNode.name)
+  .addEdge(magiInitializationNode.name, END);
