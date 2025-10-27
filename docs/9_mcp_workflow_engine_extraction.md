@@ -18,6 +18,74 @@ This Technical Design Document (TDD) provides comprehensive specifications for t
 
 ---
 
+## Consumer Model and Design Philosophy
+
+### Target Audience
+
+The `mcp-workflow` package is designed as **infrastructure for other teams building MCP servers**. Our primary consumers are:
+
+- **Internal teams** building domain-specific MCP servers within the Salesforce ecosystem
+- **External teams** (post-publishing) who want deterministic workflow orchestration for their MCP tool interactions
+- **Any MCP server author** who needs to orchestrate complex, multi-step processes with LLM interaction
+
+### The Workflow Engine as a Framework
+
+`mcp-workflow` is a **framework, not an application**. It provides:
+
+✅ **What We Provide** (Framework Infrastructure):
+
+- Orchestrator tool for managing workflow execution
+- Base classes for MCP tools and workflow nodes
+- State persistence and checkpointing (`.magen/` directory)
+- Logging infrastructure
+- Dependency injection patterns for testability
+
+❌ **What Consumers Provide** (Domain Logic):
+
+- Their own `StateGraph` definitions (workflow structure)
+- Their own state annotations (`Annotation.Root`)
+- Their own workflow nodes (business logic)
+- Their own MCP server tools (domain-specific operations)
+- Their own MCP server instance
+
+### Separation of Concerns
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Consumer's MCP Server (e.g., mobile-native-mcp-server)      │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Domain-Specific Logic                                │   │
+│  │ - StateGraph definition (workflow structure)         │   │
+│  │ - State annotations (domain state)                   │   │
+│  │ - Workflow nodes (business operations)               │   │
+│  │ - MCP tools (domain capabilities)                    │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                          │                                  │
+│                          │ depends on                       │
+│                          ▼                                  │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ @salesforce/magen-mcp-workflow                       │   │
+│  │ - OrchestratorTool (workflow execution)              │   │
+│  │ - Base classes (AbstractTool, BaseNode)              │   │
+│  │ - Checkpointing infrastructure                       │   │
+│  │ - Logging and storage conventions                    │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Design Principle
+
+**Every design decision in `mcp-workflow` must support the consumer model:**
+
+1. **Configurability**: Consumers configure the workflow engine with their own workflows, not the other way around
+2. **Genericity**: All components are generic over state types and workflow structures
+3. **Encapsulation**: Implementation details (checkpointing, thread IDs) are hidden from consumers
+4. **Convention over Configuration**: Sensible defaults (`.magen/` directory) with escape hatches (environment variables)
+5. **Documentation**: API design assumes consumers are unfamiliar with our implementation
+
+---
+
 ## Goals and Objectives
 
 ### Primary Goals
