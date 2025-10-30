@@ -10,7 +10,9 @@ This Technical Design Document (TDD) provides comprehensive specifications for t
 
 ### Key Deliverables
 
-1. New `@salesforce/magen-mcp-workflow` package containing reusable workflow engine components
+1. New `@salesforce/magen-mcp-workflow` package containing:
+   - Reusable workflow engine components
+   - Utility tools for common workflow operations
 2. Refactored `mobile-native-mcp-server` package consuming the workflow engine as a dependency
 3. Comprehensive test coverage (≥95%) for both packages
 4. Updated documentation reflecting the new architecture
@@ -36,6 +38,7 @@ The `mcp-workflow` package is designed as **infrastructure for other teams build
 
 - Orchestrator tool for managing workflow execution
 - Base classes for MCP tools and workflow nodes
+- Utility tools for common operations (user input gathering, data extraction)
 - State persistence and checkpointing (`.magen/` directory)
 - Logging infrastructure
 - Dependency injection patterns for testability
@@ -67,6 +70,7 @@ The `mcp-workflow` package is designed as **infrastructure for other teams build
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │ @salesforce/magen-mcp-workflow                       │   │
 │  │ - OrchestratorTool (workflow execution)              │   │
+│  │ - Utility tools (GetInputTool, InputExtractionTool)  │   │
 │  │ - Base classes (AbstractTool, BaseNode)              │   │
 │  │ - Checkpointing infrastructure                       │   │
 │  │ - Logging and storage conventions                    │   │
@@ -251,19 +255,33 @@ packages/
 │   │   ├── logging/
 │   │   │   ├── logger.ts            # Logger interface and base impl
 │   │   │   └── index.ts
-│   │   ├── orchestrator/
-│   │   │   ├── orchestratorTool.ts  # Generic orchestrator implementation
-│   │   │   ├── metadata.ts          # Orchestrator metadata factory
-│   │   │   ├── config.ts            # Orchestrator configuration interface
-│   │   │   └── index.ts
 │   │   ├── checkpointing/
 │   │   │   ├── jsonCheckpointer.ts      # JSON-based checkpoint persistence
 │   │   │   ├── statePersistence.ts      # State file I/O abstraction
 │   │   │   ├── interfaces.ts            # Checkpointing interfaces
 │   │   │   └── index.ts
 │   │   ├── tools/
-│   │   │   ├── abstractTool.ts          # Base class for all MCP tools
-│   │   │   ├── abstractWorkflowTool.ts  # Base class for workflow tools
+│   │   │   ├── base/
+│   │   │   │   ├── abstractTool.ts          # Base class for all MCP tools
+│   │   │   │   ├── abstractWorkflowTool.ts  # Base class for workflow tools
+│   │   │   │   └── index.ts
+│   │   │   ├── orchestrator/
+│   │   │   │   ├── orchestratorTool.ts  # Generic orchestrator implementation
+│   │   │   │   ├── metadata.ts          # Orchestrator metadata factory
+│   │   │   │   ├── config.ts            # Orchestrator configuration interface
+│   │   │   │   └── index.ts
+│   │   │   ├── utilities/
+│   │   │   │   ├── getInput/
+│   │   │   │   │   ├── tool.ts              # Get user input tool
+│   │   │   │   │   ├── metadata.ts          # Get input metadata
+│   │   │   │   │   ├── factory.ts           # Factory function for tool creation
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── inputExtraction/
+│   │   │   │   │   ├── tool.ts              # Input extraction tool
+│   │   │   │   │   ├── metadata.ts          # Input extraction metadata
+│   │   │   │   │   ├── factory.ts           # Factory function for tool creation
+│   │   │   │   │   └── index.ts
+│   │   │   │   └── index.ts
 │   │   │   └── index.ts
 │   │   ├── nodes/
 │   │   │   ├── abstractBaseNode.ts      # Base class for all nodes
@@ -312,7 +330,7 @@ packages/
 The orchestrator will be generalized to accept configuration:
 
 ````typescript
-// mcp-workflow/src/orchestrator/config.ts
+// mcp-workflow/src/tools/orchestrator/config.ts
 import { AnnotationRoot, StateDefinition } from '@langchain/langgraph';
 
 /**
@@ -445,7 +463,7 @@ export function createOrchestratorToolMetadata<TState extends AnnotationRoot<Sta
   };
 }
 
-// mcp-workflow/src/orchestrator/orchestratorTool.ts
+// mcp-workflow/src/tools/orchestrator/orchestratorTool.ts
 export class OrchestratorTool<
   TState extends AnnotationRoot<StateDefinition>,
 > extends AbstractTool<OrchestratorToolMetadata> {
@@ -764,6 +782,195 @@ export interface MCPToolInvocationData<TWorkflowInputSchema extends z.ZodObject<
 }
 ```
 
+#### 5. Utility Tools
+
+The `mcp-workflow` package provides reusable utility tools that are commonly needed in workflow-based MCP servers. These tools handle general-purpose operations that are domain-agnostic.
+
+**Why Include Utility Tools?**
+
+While the orchestrator and base classes provide the workflow infrastructure, many workflows need similar operational capabilities:
+
+- Gathering user input for multiple properties
+- Extracting structured data from unstructured user utterances
+
+Rather than force every consumer to implement these common patterns, we provide them as part of the framework.
+
+##### 5.1 Get Input Tool
+
+**Purpose**: Prompts the user to provide input for a set of required properties.
+
+**Use Case**: When a workflow needs to collect multiple pieces of information from the user (e.g., app name, description, platform), this tool generates a conversational prompt asking for those values.
+
+**Factory Function Pattern** (to avoid tool name collisions):
+
+```typescript
+// mcp-workflow/src/tools/utilities/getInput/factory.ts
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { Logger } from '../../../logging/logger.js';
+import { GetInputTool } from './tool.js';
+
+export interface GetInputToolOptions {
+  /**
+   * Optional prefix for the tool ID to avoid collisions in multi-server environments
+   * @example 'mobile' → 'mobile-magen-get-input'
+   * @example 'salesops' → 'salesops-magen-get-input'
+   * @default undefined → 'magen-get-input'
+   */
+  toolIdPrefix?: string;
+
+  /**
+   * Optional orchestrator tool ID that this tool reports back to
+   * @default Required - must be provided
+   */
+  orchestratorToolId: string;
+
+  /** Optional logger instance */
+  logger?: Logger;
+}
+
+/**
+ * Factory function to create a GetInputTool with configurable tool ID
+ */
+export function createGetInputTool(server: McpServer, options: GetInputToolOptions): GetInputTool {
+  const toolId = options.toolIdPrefix
+    ? `${options.toolIdPrefix}-magen-get-input`
+    : 'magen-get-input';
+
+  return new GetInputTool(server, toolId, options.orchestratorToolId, options.logger);
+}
+```
+
+**Tool Implementation**:
+
+```typescript
+// mcp-workflow/src/tools/utilities/getInput/tool.ts
+export class GetInputTool extends AbstractWorkflowTool<GetInputToolMetadata> {
+  constructor(server: McpServer, toolId: string, orchestratorToolId: string, logger?: Logger) {
+    super(server, createGetInputMetadata(toolId), orchestratorToolId, 'GetInputTool', logger);
+  }
+
+  public handleRequest = async (input: GetInputWorkflowInput) => {
+    const guidance = this.generatePromptForInputGuidance(input);
+    return this.finalizeWorkflowToolOutput(guidance, input.workflowStateData);
+  };
+
+  private generatePromptForInputGuidance(input: GetInputWorkflowInput): string {
+    // Generate conversational prompt asking user for property values
+    // (Implementation extracted from mobile-native-mcp-server)
+  }
+}
+```
+
+**Consumer Usage**:
+
+```typescript
+// Simple case - single MCP server
+const getInputTool = createGetInputTool(server, {
+  orchestratorToolId: 'my-orchestrator',
+});
+// Registers as: 'magen-get-input'
+
+// Multi-server environment - avoid collisions
+const getInputTool = createGetInputTool(server, {
+  toolIdPrefix: 'mobile',
+  orchestratorToolId: 'mobile-orchestrator',
+});
+// Registers as: 'mobile-magen-get-input'
+```
+
+##### 5.2 Input Extraction Tool
+
+**Purpose**: Extracts structured property values from unstructured user input using LLM analysis.
+
+**Use Case**: After the user provides free-form input, this tool parses their response and extracts specific property values according to a defined schema.
+
+**Factory Function Pattern**:
+
+```typescript
+// mcp-workflow/src/tools/utilities/inputExtraction/factory.ts
+export interface InputExtractionToolOptions {
+  /** Optional prefix for the tool ID */
+  toolIdPrefix?: string;
+
+  /** Orchestrator tool ID that this tool reports back to */
+  orchestratorToolId: string;
+
+  /** Optional logger instance */
+  logger?: Logger;
+}
+
+export function createInputExtractionTool(
+  server: McpServer,
+  options: InputExtractionToolOptions
+): InputExtractionTool {
+  const toolId = options.toolIdPrefix
+    ? `${options.toolIdPrefix}-magen-input-extraction`
+    : 'magen-input-extraction';
+
+  return new InputExtractionTool(server, toolId, options.orchestratorToolId, options.logger);
+}
+```
+
+**Tool Implementation**:
+
+```typescript
+// mcp-workflow/src/tools/utilities/inputExtraction/tool.ts
+export class InputExtractionTool extends AbstractWorkflowTool<InputExtractionToolMetadata> {
+  constructor(server: McpServer, toolId: string, orchestratorToolId: string, logger?: Logger) {
+    super(
+      server,
+      createInputExtractionMetadata(toolId),
+      orchestratorToolId,
+      'InputExtractionTool',
+      logger
+    );
+  }
+
+  public handleRequest = async (input: InputExtractionWorkflowInput) => {
+    const guidance = this.generateInputExtractionGuidance(input);
+    return this.finalizeWorkflowToolOutput(guidance, input.workflowStateData, input.resultSchema);
+  };
+
+  private generateInputExtractionGuidance(input: InputExtractionWorkflowInput): string {
+    // Generate LLM prompt for extracting structured data from user utterance
+    // (Implementation extracted from mobile-native-mcp-server)
+  }
+}
+```
+
+**Design Rationale: Why Factory Functions?**
+
+1. **Collision Avoidance**: MCP environments often have multiple servers running simultaneously. Fixed tool IDs would cause collisions.
+2. **Flexibility with Defaults**: Simple case (single server) requires no configuration. Multi-server environments can easily add prefixes.
+3. **Consistent Pattern**: Mirrors the orchestrator's configurable tool ID pattern.
+4. **Convention**: We establish a convention (use project prefix) without enforcing it.
+
+**Naming Convention for Multi-Server Environments**:
+
+When deploying multiple MCP servers that use `mcp-workflow` in the same environment:
+
+```typescript
+// Mobile server
+const getInputTool = createGetInputTool(server, {
+  toolIdPrefix: 'mobile',
+  orchestratorToolId: 'mobile-orchestrator',
+});
+
+// Sales ops server
+const getInputTool = createGetInputTool(server, {
+  toolIdPrefix: 'salesops',
+  orchestratorToolId: 'salesops-orchestrator',
+});
+
+// Customer success server
+const getInputTool = createGetInputTool(server, {
+  toolIdPrefix: 'cs',
+  orchestratorToolId: 'cs-orchestrator',
+});
+```
+
+This ensures unique tool names across all servers while maintaining a consistent naming pattern.
+
 ---
 
 ## Migration Plan
@@ -845,15 +1052,15 @@ export interface MCPToolInvocationData<TWorkflowInputSchema extends z.ZodObject<
 
 1. **AbstractTool**
    - Source: `mobile-native-mcp-server/src/tools/base/abstractTool.ts`
-   - Target: `mcp-workflow/src/tools/abstractTool.ts`
+   - Target: `mcp-workflow/src/tools/base/abstractTool.ts`
    - Changes: Update imports; remove mobile-specific references
-   - Tests: Move `tests/tools/base/abstractTool.test.ts` to `tests/tools/abstractTool.test.ts`
+   - Tests: Move `tests/tools/base/abstractTool.test.ts` to `tests/tools/base/abstractTool.test.ts`
 
 2. **AbstractWorkflowTool**
    - Source: `mobile-native-mcp-server/src/tools/base/abstractWorkflowTool.ts`
-   - Target: `mcp-workflow/src/tools/abstractWorkflowTool.ts`
+   - Target: `mcp-workflow/src/tools/base/abstractWorkflowTool.ts`
    - Changes: Accept orchestrator tool ID as config parameter instead of hard-coded reference
-   - Tests: Move `tests/tools/base/abstractWorkflowTool.test.ts` to `tests/tools/abstractWorkflowTool.test.ts`
+   - Tests: Move `tests/tools/base/abstractWorkflowTool.test.ts` to `tests/tools/base/abstractWorkflowTool.test.ts`
 
 3. **AbstractBaseNode**
    - Source: `mobile-native-mcp-server/src/workflow/nodes/abstractBaseNode.ts`
@@ -878,6 +1085,100 @@ export interface MCPToolInvocationData<TWorkflowInputSchema extends z.ZodObject<
 - All base classes build without errors
 - All base class tests pass with ≥95% coverage
 - Type safety is verified for generic implementations
+
+### Phase 3.5: Extract Utility Tools
+
+**Objective**: Move general-purpose utility tools that provide common workflow operations
+
+**Rationale**: These tools implement common patterns needed by most workflow-based MCP servers:
+
+- Gathering user input for multiple properties
+- Extracting structured data from unstructured user responses
+
+Rather than force every consumer to reimplement these patterns, we provide them as part of the framework.
+
+**Components to Extract**:
+
+1. **Get Input Tool**
+   - Source: `mobile-native-mcp-server/src/tools/plan/sfmobile-native-get-input/`
+   - Target: `mcp-workflow/src/tools/utilities/getInput/`
+   - Changes:
+     - Rename class: `SFMobileNativeGetInputTool` → `GetInputTool`
+     - Remove hard-coded tool ID: Accept `toolId` as constructor parameter
+     - Accept `orchestratorToolId` as constructor parameter (not from hard-coded constant)
+     - Create factory function `createGetInputTool()` with `GetInputToolOptions` interface
+     - Update metadata factory to accept dynamic `toolId` parameter
+     - Remove "sfmobile-native" references from prompts and internal naming
+   - Files:
+     - `tool.ts`: Tool implementation
+     - `metadata.ts`: Schemas and metadata factory function
+     - `factory.ts`: NEW - Factory function for tool creation with configurable tool ID
+     - `index.ts`: Public exports
+   - Tests: Move `tests/tools/plan/sfmobile-native-get-input/` to `tests/tools/utilities/getInput/`
+     - Add tests for tool ID configurability
+     - Add tests for factory function with various prefixes
+     - Verify collision avoidance scenarios
+
+2. **Input Extraction Tool**
+   - Source: `mobile-native-mcp-server/src/tools/plan/sfmobile-native-input-extraction/`
+   - Target: `mcp-workflow/src/tools/utilities/inputExtraction/`
+   - Changes:
+     - Rename class: `SFMobileNativeInputExtractionTool` → `InputExtractionTool`
+     - Remove hard-coded tool ID: Accept `toolId` as constructor parameter
+     - Accept `orchestratorToolId` as constructor parameter
+     - Create factory function `createInputExtractionTool()` with `InputExtractionToolOptions` interface
+     - Update metadata factory to accept dynamic `toolId` parameter
+     - Remove "sfmobile-native" references from prompts and internal naming
+   - Files:
+     - `tool.ts`: Tool implementation
+     - `metadata.ts`: Schemas and metadata factory function
+     - `factory.ts`: NEW - Factory function for tool creation with configurable tool ID
+     - `index.ts`: Public exports
+   - Tests: Move `tests/tools/plan/sfmobile-native-input-extraction/` to `tests/tools/utilities/inputExtraction/`
+     - Add tests for tool ID configurability
+     - Add tests for factory function with various prefixes
+     - Verify orchestrator tool ID passing
+
+**Factory Function Pattern**:
+
+Each utility tool provides a factory function that:
+
+- Accepts optional `toolIdPrefix` for collision avoidance
+- Accepts required `orchestratorToolId` for workflow continuation
+- Returns fully configured tool instance ready for registration
+
+**Example**:
+
+```typescript
+// Consumer code (mobile-native-mcp-server)
+import { createGetInputTool, createInputExtractionTool } from '@salesforce/magen-mcp-workflow';
+
+const getInputTool = createGetInputTool(server, {
+  toolIdPrefix: 'mobile', // Avoids collisions in multi-server environments
+  orchestratorToolId: MOBILE_ORCHESTRATOR_TOOL_ID,
+  logger,
+});
+
+const inputExtractionTool = createInputExtractionTool(server, {
+  toolIdPrefix: 'mobile',
+  orchestratorToolId: MOBILE_ORCHESTRATOR_TOOL_ID,
+  logger,
+});
+
+getInputTool.register(annotations);
+inputExtractionTool.register(annotations);
+```
+
+**Acceptance Criteria**:
+
+- Both utility tools build without errors
+- Factory functions properly generate tool IDs with and without prefixes
+- Tool ID defaults work correctly (`magen-get-input`, `magen-input-extraction`)
+- Prefixed tool IDs work correctly (e.g., `mobile-magen-get-input`)
+- All utility tool tests pass with ≥95% coverage
+- Tools correctly pass orchestrator tool ID for workflow continuation
+- No mobile-specific references remain in tool prompts or logic
+- Tools can be instantiated multiple times with different prefixes
 
 ### Phase 4: Extract Checkpointing Infrastructure
 
@@ -912,17 +1213,17 @@ export interface MCPToolInvocationData<TWorkflowInputSchema extends z.ZodObject<
 **Components to Extract**:
 
 1. **Orchestrator Configuration Interface**
-   - Target: `mcp-workflow/src/orchestrator/config.ts`
+   - Target: `mcp-workflow/src/tools/orchestrator/config.ts`
    - Changes: New file defining `OrchestratorConfig<TState>` interface
 
 2. **Orchestrator Metadata Factory**
    - Source: Extracted from `mobile-native-mcp-server/src/tools/workflow/sfmobile-native-project-manager/metadata.ts`
-   - Target: `mcp-workflow/src/orchestrator/metadata.ts`
+   - Target: `mcp-workflow/src/tools/orchestrator/metadata.ts`
    - Changes: Create factory functions that accept toolId, title, description parameters
 
 3. **Generic Orchestrator Tool**
    - Source: `mobile-native-mcp-server/src/tools/workflow/sfmobile-native-project-manager/tool.ts`
-   - Target: `mcp-workflow/src/orchestrator/orchestratorTool.ts`
+   - Target: `mcp-workflow/src/tools/orchestrator/orchestratorTool.ts`
    - Changes:
      - Accept `OrchestratorConfig<TState>` in constructor where `TState extends AnnotationRoot<StateDefinition>`
      - Make generic over AnnotationRoot type (state type is extracted via `TState["State"]`)
@@ -934,7 +1235,7 @@ export interface MCPToolInvocationData<TWorkflowInputSchema extends z.ZodObject<
        - If 'production': Create `JsonCheckpointSaver` with `WorkflowStatePersistence` using `.magen/` directory
        - Compile workflow with the created checkpointer: `config.workflow.compile({ checkpointer })`
      - **Make thread ID generation generic**: Remove "mobile" prefix from thread ID template, use generic format (e.g., `workflow-${timestamp}` or similar)
-   - Tests: Move and generalize `tests/tools/workflow/sfmobile-native-project-manager/tool.test.ts` to `tests/orchestrator/orchestratorTool.test.ts`
+   - Tests: Move and generalize `tests/tools/workflow/sfmobile-native-project-manager/tool.test.ts` to `tests/tools/orchestrator/orchestratorTool.test.ts`
      - Update tests to provide `context: { environment: 'test' }`
 
 **Refactoring Orchestrator Prompts**:
@@ -981,7 +1282,33 @@ The orchestrator creates LLM prompts that reference the orchestrator tool ID. Th
    - Change all mobile-specific workflow tools to extend generic base classes from mcp-workflow
    - Pass orchestrator tool ID through configuration
 
-6. **Update Tests**
+6. **Refactor Utility Tools Usage**
+   - Remove `src/tools/plan/sfmobile-native-get-input/` (now in mcp-workflow)
+   - Remove `src/tools/plan/sfmobile-native-input-extraction/` (now in mcp-workflow)
+   - Update `src/index.ts` to use factory functions:
+
+     ```typescript
+     import { createGetInputTool, createInputExtractionTool } from '@salesforce/magen-mcp-workflow';
+
+     const getInputTool = createGetInputTool(server, {
+       toolIdPrefix: 'mobile',
+       orchestratorToolId: MOBILE_ORCHESTRATOR_TOOL_ID,
+       logger,
+     });
+
+     const inputExtractionTool = createInputExtractionTool(server, {
+       toolIdPrefix: 'mobile',
+       orchestratorToolId: MOBILE_ORCHESTRATOR_TOOL_ID,
+       logger,
+     });
+
+     getInputTool.register(toolAnnotations);
+     inputExtractionTool.register(toolAnnotations);
+     ```
+
+   - Remove corresponding test directories for these tools (now tested in mcp-workflow)
+
+7. **Update Tests**
    - Update all test imports
    - Verify all tests still pass
    - Maintain ≥95% coverage
@@ -1206,15 +1533,21 @@ mcp-workflow/
     │   └── propertyMetadata.test.ts
     ├── logging/
     │   └── logger.test.ts
-    ├── orchestrator/
-    │   ├── orchestratorTool.test.ts
-    │   └── metadata.test.ts
+    ├── tools/
+    │   ├── base/
+    │   │   ├── abstractTool.test.ts
+    │   │   └── abstractWorkflowTool.test.ts
+    │   ├── orchestrator/
+    │   │   ├── orchestratorTool.test.ts
+    │   │   └── metadata.test.ts
+    │   └── utilities/
+    │       ├── getInput/
+    │       │   └── [getInput tests]
+    │       └── inputExtraction/
+    │           └── [inputExtraction tests]
     ├── checkpointing/
     │   ├── jsonCheckpointer.test.ts
     │   └── statePersistence.test.ts
-    ├── tools/
-    │   ├── abstractTool.test.ts
-    │   └── abstractWorkflowTool.test.ts
     ├── nodes/
     │   ├── abstractBaseNode.test.ts
     │   ├── abstractToolNode.test.ts
@@ -1246,7 +1579,7 @@ mcp-workflow/
 **Example**:
 
 ```typescript
-// tests/orchestrator/orchestratorTool.test.ts
+// tests/tools/orchestrator/orchestratorTool.test.ts
 describe('OrchestratorTool', () => {
   let mockServer: McpServer;
   let mockCheckpointer: BaseCheckpointSaver;
@@ -1765,10 +2098,17 @@ nx build @salesforce/mobile-native-mcp-server --verbose
 
 The verbose output should show:
 
-1. `mcp-workflow` build starting
-2. `mcp-workflow` build completing
-3. `mobile-native-mcp-server` build starting
-4. `mobile-native-mcp-server` build completing
+```
+NX   Running target build for project @salesforce/mobile-native-mcp-server and 1 task it depends on:
+
+> nx run @salesforce/magen-mcp-workflow:build
+  [mcp-workflow builds]
+
+> nx run @salesforce/mobile-native-mcp-server:build
+  [mobile-native-mcp-server builds]
+```
+
+This confirms that Nx recognizes the dependency and builds `mcp-workflow` before `mobile-native-mcp-server`.
 
 **5. Verify No Circular Dependencies**
 
@@ -2007,13 +2347,10 @@ export * from './storage/index.js';
 // Logging
 export * from './logging/index.js';
 
-// Orchestrator
-export * from './orchestrator/index.js';
-
 // Checkpointing
 export * from './checkpointing/index.js';
 
-// Base tool classes
+// Tools (base classes, orchestrator, and utilities)
 export * from './tools/index.js';
 
 // Base node classes
@@ -2041,6 +2378,9 @@ import {
 
 // Import orchestrator
 import { OrchestratorTool, OrchestratorConfig } from '@salesforce/magen-mcp-workflow';
+
+// Import utility tools
+import { createGetInputTool, createInputExtractionTool } from '@salesforce/magen-mcp-workflow';
 
 // Import storage utilities
 import {
