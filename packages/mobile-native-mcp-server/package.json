@@ -34,6 +34,7 @@
     "inspect": "npx @modelcontextprotocol/inspector node dist/index.js"
   },
   "dependencies": {
+    "@salesforce/magen-mcp-workflow": "*",
     "@langchain/langgraph": "^0.4.9",
     "@modelcontextprotocol/sdk": "^1.21.0",
     "dedent": "^1.7.0",
