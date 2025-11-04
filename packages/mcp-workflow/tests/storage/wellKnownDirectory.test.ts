@@ -42,7 +42,7 @@ describe('Well-Known Directory Utils', () => {
   describe('WellKnownDirectoryManager - Class-based API', () => {
     describe('getWellKnownDirectoryPath', () => {
       it('should return path based on provided projectPath', () => {
-        const expected = path.join(testHomeDir, WELL_KNOWN_DIR_NAME);
+        const expected = path.resolve(testHomeDir, WELL_KNOWN_DIR_NAME);
         const result = manager.getWellKnownDirectoryPath();
         expect(result).toBe(expected);
       });
@@ -55,7 +55,7 @@ describe('Well-Known Directory Utils', () => {
           fileSystemOperations: mockFs,
         });
 
-        const expected = path.join(path.resolve(envPath), WELL_KNOWN_DIR_NAME);
+        const expected = path.resolve(envPath, WELL_KNOWN_DIR_NAME);
         expect(managerWithEnv.getWellKnownDirectoryPath()).toBe(expected);
       });
 
@@ -74,7 +74,7 @@ describe('Well-Known Directory Utils', () => {
 
     describe('ensureWellKnownDirectory', () => {
       it('should create directory if it does not exist', () => {
-        const expectedPath = path.join(testHomeDir, WELL_KNOWN_DIR_NAME);
+        const expectedPath = path.resolve(testHomeDir, WELL_KNOWN_DIR_NAME);
 
         // Directory doesn't exist initially
         expect(mockFs.existsSync(expectedPath)).toBe(false);
@@ -88,7 +88,7 @@ describe('Well-Known Directory Utils', () => {
       });
 
       it('should not create directory if it already exists', () => {
-        const expectedPath = path.join(testHomeDir, WELL_KNOWN_DIR_NAME);
+        const expectedPath = path.resolve(testHomeDir, WELL_KNOWN_DIR_NAME);
 
         // Mark directory as existing
         mockFs.addExistingPath(expectedPath);
@@ -102,9 +102,9 @@ describe('Well-Known Directory Utils', () => {
 
     describe('getWellKnownFilePath', () => {
       it('should return path to file in well-known directory', () => {
-        const dirPath = path.join(testHomeDir, WELL_KNOWN_DIR_NAME);
+        const dirPath = path.resolve(testHomeDir, WELL_KNOWN_DIR_NAME);
         const fileName = 'test-file.json';
-        const expectedPath = path.join(dirPath, fileName);
+        const expectedPath = path.resolve(dirPath, fileName);
 
         // Mark directory as existing to avoid creating it
         mockFs.addExistingPath(dirPath);
@@ -115,7 +115,7 @@ describe('Well-Known Directory Utils', () => {
       });
 
       it('should ensure directory exists before returning file path', () => {
-        const dirPath = path.join(testHomeDir, WELL_KNOWN_DIR_NAME);
+        const dirPath = path.resolve(testHomeDir, WELL_KNOWN_DIR_NAME);
         const fileName = 'test-file.json';
 
         // Directory doesn't exist initially
@@ -123,19 +123,22 @@ describe('Well-Known Directory Utils', () => {
 
         // Should have created the directory
         expect(mockFs.wasPathCreated(dirPath)).toBe(true);
-        expect(result).toBe(path.join(dirPath, fileName));
+        expect(result).toBe(path.resolve(dirPath, fileName));
       });
     });
 
     describe('Convenience file path methods', () => {
       beforeEach(() => {
         // Mark directory as existing for these tests
-        mockFs.addExistingPath(path.join(testHomeDir, WELL_KNOWN_DIR_NAME));
+        mockFs.addExistingPath(path.resolve(testHomeDir, WELL_KNOWN_DIR_NAME));
       });
 
       it('should return workflow state store path', () => {
-        const dirPath = path.join(testHomeDir, WELL_KNOWN_DIR_NAME);
-        const expectedPath = path.join(dirPath, WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME);
+        const expectedPath = path.resolve(
+          testHomeDir,
+          WELL_KNOWN_DIR_NAME,
+          WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME
+        );
 
         const result = manager.getWorkflowStateStorePath();
 
@@ -143,8 +146,11 @@ describe('Well-Known Directory Utils', () => {
       });
 
       it('should return workflow logs path', () => {
-        const dirPath = path.join(testHomeDir, WELL_KNOWN_DIR_NAME);
-        const expectedPath = path.join(dirPath, WELL_KNOWN_FILES.WORKFLOW_LOGS);
+        const expectedPath = path.resolve(
+          testHomeDir,
+          WELL_KNOWN_DIR_NAME,
+          WELL_KNOWN_FILES.WORKFLOW_LOGS
+        );
 
         const result = manager.getWorkflowLogsPath();
 
@@ -154,7 +160,7 @@ describe('Well-Known Directory Utils', () => {
 
     describe('wellKnownDirectoryExists', () => {
       it('should return true if directory exists', () => {
-        const dirPath = path.join(testHomeDir, WELL_KNOWN_DIR_NAME);
+        const dirPath = path.resolve(testHomeDir, WELL_KNOWN_DIR_NAME);
         mockFs.addExistingPath(dirPath);
 
         const result = manager.wellKnownDirectoryExists();
@@ -171,13 +177,13 @@ describe('Well-Known Directory Utils', () => {
 
     describe('getWellKnownDirectoryInfo', () => {
       it('should return directory info when directory exists', () => {
-        const dirPath = path.join(testHomeDir, WELL_KNOWN_DIR_NAME);
+        const dirPath = path.resolve(testHomeDir, WELL_KNOWN_DIR_NAME);
 
         // Mark directory and files as existing
         mockFs.setExistingPaths([
           dirPath,
-          path.join(dirPath, WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME),
-          path.join(dirPath, WELL_KNOWN_FILES.WORKFLOW_LOGS),
+          path.resolve(dirPath, WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME),
+          path.resolve(dirPath, WELL_KNOWN_FILES.WORKFLOW_LOGS),
         ]);
 
         const result = manager.getWellKnownDirectoryInfo();
@@ -189,19 +195,19 @@ describe('Well-Known Directory Utils', () => {
             {
               name: WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME,
               exists: true,
-              path: path.join(dirPath, WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME),
+              path: path.resolve(dirPath, WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME),
             },
             {
               name: WELL_KNOWN_FILES.WORKFLOW_LOGS,
               exists: true,
-              path: path.join(dirPath, WELL_KNOWN_FILES.WORKFLOW_LOGS),
+              path: path.resolve(dirPath, WELL_KNOWN_FILES.WORKFLOW_LOGS),
             },
           ],
         });
       });
 
       it('should return directory info when directory does not exist', () => {
-        const dirPath = path.join(testHomeDir, WELL_KNOWN_DIR_NAME);
+        const dirPath = path.resolve(testHomeDir, WELL_KNOWN_DIR_NAME);
 
         const result = manager.getWellKnownDirectoryInfo();
 
@@ -212,24 +218,24 @@ describe('Well-Known Directory Utils', () => {
             {
               name: WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME,
               exists: false,
-              path: path.join(dirPath, WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME),
+              path: path.resolve(dirPath, WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME),
             },
             {
               name: WELL_KNOWN_FILES.WORKFLOW_LOGS,
               exists: false,
-              path: path.join(dirPath, WELL_KNOWN_FILES.WORKFLOW_LOGS),
+              path: path.resolve(dirPath, WELL_KNOWN_FILES.WORKFLOW_LOGS),
             },
           ],
         });
       });
 
       it('should return correct file existence status', () => {
-        const dirPath = path.join(testHomeDir, WELL_KNOWN_DIR_NAME);
+        const dirPath = path.resolve(testHomeDir, WELL_KNOWN_DIR_NAME);
 
         // Directory exists but only one file exists
         mockFs.setExistingPaths([
           dirPath,
-          path.join(dirPath, WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME),
+          path.resolve(dirPath, WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME),
         ]);
 
         const result = manager.getWellKnownDirectoryInfo();
@@ -241,12 +247,12 @@ describe('Well-Known Directory Utils', () => {
             {
               name: WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME,
               exists: true,
-              path: path.join(dirPath, WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME),
+              path: path.resolve(dirPath, WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME),
             },
             {
               name: WELL_KNOWN_FILES.WORKFLOW_LOGS,
               exists: false,
-              path: path.join(dirPath, WELL_KNOWN_FILES.WORKFLOW_LOGS),
+              path: path.resolve(dirPath, WELL_KNOWN_FILES.WORKFLOW_LOGS),
             },
           ],
         });
