@@ -5,16 +5,48 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-/**
- * @salesforce/magen-mcp-workflow
- *
- * A reusable workflow orchestration framework for building deterministic,
- * multi-step workflows with LangGraph and the Model Context Protocol (MCP).
- *
- * This is the main entry point for the package. Exports will be added as
- * components are extracted from mobile-native-mcp-server during Phase 2+.
- */
+// Common - Filesystem Operations
+export { type FileSystemOperations, NodeFileSystemOperations } from './common/fileSystem.js';
 
-// Package exports will be added during migration phases 2-5
-// This placeholder allows the package to build successfully during Phase 1
-export const PACKAGE_VERSION = '0.1.0';
+// Storage (Well-Known Directory)
+export {
+  WELL_KNOWN_DIR_NAME,
+  WELL_KNOWN_FILES,
+  type WellKnownDirectoryConfig,
+  WellKnownDirectoryManager,
+} from './storage/wellKnownDirectory.js';
+
+// Logging
+export {
+  Logger,
+  PinoLogger,
+  createLogger,
+  createComponentLogger,
+  createWorkflowLogger,
+} from './logging/logger.js';
+
+// Common Metadata
+export {
+  WORKFLOW_STATE_DATA_SCHEMA,
+  WORKFLOW_PROPERTY_NAMES,
+  WORKFLOW_TOOL_BASE_INPUT_SCHEMA,
+  MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
+  type WorkflowStateData,
+  type MCPToolInvocationData,
+  type MCPWorkflowToolOutput,
+  type ToolMetadata,
+  type WorkflowToolMetadata,
+} from './common/metadata.js';
+
+// Property Metadata
+export {
+  type PropertyMetadata,
+  type PropertyMetadataCollection,
+  type InferPropertyTypes,
+} from './common/propertyMetadata.js';
+
+// Tool Execution Infrastructure
+export { type ToolExecutor, LangGraphToolExecutor } from './nodes/toolExecutor.js';
+
+// Tool Execution Utils
+export { executeToolWithLogging } from './utils/toolExecutionUtils.js';

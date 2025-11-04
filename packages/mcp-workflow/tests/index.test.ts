@@ -6,16 +6,22 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { PACKAGE_VERSION } from '../src/index.js';
+import * as mcpWorkflow from '../src/index.js';
 
 describe('mcp-workflow package', () => {
-  it('should export PACKAGE_VERSION', () => {
-    expect(PACKAGE_VERSION).toBe('0.1.0');
+  it('should export core infrastructure modules', () => {
+    // Verify Phase 2 core infrastructure exports
+    expect(mcpWorkflow.WellKnownDirectoryManager).toBeDefined();
+    expect(mcpWorkflow.createLogger).toBeDefined();
+    expect(mcpWorkflow.WORKFLOW_STATE_DATA_SCHEMA).toBeDefined();
+    expect(mcpWorkflow.LangGraphToolExecutor).toBeDefined();
+    expect(mcpWorkflow.executeToolWithLogging).toBeDefined();
   });
 
-  it('should have package scaffolding in place', () => {
-    // This test verifies Phase 1 scaffolding is complete
-    // Actual functionality tests will be added during Phase 2+ extraction
-    expect(true).toBe(true);
+  it('should export metadata types and schemas', () => {
+    // Verify metadata exports
+    expect(mcpWorkflow.WORKFLOW_PROPERTY_NAMES).toBeDefined();
+    expect(mcpWorkflow.WORKFLOW_TOOL_BASE_INPUT_SCHEMA).toBeDefined();
+    expect(mcpWorkflow.MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA).toBeDefined();
   });
 });
