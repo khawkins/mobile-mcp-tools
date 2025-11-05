@@ -50,3 +50,12 @@ export { type ToolExecutor, LangGraphToolExecutor } from './nodes/toolExecutor.j
 
 // Tool Execution Utils
 export { executeToolWithLogging } from './utils/toolExecutionUtils.js';
+
+// Base Tool Classes
+export { AbstractTool, AbstractWorkflowTool } from './tools/base/index.js';
+
+// Base Node Classes
+export { BaseNode, AbstractToolNode } from './nodes/index.js';
+
+// Base Service Classes
+export { AbstractService } from './services/index.js';
