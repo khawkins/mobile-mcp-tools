@@ -82,3 +82,6 @@ export { BaseNode, AbstractToolNode } from './nodes/index.js';
 
 // Base Service Classes
 export { AbstractService } from './services/index.js';
+
+// Checkpointing Infrastructure
+export { JsonCheckpointSaver, WorkflowStatePersistence } from './checkpointing/index.js';
