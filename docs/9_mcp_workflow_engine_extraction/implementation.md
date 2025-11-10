@@ -433,6 +433,32 @@ orchestrator.register(orchestratorAnnotations);
 
 ## Implementation Guidelines
 
+### Linting Requirement
+
+**Requirement**: After completing any implementation work, run `npm run lint` on the affected package(s) and address all linting failures before proceeding to the next phase.
+
+**Workflow**:
+
+1. Complete implementation work for a phase or component
+2. Run linting:
+
+   ```bash
+   # For mcp-workflow package
+   npm run lint --workspace=@salesforce/magen-mcp-workflow
+
+   # For mobile-native-mcp-server package
+   npm run lint --workspace=@salesforce/mobile-native-mcp-server
+
+   # Or run for all packages
+   npm run lint --workspaces
+   ```
+
+3. Fix all linting errors and warnings
+4. Re-run linting to verify all issues are resolved
+5. Only then proceed to the next phase or commit changes
+
+**Rationale**: Maintaining code quality standards throughout the extraction process prevents accumulation of technical debt and ensures consistency across both packages.
+
 ### Dependency Injection and Inversion of Control
 
 **Requirement**: All mocking functionality must be enabled through Dependency Injection (DI) and Inversion of Control (IoC) design patterns in the code under test. Test framework utility classes for swapping runtime implementations represent a code smell and are forbidden.

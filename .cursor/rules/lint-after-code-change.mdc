@@ -1,0 +1,6 @@
+---
+description: Lint after all project file changes
+alwaysApply: true
+---
+
+- After any change to project files, run `npm run lint` in the directory of the changed files, and address any linting failures before proceeding with further steps.
