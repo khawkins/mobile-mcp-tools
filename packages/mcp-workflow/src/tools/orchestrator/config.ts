@@ -7,24 +7,7 @@
 
 import { StateGraph } from '@langchain/langgraph';
 import { Logger } from '../../logging/logger.js';
-
-/**
- * Workflow execution environment
- */
-export type WorkflowEnvironment = 'production' | 'test';
-
-/**
- * Context object for workflow execution configuration
- * Provides high-level environment information without exposing implementation details
- */
-export interface WorkflowContext {
-  /**
-   * Execution environment - determines checkpointing strategy
-   * - 'production': Uses JsonCheckpointSaver with .magen/ directory persistence
-   * - 'test': Uses MemorySaver for isolated, in-memory state (no file I/O)
-   */
-  environment: WorkflowEnvironment;
-}
+import { WorkflowStateManager } from '../../checkpointing/workflowStateManager.js';
 
 /**
  * Orchestrator configuration interface
@@ -42,7 +25,6 @@ export interface WorkflowContext {
  *   title: 'My Orchestrator',
  *   description: 'Orchestrates my workflow',
  *   workflow,
- *   context: { environment: 'production' } // Optional, defaults to production
  * };
  * ```
  */
@@ -67,16 +49,17 @@ export interface OrchestratorConfig {
   workflow: StateGraph<any, any, any, any, any, any, any, any>;
 
   /**
-   * Workflow execution context
-   * Optional - defaults to { environment: 'production' }
+   * Workflow state manager for checkpointing and persistence
    *
-   * The environment determines the checkpointing strategy:
-   * - 'production': JsonCheckpointSaver with .magen/ directory persistence
-   * - 'test': MemorySaver for isolated, in-memory state (no file I/O)
+   * Optional - if not provided, a default WorkflowStateManager will be created
+   * with production environment settings.
    *
-   * All checkpointing implementation details are encapsulated within the orchestrator.
+   * Provide a custom instance to:
+   * - Use test environment (in-memory state, no file I/O)
+   * - Customize well-known directory paths
+   * - Inject a mock for testing
    */
-  context?: WorkflowContext;
+  stateManager?: WorkflowStateManager;
 
   /**
    * Logger instance for workflow operations

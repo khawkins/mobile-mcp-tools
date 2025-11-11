@@ -5,11 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-export {
-  type WorkflowEnvironment,
-  type WorkflowContext,
-  type OrchestratorConfig,
-} from './config.js';
+export { type OrchestratorConfig } from './config.js';
 export {
   type OrchestratorInput,
   type OrchestratorOutput,

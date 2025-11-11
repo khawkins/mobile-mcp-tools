@@ -13,10 +13,10 @@ import {
   WELL_KNOWN_FILES,
   WellKnownDirectoryManager,
 } from '../../src/storage/wellKnownDirectory.js';
-import { MockFileSystemOperations } from '../utils/MockFileSystemOperations.js';
+import { MockFileSystem } from '../utils/MockFileSystem.js';
 
 describe('Well-Known Directory Utils', () => {
-  let mockFs: MockFileSystemOperations;
+  let mockFs: MockFileSystem;
   let manager: WellKnownDirectoryManager;
   const testHomeDir = '/test/home';
 
@@ -24,7 +24,7 @@ describe('Well-Known Directory Utils', () => {
   const originalEnv = { ...process.env };
 
   beforeEach(() => {
-    mockFs = new MockFileSystemOperations();
+    mockFs = new MockFileSystem();
     // Reset environment variables
     process.env = { ...originalEnv };
     // Create manager with mock filesystem and test path

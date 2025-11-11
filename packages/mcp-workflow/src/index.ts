@@ -84,14 +84,18 @@ export { BaseNode, AbstractToolNode } from './nodes/index.js';
 export { AbstractService } from './services/index.js';
 
 // Checkpointing Infrastructure
-export { JsonCheckpointSaver, WorkflowStatePersistence } from './checkpointing/index.js';
+export {
+  JsonCheckpointSaver,
+  WorkflowStatePersistence,
+  WorkflowStateManager,
+  type WorkflowStateManagerConfig,
+  type WorkflowEnvironment,
+} from './checkpointing/index.js';
 
 // Orchestrator Tool
 export {
   OrchestratorTool,
   createOrchestratorToolMetadata,
-  type WorkflowEnvironment,
-  type WorkflowContext,
   type OrchestratorConfig,
   type OrchestratorInput,
   type OrchestratorOutput,

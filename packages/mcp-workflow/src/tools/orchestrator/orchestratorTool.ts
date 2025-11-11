@@ -8,8 +8,7 @@
 import z from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { BaseCheckpointSaver, Command, MemorySaver } from '@langchain/langgraph';
-import { WellKnownDirectoryManager, WELL_KNOWN_FILES } from '../../storage/wellKnownDirectory.js';
+import { Command } from '@langchain/langgraph';
 import { createWorkflowLogger } from '../../logging/logger.js';
 import { AbstractTool } from '../base/abstractTool.js';
 import {
@@ -17,8 +16,7 @@ import {
   WORKFLOW_PROPERTY_NAMES,
   WorkflowStateData,
 } from '../../common/metadata.js';
-import { JsonCheckpointSaver } from '../../checkpointing/jsonCheckpointer.js';
-import { WorkflowStatePersistence } from '../../checkpointing/statePersistence.js';
+import { WorkflowStateManager } from '../../checkpointing/workflowStateManager.js';
 import { OrchestratorConfig } from './config.js';
 import {
   OrchestratorInput,
@@ -42,12 +40,13 @@ function generateUniqueThreadId(): string {
  *
  * The orchestrator accepts a configured StateGraph and manages:
  * - Thread-based session management
- * - Checkpointing and state persistence
  * - Workflow interrupts and resumptions
  * - LLM orchestration prompts for tool invocation
+ *
+ * All state management and checkpointing responsibilities are delegated to WorkflowStateManager.
  */
 export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
-  private readonly wellKnownDirectoryManager: WellKnownDirectoryManager;
+  private readonly stateManager: WorkflowStateManager;
 
   constructor(
     server: McpServer,
@@ -57,8 +56,9 @@ export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
     const effectiveLogger = config.logger || createWorkflowLogger('OrchestratorTool');
     super(server, createOrchestratorToolMetadata(config), 'OrchestratorTool', effectiveLogger);
 
-    // Initialize well-known directory manager
-    this.wellKnownDirectoryManager = new WellKnownDirectoryManager();
+    // Initialize state manager (use provided or create default for production)
+    this.stateManager =
+      config.stateManager || new WorkflowStateManager({ environment: 'production' });
   }
 
   /**
@@ -111,10 +111,8 @@ export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
     // Thread configuration for LangGraph
     const threadConfig = { configurable: { thread_id: threadId } };
 
-    // Initialize checkpointer for state persistence. This will either create a
-    // checkpointer based on existing serialized state, or a new instance if no
-    // serialized state is found.
-    const checkpointer = await this.createCheckpointer();
+    // Get checkpointer from state manager
+    const checkpointer = await this.stateManager.createCheckpointer();
 
     // Compile workflow with checkpointer
     const compiledWorkflow = this.config.workflow.compile({ checkpointer });
@@ -175,8 +173,8 @@ export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
         workflowStateData
       );
 
-      // Save our workflow state to disk
-      await this.saveCheckpointerState(checkpointer);
+      // Save the workflow state.
+      await this.stateManager.saveCheckpointerState(checkpointer);
 
       return {
         orchestrationInstructionsPrompt: orchestrationPrompt,
@@ -188,60 +186,6 @@ export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
       orchestrationInstructionsPrompt:
         'The workflow has concluded. No further workflow actions are forthcoming.',
     };
-  }
-
-  /**
-   * Create and configure workflow checkpointer for state persistence
-   *
-   * Creates a fresh checkpointer based on the environment context and hydrates it
-   * with state from disk if applicable.
-   */
-  private async createCheckpointer(): Promise<BaseCheckpointSaver> {
-    const environment = this.config.context?.environment || 'production';
-
-    if (environment === 'test') {
-      // Test environment: Use in-memory checkpointer (no file I/O)
-      return new MemorySaver();
-    }
-
-    // Production environment: Use JsonCheckpointSaver with .magen/ directory persistence
-    const workflowStateStorePath = this.wellKnownDirectoryManager.getWellKnownFilePath(
-      WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME
-    );
-    const checkpointer = new JsonCheckpointSaver();
-    const statePersistence = new WorkflowStatePersistence(workflowStateStorePath);
-
-    // Import the serialized state from disk if it exists
-    const serializedState = await statePersistence.readState();
-    if (serializedState) {
-      this.logger.info('Importing existing checkpointer state');
-      await checkpointer.importState(serializedState);
-    } else {
-      this.logger.info('No existing state found, starting with fresh checkpointer');
-    }
-
-    return checkpointer;
-  }
-
-  /**
-   * Save the checkpointer state to disk (production mode only)
-   *
-   * Note: Only applies to JsonCheckpointSaver. MemorySaver (used in test mode)
-   * intentionally does not persist state.
-   *
-   * @param checkpointer - The checkpointer being used to manage workflow state
-   */
-  private async saveCheckpointerState(checkpointer: BaseCheckpointSaver): Promise<void> {
-    // If we have a JsonCheckpointSaver (production mode), persist state to disk
-    if (checkpointer instanceof JsonCheckpointSaver) {
-      const exportedState = await checkpointer.exportState();
-      const workflowStateStorePath = this.wellKnownDirectoryManager.getWellKnownFilePath(
-        WELL_KNOWN_FILES.WORKFLOW_STATE_STORE_FILENAME
-      );
-      const statePersistence = new WorkflowStatePersistence(workflowStateStorePath);
-      await statePersistence.writeState(exportedState);
-      this.logger.info('Checkpointer state successfully persisted');
-    }
   }
 
   /**

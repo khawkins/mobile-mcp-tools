@@ -6,10 +6,14 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Annotation, StateGraph, START, END } from '@langchain/langgraph';
+import { Annotation, StateGraph, START, END, interrupt } from '@langchain/langgraph';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod';
 import { OrchestratorTool, OrchestratorConfig } from '../../../src/tools/orchestrator/index.js';
+import { WorkflowStateManager } from '../../../src/checkpointing/workflowStateManager.js';
 import { MockLogger } from '../../utils/MockLogger.js';
+import { MockFileSystem } from '../../utils/MockFileSystem.js';
+import { MCPToolInvocationData } from '../../../src/common/metadata.js';
 
 // Create a simple test state for testing
 const TestState = Annotation.Root({
@@ -46,7 +50,7 @@ describe('OrchestratorTool', () => {
         title: 'Test Orchestrator',
         description: 'Test Description',
         workflow,
-        context: { environment: 'test' },
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
         logger: mockLogger,
       };
 
@@ -91,7 +95,7 @@ describe('OrchestratorTool', () => {
         title: 'Test Orchestrator',
         description: 'Test Description',
         workflow,
-        context: { environment: 'test' },
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
         logger: mockLogger,
       };
 
@@ -114,7 +118,7 @@ describe('OrchestratorTool', () => {
         title: 'Test Orchestrator',
         description: 'Test orchestrator for new workflow',
         workflow,
-        context: { environment: 'test' },
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
         logger: mockLogger,
       };
 
@@ -148,7 +152,7 @@ describe('OrchestratorTool', () => {
         title: 'Test',
         description: 'Test',
         workflow,
-        context: { environment: 'test' },
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
         logger: mockLogger,
       };
 
@@ -191,7 +195,7 @@ describe('OrchestratorTool', () => {
         title: 'Test',
         description: 'Test',
         workflow,
-        context: { environment: 'test' },
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
         logger: mockLogger,
       };
 
@@ -220,7 +224,7 @@ describe('OrchestratorTool', () => {
         title: 'Test',
         description: 'Test',
         workflow,
-        context: { environment: 'test' },
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
         logger: mockLogger,
       };
 
@@ -251,7 +255,7 @@ describe('OrchestratorTool', () => {
         title: 'Test',
         description: 'Test',
         workflow,
-        context: { environment: 'test' },
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
         logger: mockLogger,
       };
 
@@ -287,7 +291,7 @@ describe('OrchestratorTool', () => {
         title: 'Registration Test',
         description: 'Tests tool registration',
         workflow,
-        context: { environment: 'test' },
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
         logger: mockLogger,
       };
 
@@ -313,7 +317,7 @@ describe('OrchestratorTool', () => {
         title: 'Test Mode',
         description: 'Uses test environment',
         workflow,
-        context: { environment: 'test' },
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
         logger: mockLogger,
       };
 
@@ -349,7 +353,7 @@ describe('OrchestratorTool', () => {
         title: 'Custom Tool ID Test',
         description: 'Tests dynamic tool ID',
         workflow,
-        context: { environment: 'test' },
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
         logger: mockLogger,
       };
 
@@ -357,6 +361,191 @@ describe('OrchestratorTool', () => {
 
       // Verify toolId is used in metadata
       expect(orchestrator.toolMetadata.toolId).toBe(customToolId);
+    });
+  });
+
+  describe('workflow interrupts and MCP tool invocation', () => {
+    it('should handle workflow interrupts and return orchestration prompt', async () => {
+      // Create a workflow that interrupts to invoke an MCP tool
+      const workflow = new StateGraph(TestState)
+        .addNode('interruptNode', (_state: State) => {
+          // Simulate an interrupt for MCP tool invocation
+          const mcpToolData: MCPToolInvocationData<z.ZodObject<z.ZodRawShape>> = {
+            llmMetadata: {
+              name: 'test-mcp-tool',
+              description: 'Test MCP Tool',
+              inputSchema: z.object({
+                testParam: z.string(),
+                workflowStateData: z.object({ thread_id: z.string() }),
+              }),
+            },
+            input: {
+              testParam: 'test-value',
+            },
+          };
+          return interrupt(mcpToolData);
+        })
+        .addEdge(START, 'interruptNode')
+        .addEdge('interruptNode', END);
+
+      const config: OrchestratorConfig = {
+        toolId: 'test-interrupt-orchestrator',
+        title: 'Test Interrupt',
+        description: 'Tests workflow interrupts',
+        workflow,
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
+        logger: mockLogger,
+      };
+
+      const orchestrator = new OrchestratorTool(server, config);
+
+      const result = await orchestrator.handleRequest({
+        userInput: {},
+        workflowStateData: { thread_id: '' },
+      });
+
+      expect(result.structuredContent).toBeDefined();
+      const output = result.structuredContent as { orchestrationInstructionsPrompt: string };
+      expect(output.orchestrationInstructionsPrompt).toContain('test-mcp-tool');
+      expect(output.orchestrationInstructionsPrompt).toContain('# Your Role');
+      expect(output.orchestrationInstructionsPrompt).toContain('# Your Task');
+      expect(output.orchestrationInstructionsPrompt).toContain('test-interrupt-orchestrator');
+      expect(output.orchestrationInstructionsPrompt).toContain('workflowStateData');
+    });
+
+    it('should include dynamic toolId in orchestration prompts', async () => {
+      const customToolId = 'my-dynamic-orchestrator-123';
+
+      const workflow = new StateGraph(TestState)
+        .addNode('interruptNode', (_state: State) => {
+          const mcpToolData: MCPToolInvocationData<z.ZodObject<z.ZodRawShape>> = {
+            llmMetadata: {
+              name: 'dynamic-test-tool',
+              description: 'Test',
+              inputSchema: z.object({
+                workflowStateData: z.object({ thread_id: z.string() }),
+              }),
+            },
+            input: {},
+          };
+          return interrupt(mcpToolData);
+        })
+        .addEdge(START, 'interruptNode')
+        .addEdge('interruptNode', END);
+
+      const config: OrchestratorConfig = {
+        toolId: customToolId,
+        title: 'Dynamic Tool ID',
+        description: 'Test',
+        workflow,
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
+        logger: mockLogger,
+      };
+
+      const orchestrator = new OrchestratorTool(server, config);
+
+      const result = await orchestrator.handleRequest({
+        userInput: {},
+        workflowStateData: { thread_id: '' },
+      });
+
+      const output = result.structuredContent as { orchestrationInstructionsPrompt: string };
+      // Should reference the custom tool ID in the prompt
+      expect(output.orchestrationInstructionsPrompt).toContain(customToolId);
+    });
+
+    it('should resume interrupted workflow with user input (full interrupt->resume cycle)', async () => {
+      // Use MockFileSystem for state persistence across calls
+      const mockFs = new MockFileSystem();
+      const testProjectPath = '/test/project';
+
+      // Create a workflow that always interrupts on first run, then processes resume input
+      const workflow = new StateGraph(TestState)
+        .addNode('requestData', (_state: State) => {
+          // Always interrupt to request MCP tool invocation
+          const mcpToolData: MCPToolInvocationData<z.ZodObject<z.ZodRawShape>> = {
+            llmMetadata: {
+              name: 'get-user-data',
+              description: 'Get user data',
+              inputSchema: z.object({
+                query: z.string(),
+                workflowStateData: z.object({ thread_id: z.string() }),
+              }),
+            },
+            input: {
+              query: 'What is your name?',
+            },
+          };
+          return interrupt(mcpToolData);
+        })
+        .addNode('processData', (state: State) => {
+          // Process the userInput that came from resumption
+          return {
+            userInput: state.userInput,
+            someBoolean: true,
+          };
+        })
+        .addEdge(START, 'requestData')
+        .addEdge('requestData', 'processData')
+        .addEdge('processData', END);
+
+      // Use production mode with mock filesystem to enable state persistence
+      const stateManager = new WorkflowStateManager({
+        environment: 'production',
+        projectPath: testProjectPath,
+        fileSystemOperations: mockFs,
+      });
+
+      const config: OrchestratorConfig = {
+        toolId: 'test-resume-orchestrator',
+        title: 'Test Resume',
+        description: 'Tests workflow resumption after interrupt',
+        workflow,
+        stateManager,
+        logger: mockLogger,
+      };
+
+      const orchestrator = new OrchestratorTool(server, config);
+
+      // STEP 1: Start workflow - should hit interrupt
+      const result1 = await orchestrator.handleRequest({
+        userInput: {},
+        workflowStateData: { thread_id: '' },
+      });
+
+      expect(result1.structuredContent).toBeDefined();
+      const output1 = result1.structuredContent as { orchestrationInstructionsPrompt: string };
+      expect(output1.orchestrationInstructionsPrompt).toContain('get-user-data');
+
+      // Extract thread_id from the prompt (it's embedded in the orchestration instructions)
+      const threadIdMatch = output1.orchestrationInstructionsPrompt.match(
+        /"thread_id":\s*"(mmw-[^"]+)"/
+      );
+      expect(threadIdMatch).not.toBeNull();
+      const threadId = threadIdMatch![1];
+
+      // Verify resuming log was NOT present (this was the initial start)
+      expect(mockLogger.hasLoggedMessage('Resuming interrupted workflow', 'info')).toBe(false);
+
+      // Reset mock logger to clear previous logs before resumption
+      mockLogger.reset();
+
+      // STEP 2: Resume workflow with user input from "tool execution"
+      const result2 = await orchestrator.handleRequest({
+        userInput: { userName: 'John Doe' },
+        workflowStateData: { thread_id: threadId },
+      });
+
+      // Should complete successfully
+      expect(result2).toBeDefined();
+
+      // Verify resuming log IS present now (after reset, so it's from this call)
+      const hasResumingLog = mockLogger.hasLoggedMessage('Resuming interrupted workflow', 'info');
+      expect(hasResumingLog).toBe(true);
+
+      // Verify completion message
+      const output2 = result2.structuredContent as { orchestrationInstructionsPrompt: string };
+      expect(output2.orchestrationInstructionsPrompt).toContain('The workflow has concluded');
     });
   });
 
@@ -385,7 +574,7 @@ describe('OrchestratorTool', () => {
         title: 'Custom State',
         description: 'Uses custom state structure',
         workflow,
-        context: { environment: 'test' },
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
         logger: mockLogger,
       };
 
@@ -398,6 +587,82 @@ describe('OrchestratorTool', () => {
 
       expect(result).toBeDefined();
       expect(result.structuredContent).toBeDefined();
+    });
+  });
+
+  describe('error handling', () => {
+    it('should handle invalid input gracefully and start new workflow', async () => {
+      const workflow = new StateGraph(TestState)
+        .addNode('start', (_state: State) => ({
+          messages: ['Started workflow'],
+        }))
+        .addEdge(START, 'start')
+        .addEdge('start', END);
+
+      const config: OrchestratorConfig = {
+        toolId: 'test-orchestrator',
+        title: 'Test Orchestrator',
+        description: 'Test orchestrator for error handling',
+        workflow,
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
+        logger: mockLogger,
+      };
+
+      const orchestrator = new OrchestratorTool(server, config);
+
+      // Send input that violates schema - userInput should be Record<string, unknown>, not a string
+      const result = await orchestrator.handleRequest({
+        // @ts-expect-error: We are intentionally sending a string instead of an object
+        userInput: 'this should be an object, not a string',
+        workflowStateData: { thread_id: 'test-thread' },
+      });
+
+      // Should still return a valid result (starts new workflow with generated thread ID)
+      expect(result).toBeDefined();
+      expect(result.content).toBeDefined();
+
+      // Verify error was logged
+      const errorLogs = mockLogger.getLogsByLevel('error');
+      expect(errorLogs.length).toBeGreaterThan(0);
+      expect(mockLogger.hasLoggedMessage('Error parsing orchestrator input', 'error')).toBe(true);
+
+      // Verify it started a new workflow despite the parse error
+      expect(mockLogger.hasLoggedMessage('Starting new workflow execution', 'info')).toBe(true);
+    });
+
+    it('should handle malformed workflowStateData gracefully', async () => {
+      const workflow = new StateGraph(TestState)
+        .addNode('start', (_state: State) => ({
+          messages: ['Started workflow'],
+        }))
+        .addEdge(START, 'start')
+        .addEdge('start', END);
+
+      const config: OrchestratorConfig = {
+        toolId: 'test-orchestrator',
+        title: 'Test Orchestrator',
+        description: 'Test orchestrator for malformed data',
+        workflow,
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
+        logger: mockLogger,
+      };
+
+      const orchestrator = new OrchestratorTool(server, config);
+
+      // Send input with malformed workflowStateData (should be object, not string)
+      const result = await orchestrator.handleRequest({
+        userInput: { test: 'data' },
+        // @ts-expect-error: We are intentionally sending a string instead of an object
+        workflowStateData: 'this is not an object',
+      });
+
+      // Should still return a valid result
+      expect(result).toBeDefined();
+      expect(result.content).toBeDefined();
+
+      // Verify error was logged and new workflow started
+      expect(mockLogger.hasLoggedMessage('Error parsing orchestrator input', 'error')).toBe(true);
+      expect(mockLogger.hasLoggedMessage('Starting new workflow execution', 'info')).toBe(true);
     });
   });
 });

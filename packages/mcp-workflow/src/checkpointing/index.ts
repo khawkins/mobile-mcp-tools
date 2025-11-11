@@ -7,3 +7,8 @@
 
 export { JsonCheckpointSaver } from './jsonCheckpointer.js';
 export { WorkflowStatePersistence } from './statePersistence.js';
+export {
+  WorkflowStateManager,
+  type WorkflowStateManagerConfig,
+  type WorkflowEnvironment,
+} from './workflowStateManager.js';
