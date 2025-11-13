@@ -13,7 +13,7 @@ import {
   getLwcComponentFromLlmResponse,
   loadEvaluationUnit,
 } from '../../src/utils/lwcUtils.js';
-import { LwcCodeType } from '@salesforce/mobile-web-mcp-server';
+import { LwcCodeType } from '../../src/schema/schema.js';
 import { join } from 'path';
 import { EVAL_DATA_FOLDER } from '../../src/evaluator/lwcGenerationEvaluator.js';
 
@@ -377,7 +377,8 @@ const abc = "xyz";
     });
   });
 
-  describe('loadEvaluationUnit', () => {
+  // Skipped because mobile-web dataset has been removed
+  describe.skip('loadEvaluationUnit', () => {
     it('should load an evaluation unit from a directory', async () => {
       const unit = await loadEvaluationUnit(join(EVAL_DATA_FOLDER, 'mobile-web/qrCodeOnlyScanner'));
       expect(unit).not.toBeNull();

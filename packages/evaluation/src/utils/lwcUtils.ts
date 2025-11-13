@@ -7,7 +7,7 @@
 
 import { join, extname, basename } from 'path';
 import * as fs from 'node:fs/promises';
-import { LwcCodeType } from '@salesforce/mobile-web-mcp-server';
+import { LwcCodeType } from '../schema/schema.js';
 import { EvalConfigSchema, type EvalConfig } from '../schema/schema.js';
 
 const THREE_BACKTICKS = '```';
