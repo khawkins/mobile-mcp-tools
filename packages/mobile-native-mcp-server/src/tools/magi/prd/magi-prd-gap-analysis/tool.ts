@@ -6,14 +6,14 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { Logger } from '../../../../logging/logger.js';
+import { Logger } from '@salesforce/magen-mcp-workflow';
 import { GAP_ANALYSIS_TOOL, GapAnalysisInput } from './metadata.js';
-import { PRDAbstractWorkflowTool } from '../../../base/prdAbstractWorkflowTool.js';
+import { AbstractMagiPrdTool } from '../abstractMagiPrdTool.js';
 
 /**
  * Tool for analyzing requirements against a feature brief to identify gaps.
  */
-export class MagiGapAnalysisTool extends PRDAbstractWorkflowTool<typeof GAP_ANALYSIS_TOOL> {
+export class MagiGapAnalysisTool extends AbstractMagiPrdTool<typeof GAP_ANALYSIS_TOOL> {
   constructor(server: McpServer, logger?: Logger) {
     super(server, GAP_ANALYSIS_TOOL, 'GapAnalysisTool', logger);
   }

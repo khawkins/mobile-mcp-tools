@@ -8,11 +8,11 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import dedent from 'dedent';
 import { MOBILE_SDK_TEMPLATES_PATH } from '../../../common.js';
-import { Logger } from '../../../logging/logger.js';
+import { Logger } from '@salesforce/magen-mcp-workflow';
 import { PROJECT_GENERATION_TOOL, ProjectGenerationWorkflowInput } from './metadata.js';
-import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
+import { AbstractNativeProjectManagerTool } from '../../base/abstractNativeProjectManagerTool.js';
 
-export class SFMobileNativeProjectGenerationTool extends AbstractWorkflowTool<
+export class SFMobileNativeProjectGenerationTool extends AbstractNativeProjectManagerTool<
   typeof PROJECT_GENERATION_TOOL
 > {
   constructor(server: McpServer, logger?: Logger) {

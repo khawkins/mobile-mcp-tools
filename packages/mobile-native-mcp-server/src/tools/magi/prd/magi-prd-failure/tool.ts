@@ -6,11 +6,11 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { Logger } from '../../../../logging/logger.js';
+import { Logger } from '@salesforce/magen-mcp-workflow';
 import { PRD_FAILURE_TOOL, PRDFailureWorkflowInput } from './metadata.js';
-import { AbstractWorkflowTool } from '../../../base/abstractWorkflowTool.js';
+import { AbstractMagiPrdTool } from '../abstractMagiPrdTool.js';
 
-export class PRDFailureTool extends AbstractWorkflowTool<typeof PRD_FAILURE_TOOL> {
+export class PRDFailureTool extends AbstractMagiPrdTool<typeof PRD_FAILURE_TOOL> {
   constructor(server: McpServer, logger?: Logger) {
     super(server, PRD_FAILURE_TOOL, 'PRDFailureTool', logger);
   }

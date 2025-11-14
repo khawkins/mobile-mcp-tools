@@ -5,15 +5,17 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { MCPToolInvocationData } from '../../../../common/metadata.js';
+import {
+  AbstractToolNode,
+  Logger,
+  MCPToolInvocationData,
+  ToolExecutor,
+} from '@salesforce/magen-mcp-workflow';
 import { PRDState } from '../metadata.js';
-import { PRDAbstractToolNode } from './prdAbstractToolNode.js';
 import { REQUIREMENTS_REVIEW_TOOL } from '../../../../tools/magi/prd/magi-prd-requirements-review/metadata.js';
-import { ToolExecutor } from '../../../nodes/toolExecutor.js';
-import { Logger } from '../../../../logging/logger.js';
 import { getMagiPath, MAGI_ARTIFACTS } from '../../../../utils/magiDirectory.js';
 
-export class PRDRequirementsReviewNode extends PRDAbstractToolNode {
+export class PRDRequirementsReviewNode extends AbstractToolNode<PRDState> {
   constructor(toolExecutor?: ToolExecutor, logger?: Logger) {
     super('requirementsReview', toolExecutor, logger);
   }

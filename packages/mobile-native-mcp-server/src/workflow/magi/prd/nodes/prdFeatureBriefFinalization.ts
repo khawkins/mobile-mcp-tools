@@ -5,19 +5,21 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { MCPToolInvocationData } from '../../../../common/metadata.js';
+import {
+  AbstractToolNode,
+  Logger,
+  MCPToolInvocationData,
+  ToolExecutor,
+} from '@salesforce/magen-mcp-workflow';
 import { PRDState } from '../metadata.js';
-import { PRDAbstractToolNode } from './prdAbstractToolNode.js';
 import { FEATURE_BRIEF_FINALIZATION_TOOL } from '../../../../tools/magi/prd/magi-prd-feature-brief-finalization/metadata.js';
-import { ToolExecutor } from '../../../nodes/toolExecutor.js';
-import { Logger } from '../../../../logging/logger.js';
 import { getMagiPath, writeMagiArtifact, MAGI_ARTIFACTS } from '../../../../utils/magiDirectory.js';
 
 /**
  * Workflow node for finalizing feature brief after user approval.
  * This node updates the status to "approved" without modifying content.
  */
-export class PRDFeatureBriefFinalizationNode extends PRDAbstractToolNode {
+export class PRDFeatureBriefFinalizationNode extends AbstractToolNode<PRDState> {
   constructor(toolExecutor?: ToolExecutor, logger?: Logger) {
     super('featureBriefFinalization', toolExecutor, logger);
   }

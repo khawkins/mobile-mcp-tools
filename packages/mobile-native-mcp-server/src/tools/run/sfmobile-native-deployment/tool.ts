@@ -7,12 +7,14 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import dedent from 'dedent';
-import { Logger } from '../../../logging/logger.js';
+import { Logger } from '@salesforce/magen-mcp-workflow';
 import { DEPLOYMENT_TOOL, DeploymentWorkflowInput } from './metadata.js';
-import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
+import { AbstractNativeProjectManagerTool } from '../../base/abstractNativeProjectManagerTool.js';
 import { TempDirectoryManager, defaultTempDirectoryManager } from '../../../common.js';
 
-export class SFMobileNativeDeploymentTool extends AbstractWorkflowTool<typeof DEPLOYMENT_TOOL> {
+export class SFMobileNativeDeploymentTool extends AbstractNativeProjectManagerTool<
+  typeof DEPLOYMENT_TOOL
+> {
   private readonly tempDirManager: TempDirectoryManager;
 
   constructor(

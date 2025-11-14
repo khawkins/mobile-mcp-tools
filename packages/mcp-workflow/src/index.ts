@@ -44,6 +44,7 @@ export {
   type PropertyMetadataCollection,
   type InferPropertyTypes,
 } from './common/propertyMetadata.js';
+export { type PropertyFulfilledResult, type IsPropertyFulfilled } from './common/types.js';
 
 // Tool Execution Infrastructure
 export { type ToolExecutor, LangGraphToolExecutor } from './nodes/toolExecutor.js';
@@ -78,7 +79,14 @@ export {
 } from './tools/utilities/index.js';
 
 // Base Node Classes
-export { BaseNode, AbstractToolNode } from './nodes/index.js';
+export {
+  BaseNode,
+  AbstractToolNode,
+  createGetUserInputNode,
+  createUserInputExtractionNode,
+  type GetUserInputNodeOptions,
+  type UserInputExtractionNodeOptions,
+} from './nodes/index.js';
 
 // Base Service Classes
 export { AbstractService } from './services/index.js';

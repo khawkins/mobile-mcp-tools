@@ -6,7 +6,7 @@
  */
 
 import { END, START, StateGraph } from '@langchain/langgraph';
-import { MobileNativeWorkflowState } from './metadata.js';
+import { MobileNativeWorkflowState, State, WORKFLOW_USER_INPUT_PROPERTIES } from './metadata.js';
 import { EnvironmentValidationNode } from './nodes/environment.js';
 import { TemplateDiscoveryNode } from './nodes/templateDiscovery.js';
 import { ProjectGenerationNode } from './nodes/projectGeneration.js';
@@ -15,16 +15,28 @@ import { BuildRecoveryNode } from './nodes/buildRecovery.js';
 import { CheckBuildSuccessfulRouter } from './nodes/checkBuildSuccessfulRouter.js';
 import { DeploymentNode } from './nodes/deploymentNode.js';
 import { CompletionNode } from './nodes/completionNode.js';
-import { UserInputExtractionNode } from './nodes/userInputExtraction.js';
 import { CheckPropertiesFulFilledRouter } from './nodes/checkPropertiesFulfilledRouter.js';
-import { GetUserInputNode } from './nodes/getUserInput.js';
 import { FailureNode } from './nodes/failureNode.js';
 import { CheckEnvironmentValidatedRouter } from './nodes/checkEnvironmentValidated.js';
 import { PlatformCheckNode } from './nodes/checkPlatformSetup.js';
 import { CheckSetupValidatedRouter } from './nodes/checkSetupValidatedRouter.js';
+import {
+  createGetUserInputNode,
+  createUserInputExtractionNode,
+} from '@salesforce/magen-mcp-workflow';
+import { SFMOBILE_NATIVE_GET_INPUT_TOOL_ID } from '../tools/utils/sfmobile-native-get-input/metadata.js';
+import { SFMOBILE_NATIVE_INPUT_EXTRACTION_TOOL_ID } from '../tools/utils/sfmobile-native-input-extraction/metadata.js';
 
-const initialUserInputExtractionNode = new UserInputExtractionNode();
-const userInputNode = new GetUserInputNode();
+const initialUserInputExtractionNode = createUserInputExtractionNode<State>({
+  requiredProperties: WORKFLOW_USER_INPUT_PROPERTIES,
+  toolId: SFMOBILE_NATIVE_INPUT_EXTRACTION_TOOL_ID,
+});
+
+const userInputNode = createGetUserInputNode<State>({
+  requiredProperties: WORKFLOW_USER_INPUT_PROPERTIES,
+  toolId: SFMOBILE_NATIVE_GET_INPUT_TOOL_ID,
+  userInputProperty: 'userInput',
+});
 const environmentValidationNode = new EnvironmentValidationNode();
 const platformCheckNode = new PlatformCheckNode();
 const templateDiscoveryNode = new TemplateDiscoveryNode();

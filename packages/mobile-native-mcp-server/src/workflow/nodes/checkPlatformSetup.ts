@@ -6,9 +6,8 @@
  */
 
 import { State } from '../metadata.js';
-import { BaseNode } from './abstractBaseNode.js';
+import { BaseNode, createComponentLogger, Logger } from '@salesforce/magen-mcp-workflow';
 import z from 'zod';
-import { createComponentLogger, Logger } from '../../logging/logger.js';
 import { execSync } from 'child_process';
 
 const REQUIREMENT_RESULT_SCHEMA = z.object({
@@ -36,7 +35,7 @@ const PLATFORM_API_LEVELS = {
   Android: '35',
 } as const;
 
-export class PlatformCheckNode extends BaseNode {
+export class PlatformCheckNode extends BaseNode<State> {
   protected readonly logger: Logger;
   constructor(logger?: Logger) {
     super('checkPlatformSetup');

@@ -8,11 +8,11 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import dedent from 'dedent';
 import { MOBILE_SDK_TEMPLATES_PATH } from '../../../common.js';
-import { Logger } from '../../../logging/logger.js';
+import { Logger } from '@salesforce/magen-mcp-workflow';
 import { TEMPLATE_DISCOVERY_TOOL, TemplateDiscoveryWorkflowInput } from './metadata.js';
-import { AbstractWorkflowTool } from '../../base/abstractWorkflowTool.js';
+import { AbstractNativeProjectManagerTool } from '../../base/abstractNativeProjectManagerTool.js';
 
-export class SFMobileNativeTemplateDiscoveryTool extends AbstractWorkflowTool<
+export class SFMobileNativeTemplateDiscoveryTool extends AbstractNativeProjectManagerTool<
   typeof TEMPLATE_DISCOVERY_TOOL
 > {
   constructor(server: McpServer, logger?: Logger) {

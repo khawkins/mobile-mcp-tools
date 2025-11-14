@@ -5,14 +5,16 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { MCPToolInvocationData } from '../../../../common/metadata.js';
+import {
+  AbstractToolNode,
+  Logger,
+  MCPToolInvocationData,
+  ToolExecutor,
+} from '@salesforce/magen-mcp-workflow';
 import { PRDState } from '../metadata.js';
-import { PRDAbstractToolNode } from './prdAbstractToolNode.js';
-import { ToolExecutor } from '../../../nodes/toolExecutor.js';
-import { Logger } from '../../../../logging/logger.js';
 import { PRD_FAILURE_TOOL } from '../../../../tools/magi/prd/magi-prd-failure/metadata.js';
 
-export class PRDFailureNode extends PRDAbstractToolNode {
+export class PRDFailureNode extends AbstractToolNode<PRDState> {
   constructor(toolExecutor?: ToolExecutor, logger?: Logger) {
     super('prdFailure', toolExecutor, logger);
   }

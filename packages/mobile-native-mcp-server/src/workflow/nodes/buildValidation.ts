@@ -6,15 +6,13 @@
  */
 
 import { State } from '../metadata.js';
-import { BaseNode } from './abstractBaseNode.js';
-import { ToolExecutor } from './toolExecutor.js';
-import { Logger } from '../../logging/logger.js';
+import { BaseNode, Logger, ToolExecutor } from '@salesforce/magen-mcp-workflow';
 import {
   BuildValidationService,
   BuildValidationServiceProvider,
 } from '../services/buildValidationService.js';
 
-export class BuildValidationNode extends BaseNode {
+export class BuildValidationNode extends BaseNode<State> {
   private readonly buildValidationService: BuildValidationServiceProvider;
 
   constructor(

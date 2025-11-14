@@ -6,12 +6,10 @@
  */
 
 import { PRDState } from '../metadata.js';
-import { PRDAbstractToolNode } from './prdAbstractToolNode.js';
-import { ToolExecutor } from '../../../nodes/toolExecutor.js';
-import { Logger } from '../../../../logging/logger.js';
+import { AbstractToolNode, Logger, ToolExecutor } from '@salesforce/magen-mcp-workflow';
 import { ensureMagiSddDirectory } from '../../../../utils/magiDirectory.js';
 
-export class PRDMagiInitializationNode extends PRDAbstractToolNode {
+export class PRDMagiInitializationNode extends AbstractToolNode<PRDState> {
   constructor(toolExecutor?: ToolExecutor, logger?: Logger) {
     super('magiInitialization', toolExecutor, logger);
   }
