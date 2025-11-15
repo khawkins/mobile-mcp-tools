@@ -8,9 +8,9 @@
 import { z } from 'zod/v4';
 import { LlmClient } from '../llmclient/llmClient.js';
 import { formatComponent4LLM } from '../utils/lwcUtils.js';
-import { LwcCodeType } from '../schema/schema.js';
 import { getJsonResponse } from '../utils/responseUtils.js';
 import {
+  LwcCodeType,
   Score,
   ScoreVerdict,
   ScoreVerdictEnum,
