@@ -163,7 +163,8 @@ export function calculateOverallScore(evaluation: EvaluationResponse): number {
   return Math.round(totalScore);
 }
 
-function determineVerdict(score: number): Score {
+// Exported for testing
+export function determineVerdict(score: number): Score {
   let verdict: ScoreVerdict;
   if (score >= 85) verdict = 'Pass GA Criteria';
   else if (score >= 70) verdict = 'Pass Beta Criteria';

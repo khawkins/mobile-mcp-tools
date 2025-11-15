@@ -377,14 +377,16 @@ const abc = "xyz";
     });
   });
 
-  // Skipped because mobile-web dataset has been removed
-  describe.skip('loadEvaluationUnit', () => {
-    it('should load an evaluation unit from a directory', async () => {
-      const unit = await loadEvaluationUnit(join(EVAL_DATA_FOLDER, 'mobile-web/qrCodeOnlyScanner'));
-      expect(unit).not.toBeNull();
-      expect(unit?.query).not.toBeNull();
-      expect(unit?.component).not.toBeNull();
-      expect(unit?.config.mcpTools?.[0].toolId).toBe('sfmobile-web-barcode-scanner');
+  describe('loadEvaluationUnit', () => {
+    it('should return null for non-existent directory', async () => {
+      const unit = await loadEvaluationUnit('/non/existent/path');
+      expect(unit).toBeNull();
+    });
+
+    it('should return null for invalid directory structure', async () => {
+      // Using a path that exists but doesn't have the expected structure
+      const unit = await loadEvaluationUnit(__dirname);
+      expect(unit).toBeNull();
     });
   });
 });

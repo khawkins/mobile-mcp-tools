@@ -108,8 +108,9 @@ mobile-mcp-tools/
 │   └── project-maintenance-utilities/  # Project automation utilities
 ├── docs/                               # Project documentation
 │   ├── 1_project_overview.md
-│   ├── 3_mobile_native_capabilities.md
-│   └── 4_mobile_offline.md
+│   ├── 5_mobile_native_app_generation.md
+│   ├── 7_utils_xcode_add_files_design.md
+│   └── 8_prd_wordflow_architecture.md
 ├── .github/workflows/           # GitHub Actions workflows
 ├── nx.json                      # Nx workspace configuration
 ├── package.json                 # Monorepo dependencies and scripts
