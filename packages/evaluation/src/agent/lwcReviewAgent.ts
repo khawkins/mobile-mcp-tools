@@ -8,7 +8,7 @@
 import { LlmClient } from '../llmclient/llmClient.js';
 import { MobileWebMcpClient } from '../mcpclient/mobileWebMcpClient.js';
 import { formatLwcCode4LLM } from '../utils/lwcUtils.js';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { z } from 'zod/v4';
 
 import {
   ExpertsCodeAnalysisIssuesSchema,
@@ -19,7 +19,7 @@ import {
 } from '../schema/schema.js';
 import { getJsonResponse } from '../utils/responseUtils.js';
 
-const jsonSchema = zodToJsonSchema(CodeAnalysisIssuesSchema);
+const jsonSchema = z.toJSONSchema(CodeAnalysisIssuesSchema);
 
 /**
  * This class reviews LWC components using mobile-web offline analysis and guidance tools

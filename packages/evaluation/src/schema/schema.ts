@@ -82,7 +82,9 @@ export const ExpertsCodeAnalysisIssuesSchema = z.object({
 
 // Schema for expected response format that separates schema from input values
 const ExpectedResponseFormatSchema = z.object({
-  schema: z.record(z.any()).describe('The JSON schema definition for the expected response format'),
+  schema: z
+    .record(z.string(), z.any())
+    .describe('The JSON schema definition for the expected response format'),
   inputValues: z
     .object({
       expertReviewerName: ExpertReviewerNameSchema,
