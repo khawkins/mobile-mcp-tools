@@ -14,8 +14,6 @@ import {
   loadEvaluationUnit,
 } from '../../src/utils/lwcUtils.js';
 import { LwcCodeType } from '../../src/schema/schema.js';
-import { join } from 'path';
-import { EVAL_DATA_FOLDER } from '../../src/evaluator/lwcGenerationEvaluator.js';
 
 describe('LWC Utilities', () => {
   describe('getExtensionType', () => {
