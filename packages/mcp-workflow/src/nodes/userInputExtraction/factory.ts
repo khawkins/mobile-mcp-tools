@@ -29,9 +29,9 @@ import { UserInputExtractionNodeOptions, UserInputExtractionNode } from './node.
  * @example
  * ```typescript
  * const MyState = Annotation.Root({
- *   userInput: Annotation<unknown>(),
- *   platform: Annotation<string>(),
- *   projectName: Annotation<string>(),
+ *   userInput: Annotation<unknown>,
+ *   platform: Annotation<string>,
+ *   projectName: Annotation<string>,
  * });
  *
  * const properties = {

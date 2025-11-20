@@ -15,9 +15,9 @@ import { PropertyMetadataCollection } from '../../../src/common/propertyMetadata
 // Test state type
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const TestState = Annotation.Root({
-  userInput: Annotation<unknown>(),
-  platform: Annotation<string>(),
-  projectName: Annotation<string>(),
+  userInput: Annotation<unknown>,
+  platform: Annotation<string>,
+  projectName: Annotation<string>,
 });
 
 type TestStateType = typeof TestState.State;

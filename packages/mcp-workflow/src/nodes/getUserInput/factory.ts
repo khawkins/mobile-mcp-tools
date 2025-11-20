@@ -27,9 +27,9 @@ import { PropertyFulfilledResult } from '../../common/types.js';
  * @example
  * ```typescript
  * const MyState = Annotation.Root({
- *   userInput: Annotation<unknown>(),
- *   platform: Annotation<string>(),
- *   projectName: Annotation<string>(),
+ *   userInput: Annotation<unknown>,
+ *   platform: Annotation<string>,
+ *   projectName: Annotation<string>,
  * });
  *
  * const properties = {
@@ -70,7 +70,7 @@ export function createGetUserInputNode<TState extends StateType<StateDefinition>
         reason: `Property '${propertyName}' is missing from the workflow state.`,
       };
     },
-    userInputProperty,
+    userInputProperty = 'userInput' as keyof TState,
   } = options;
 
   // Create default service implementation if not provided

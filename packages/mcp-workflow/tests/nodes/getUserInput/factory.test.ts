@@ -15,15 +15,30 @@ import { MockLogger } from '../../utils/MockLogger.js';
 import { PropertyMetadataCollection } from '../../../src/common/propertyMetadata.js';
 import { PropertyFulfilledResult } from '../../../src/common/types.js';
 
-// Test state type
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const TestState = Annotation.Root({
-  userInput: Annotation<unknown>(),
-  platform: Annotation<string>(),
-  projectName: Annotation<string>(),
+// Test state definition
+// NB: Since we only use TestState to create and use its State type, TypeScript complains.
+// Hence the underscore prefix here.
+const _TestState = Annotation.Root({
+  userInput: Annotation<unknown>,
+  platform: Annotation<string>,
+  projectName: Annotation<string>,
 });
 
-type TestStateType = typeof TestState.State;
+type TestStateType = typeof _TestState.State;
+
+/**
+ * Creates a test State object with sensible defaults for testing.
+ * This helper handles the tension between TypeScript's strict typing and
+ * LangGraph's partial state management.
+ */
+function createTestState(overrides: Partial<TestStateType> = {}): TestStateType {
+  return {
+    userInput: undefined,
+    platform: undefined,
+    projectName: undefined,
+    ...overrides,
+  } as TestStateType;
+}
 
 describe('createGetUserInputNode', () => {
   let mockToolExecutor: MockToolExecutor;
@@ -52,11 +67,34 @@ describe('createGetUserInputNode', () => {
       const node = createGetUserInputNode({
         requiredProperties,
         toolId: 'test-get-input',
-        userInputProperty: 'userInput',
       });
 
       expect(node).toBeDefined();
       expect(node.name).toBe('getUserInput');
+    });
+
+    it('should use default userInputProperty when not specified', () => {
+      const toolId = 'test-get-input';
+      const userResponse = 'test response';
+      mockToolExecutor.setResult(toolId, {
+        userUtterance: userResponse,
+      });
+
+      const node = createGetUserInputNode({
+        requiredProperties,
+        toolId,
+        toolExecutor: mockToolExecutor,
+        logger: mockLogger,
+        // userInputProperty not specified - should default to 'userInput'
+      });
+
+      const state = createTestState();
+
+      const result = node.execute(state);
+
+      // Should write to 'userInput' property by default
+      expect(result).toHaveProperty('userInput');
+      expect(result.userInput).toBe(userResponse);
     });
 
     it('should create a node with provided service', () => {
@@ -68,7 +106,6 @@ describe('createGetUserInputNode', () => {
         requiredProperties,
         toolId: 'test-get-input',
         getInputService: mockService,
-        userInputProperty: 'userInput',
       });
 
       expect(node).toBeDefined();
@@ -80,7 +117,6 @@ describe('createGetUserInputNode', () => {
         requiredProperties,
         toolId: 'test-get-input',
         toolExecutor: mockToolExecutor,
-        userInputProperty: 'userInput',
       });
 
       expect(node).toBeDefined();
@@ -91,7 +127,6 @@ describe('createGetUserInputNode', () => {
         requiredProperties,
         toolId: 'test-get-input',
         logger: mockLogger,
-        userInputProperty: 'userInput',
       });
 
       expect(node).toBeDefined();
@@ -124,7 +159,6 @@ describe('createGetUserInputNode', () => {
         requiredProperties,
         toolId: 'test-get-input',
         isPropertyFulfilled: customIsFulfilled,
-        userInputProperty: 'userInput',
       });
 
       expect(node).toBeDefined();
@@ -141,18 +175,65 @@ describe('createGetUserInputNode', () => {
         toolId,
         toolExecutor: mockToolExecutor,
         logger: mockLogger,
-        userInputProperty: 'userInput',
       });
 
-      const state: TestStateType = {
-        userInput: undefined,
-        platform: undefined,
-        projectName: undefined,
-      };
+      const state = createTestState();
 
       // Execute node - it should call the service
       const result = node.execute(state);
       expect(result).toHaveProperty('userInput');
+    });
+
+    it('should allow custom userInputProperty to be specified', () => {
+      // Test state with a different property name for user input
+      const _CustomTestState = Annotation.Root({
+        customInput: Annotation<unknown>,
+        platform: Annotation<string>,
+        projectName: Annotation<string>,
+      });
+
+      type CustomTestStateType = typeof _CustomTestState.State;
+
+      function createCustomTestState(
+        overrides: Partial<CustomTestStateType> = {}
+      ): CustomTestStateType {
+        return {
+          customInput: undefined,
+          platform: undefined,
+          projectName: undefined,
+          ...overrides,
+        } as CustomTestStateType;
+      }
+
+      const customRequiredProperties: PropertyMetadataCollection = {
+        platform: {
+          zodType: z.enum(['iOS', 'Android']),
+          description: 'Target platform',
+          friendlyName: 'platform',
+        },
+      };
+
+      const toolId = 'custom-tool-id';
+      const userResponse = 'iOS';
+      mockToolExecutor.setResult(toolId, {
+        userUtterance: userResponse,
+      });
+
+      const node = createGetUserInputNode<CustomTestStateType>({
+        requiredProperties: customRequiredProperties,
+        toolId,
+        toolExecutor: mockToolExecutor,
+        logger: mockLogger,
+        userInputProperty: 'customInput', // Custom property name
+      });
+
+      const state = createCustomTestState();
+
+      const result = node.execute(state);
+
+      // Should write to 'customInput' property instead of 'userInput'
+      expect(result).toHaveProperty('customInput');
+      expect(result.customInput).toBe(userResponse);
     });
   });
 
@@ -169,14 +250,9 @@ describe('createGetUserInputNode', () => {
         toolId,
         toolExecutor: mockToolExecutor,
         logger: mockLogger,
-        userInputProperty: 'userInput',
       });
 
-      const state: TestStateType = {
-        userInput: undefined,
-        platform: undefined,
-        projectName: undefined,
-      };
+      const state = createTestState();
 
       const result = node.execute(state);
 
@@ -195,14 +271,9 @@ describe('createGetUserInputNode', () => {
         toolId,
         toolExecutor: mockToolExecutor,
         logger: mockLogger,
-        userInputProperty: 'userInput',
       });
 
-      const state: TestStateType = {
-        userInput: undefined,
-        platform: undefined,
-        projectName: undefined,
-      };
+      const state = createTestState();
 
       const result = node.execute(state);
       expect(result).toHaveProperty('userInput');
@@ -219,14 +290,11 @@ describe('createGetUserInputNode', () => {
         toolId,
         toolExecutor: mockToolExecutor,
         logger: mockLogger,
-        userInputProperty: 'userInput',
       });
 
-      const state: TestStateType = {
-        userInput: undefined,
+      const state = createTestState({
         platform: 'iOS', // Already fulfilled
-        projectName: undefined,
-      };
+      });
 
       const result = node.execute(state);
       expect(result).toHaveProperty('userInput');
@@ -243,14 +311,9 @@ describe('createGetUserInputNode', () => {
         requiredProperties,
         toolId: 'test-get-input',
         getInputService: mockService,
-        userInputProperty: 'userInput',
       });
 
-      const state: TestStateType = {
-        userInput: undefined,
-        platform: undefined,
-        projectName: undefined,
-      };
+      const state = createTestState();
 
       const result = node.execute(state);
       expect(result.userInput).toBe('custom response');
@@ -269,14 +332,9 @@ describe('createGetUserInputNode', () => {
         requiredProperties,
         toolId: 'test-get-input',
         getInputService: mockService,
-        userInputProperty: 'userInput',
       });
 
-      const state: TestStateType = {
-        userInput: undefined,
-        platform: undefined,
-        projectName: undefined,
-      };
+      const state = createTestState();
 
       node.execute(state);
 
