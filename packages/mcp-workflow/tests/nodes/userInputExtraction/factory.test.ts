@@ -14,15 +14,28 @@ import { MockToolExecutor } from '../../utils/MockToolExecutor.js';
 import { MockLogger } from '../../utils/MockLogger.js';
 import { PropertyMetadataCollection } from '../../../src/common/propertyMetadata.js';
 
-// Test state type
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const TestState = Annotation.Root({
+// Test state definition
+// NB: Since we only use TestState to create and use its State type, TypeScript complains.
+// Hence the underscore prefix here.
+const _TestState = Annotation.Root({
   userInput: Annotation<unknown>,
   platform: Annotation<string>,
   projectName: Annotation<string>,
 });
 
-type TestStateType = typeof TestState.State;
+type TestStateType = typeof _TestState.State;
+
+/**
+ * Creates a test State object with sensible defaults for testing.
+ */
+function createTestState(overrides: Partial<TestStateType> = {}): TestStateType {
+  return {
+    userInput: undefined,
+    platform: undefined,
+    projectName: undefined,
+    ...overrides,
+  } as TestStateType;
+}
 
 describe('createUserInputExtractionNode', () => {
   let mockToolExecutor: MockToolExecutor;
@@ -94,18 +107,81 @@ describe('createUserInputExtractionNode', () => {
       expect(node).toBeDefined();
     });
 
-    it('should use custom getUserInput function', () => {
-      const customGetUserInput = (state: TestStateType) => {
-        return state.userInput;
-      };
-
+    it('should use default userInputProperty when not specified', () => {
       const node = createUserInputExtractionNode({
         requiredProperties,
         toolId: 'test-input-extraction',
-        getUserInput: customGetUserInput,
       });
 
       expect(node).toBeDefined();
+      expect(node.name).toBe('userInputExtraction');
+
+      // Verify it uses 'userInput' by default
+      const mockService: InputExtractionServiceProvider = {
+        extractProperties: () => ({
+          extractedProperties: { platform: 'iOS' },
+        }),
+      };
+
+      const nodeWithService = createUserInputExtractionNode({
+        requiredProperties,
+        toolId: 'test-input-extraction',
+        extractionService: mockService,
+      });
+
+      const state = createTestState({
+        userInput: 'test input',
+      });
+
+      const result = nodeWithService.execute(state);
+      expect(result).toBeDefined();
+    });
+
+    it('should allow custom userInputProperty to be specified', () => {
+      // Test state with a different property name for user input
+      const _CustomTestState = Annotation.Root({
+        customInput: Annotation<unknown>,
+        platform: Annotation<string>,
+        projectName: Annotation<string>,
+      });
+
+      type CustomTestStateType = typeof _CustomTestState.State;
+
+      function createCustomTestState(
+        overrides: Partial<CustomTestStateType> = {}
+      ): CustomTestStateType {
+        return {
+          customInput: undefined,
+          platform: undefined,
+          projectName: undefined,
+          ...overrides,
+        } as CustomTestStateType;
+      }
+
+      let capturedUserInput: unknown;
+      const mockService: InputExtractionServiceProvider = {
+        extractProperties: userInput => {
+          capturedUserInput = userInput;
+          return {
+            extractedProperties: {},
+          };
+        },
+      };
+
+      const node = createUserInputExtractionNode<CustomTestStateType>({
+        requiredProperties,
+        toolId: 'test-input-extraction',
+        extractionService: mockService,
+        userInputProperty: 'customInput',
+      });
+
+      const state = createCustomTestState({
+        customInput: 'custom input value',
+      });
+
+      node.execute(state);
+
+      expect(capturedUserInput).toBe('custom input value');
     });
 
     it('should create default service with correct toolId', () => {
@@ -124,11 +200,9 @@ describe('createUserInputExtractionNode', () => {
         logger: mockLogger,
       });
 
-      const state: TestStateType = {
+      const state = createTestState({
         userInput: 'I want to create an iOS app called TestProject',
-        platform: undefined as unknown as string,
-        projectName: undefined as unknown as string,
-      };
+      });
 
       // Execute node - it should call the service
       const result = node.execute(state);
@@ -154,11 +228,9 @@ describe('createUserInputExtractionNode', () => {
         logger: mockLogger,
       });
 
-      const state: TestStateType = {
+      const state = createTestState({
         userInput: 'I want to create an iOS app called MyApp',
-        platform: undefined as unknown as string,
-        projectName: undefined as unknown as string,
-      };
+      });
 
       const result = node.execute(state);
 
@@ -167,7 +239,7 @@ describe('createUserInputExtractionNode', () => {
       expect(mockToolExecutor.getCallHistory().length).toBeGreaterThan(0);
     });
 
-    it('should use default getUserInput when not provided', () => {
+    it('should use default userInputProperty when not provided', () => {
       const toolId = 'test-input-extraction';
       mockToolExecutor.setResult(toolId, {
         extractedProperties: {
@@ -182,11 +254,9 @@ describe('createUserInputExtractionNode', () => {
         logger: mockLogger,
       });
 
-      const state: TestStateType = {
+      const state = createTestState({
         userInput: 'Android app',
-        platform: undefined as unknown as string,
-        projectName: undefined as unknown as string,
-      };
+      });
 
       const result = node.execute(state);
       expect(result).toBeDefined();
@@ -211,11 +281,9 @@ describe('createUserInputExtractionNode', () => {
         extractionService: mockService,
       });
 
-      const state: TestStateType = {
+      const state = createTestState({
         userInput: 'some input',
-        platform: undefined as unknown as string,
-        projectName: undefined as unknown as string,
-      };
+      });
 
       const result = node.execute(state);
       expect(result.platform).toBe(extractedProps.platform);
@@ -241,11 +309,9 @@ describe('createUserInputExtractionNode', () => {
         extractionService: mockService,
       });
 
-      const state: TestStateType = {
+      const state = createTestState({
         userInput: 'test input',
-        platform: undefined as unknown as string,
-        projectName: undefined as unknown as string,
-      };
+      });
 
       node.execute(state);
 

@@ -62,14 +62,12 @@ export function createUserInputExtractionNode<TState extends StateType<StateDefi
     extractionService,
     toolExecutor = new LangGraphToolExecutor(),
     logger = createComponentLogger('UserInputExtractionNode'),
-    getUserInput = (state: TState) => {
-      return state.userInput;
-    },
+    userInputProperty = 'userInput' as keyof TState,
   } = options;
 
   // Create default service implementation if not provided
   const service: InputExtractionServiceProvider =
     extractionService ?? new InputExtractionService(toolId, toolExecutor, logger);
 
-  return new UserInputExtractionNode(service, requiredProperties, getUserInput);
+  return new UserInputExtractionNode(service, requiredProperties, userInputProperty);
 }

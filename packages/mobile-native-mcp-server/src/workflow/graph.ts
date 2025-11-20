@@ -37,7 +37,6 @@ const initialUserInputExtractionNode = createUserInputExtractionNode<State>({
 const userInputNode = createGetUserInputNode<State>({
   requiredProperties: WORKFLOW_USER_INPUT_PROPERTIES,
   toolId: SFMOBILE_NATIVE_GET_INPUT_TOOL_ID,
-  userInputProperty: 'userInput',
 });
 const environmentValidationNode = new EnvironmentValidationNode();
 const platformCheckNode = new PlatformCheckNode();
