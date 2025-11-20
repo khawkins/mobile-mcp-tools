@@ -15,7 +15,6 @@ import { BuildRecoveryNode } from './nodes/buildRecovery.js';
 import { CheckBuildSuccessfulRouter } from './nodes/checkBuildSuccessfulRouter.js';
 import { DeploymentNode } from './nodes/deploymentNode.js';
 import { CompletionNode } from './nodes/completionNode.js';
-import { CheckPropertiesFulFilledRouter } from './nodes/checkPropertiesFulfilledRouter.js';
 import { FailureNode } from './nodes/failureNode.js';
 import { CheckEnvironmentValidatedRouter } from './nodes/checkEnvironmentValidated.js';
 import { PlatformCheckNode } from './nodes/checkPlatformSetup.js';
@@ -25,6 +24,7 @@ import { CheckPluginValidatedRouter } from './nodes/checkPluginValidatedRouter.j
 import {
   createGetUserInputNode,
   createUserInputExtractionNode,
+  CheckPropertiesFulfilledRouter,
 } from '@salesforce/magen-mcp-workflow';
 import { SFMOBILE_NATIVE_GET_INPUT_TOOL_ID } from '../tools/utils/sfmobile-native-get-input/metadata.js';
 import { SFMOBILE_NATIVE_INPUT_EXTRACTION_TOOL_ID } from '../tools/utils/sfmobile-native-input-extraction/metadata.js';
@@ -49,9 +49,10 @@ const buildRecoveryNode = new BuildRecoveryNode();
 const deploymentNode = new DeploymentNode();
 const completionNode = new CompletionNode();
 const failureNode = new FailureNode();
-const checkPropertiesFulFilledRouter = new CheckPropertiesFulFilledRouter(
+const checkPropertiesFulFilledRouter = new CheckPropertiesFulfilledRouter<State>(
   platformCheckNode.name,
-  userInputNode.name
+  userInputNode.name,
+  WORKFLOW_USER_INPUT_PROPERTIES
 );
 const checkEnvironmentValidatedRouter = new CheckEnvironmentValidatedRouter(
   initialUserInputExtractionNode.name,
