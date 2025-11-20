@@ -67,34 +67,11 @@ describe('createGetUserInputNode', () => {
       const node = createGetUserInputNode({
         requiredProperties,
         toolId: 'test-get-input',
+        userInputProperty: 'userInput',
       });
 
       expect(node).toBeDefined();
       expect(node.name).toBe('getUserInput');
-    });
-
-    it('should use default userInputProperty when not specified', () => {
-      const toolId = 'test-get-input';
-      const userResponse = 'test response';
-      mockToolExecutor.setResult(toolId, {
-        userUtterance: userResponse,
-      });
-
-      const node = createGetUserInputNode({
-        requiredProperties,
-        toolId,
-        toolExecutor: mockToolExecutor,
-        logger: mockLogger,
-        // userInputProperty not specified - should default to 'userInput'
-      });
-
-      const state = createTestState();
-
-      const result = node.execute(state);
-
-      // Should write to 'userInput' property by default
-      expect(result).toHaveProperty('userInput');
-      expect(result.userInput).toBe(userResponse);
     });
 
     it('should create a node with provided service', () => {
@@ -106,6 +83,7 @@ describe('createGetUserInputNode', () => {
         requiredProperties,
         toolId: 'test-get-input',
         getInputService: mockService,
+        userInputProperty: 'userInput',
       });
 
       expect(node).toBeDefined();
@@ -117,6 +95,7 @@ describe('createGetUserInputNode', () => {
         requiredProperties,
         toolId: 'test-get-input',
         toolExecutor: mockToolExecutor,
+        userInputProperty: 'userInput',
       });
 
       expect(node).toBeDefined();
@@ -127,6 +106,7 @@ describe('createGetUserInputNode', () => {
         requiredProperties,
         toolId: 'test-get-input',
         logger: mockLogger,
+        userInputProperty: 'userInput',
       });
 
       expect(node).toBeDefined();
@@ -159,6 +139,7 @@ describe('createGetUserInputNode', () => {
         requiredProperties,
         toolId: 'test-get-input',
         isPropertyFulfilled: customIsFulfilled,
+        userInputProperty: 'userInput',
       });
 
       expect(node).toBeDefined();
@@ -175,6 +156,7 @@ describe('createGetUserInputNode', () => {
         toolId,
         toolExecutor: mockToolExecutor,
         logger: mockLogger,
+        userInputProperty: 'userInput',
       });
 
       const state = createTestState();
@@ -250,6 +232,7 @@ describe('createGetUserInputNode', () => {
         toolId,
         toolExecutor: mockToolExecutor,
         logger: mockLogger,
+        userInputProperty: 'userInput',
       });
 
       const state = createTestState();
@@ -271,6 +254,7 @@ describe('createGetUserInputNode', () => {
         toolId,
         toolExecutor: mockToolExecutor,
         logger: mockLogger,
+        userInputProperty: 'userInput',
       });
 
       const state = createTestState();
@@ -290,6 +274,7 @@ describe('createGetUserInputNode', () => {
         toolId,
         toolExecutor: mockToolExecutor,
         logger: mockLogger,
+        userInputProperty: 'userInput',
       });
 
       const state = createTestState({
@@ -311,6 +296,7 @@ describe('createGetUserInputNode', () => {
         requiredProperties,
         toolId: 'test-get-input',
         getInputService: mockService,
+        userInputProperty: 'userInput',
       });
 
       const state = createTestState();
@@ -332,6 +318,7 @@ describe('createGetUserInputNode', () => {
         requiredProperties,
         toolId: 'test-get-input',
         getInputService: mockService,
+        userInputProperty: 'userInput',
       });
 
       const state = createTestState();

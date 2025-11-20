@@ -70,7 +70,7 @@ export function createGetUserInputNode<TState extends StateType<StateDefinition>
         reason: `Property '${propertyName}' is missing from the workflow state.`,
       };
     },
-    userInputProperty = 'userInput' as keyof TState,
+    userInputProperty,
   } = options;
 
   // Create default service implementation if not provided

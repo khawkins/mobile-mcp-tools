@@ -64,6 +64,7 @@ describe('createUserInputExtractionNode', () => {
       const node = createUserInputExtractionNode({
         requiredProperties,
         toolId: 'test-input-extraction',
+        userInputProperty: 'userInput',
       });
 
       expect(node).toBeDefined();
@@ -81,6 +82,7 @@ describe('createUserInputExtractionNode', () => {
         requiredProperties,
         toolId: 'test-input-extraction',
         extractionService: mockService,
+        userInputProperty: 'userInput',
       });
 
       expect(node).toBeDefined();
@@ -92,6 +94,7 @@ describe('createUserInputExtractionNode', () => {
         requiredProperties,
         toolId: 'test-input-extraction',
         toolExecutor: mockToolExecutor,
+        userInputProperty: 'userInput',
       });
 
       expect(node).toBeDefined();
@@ -102,39 +105,10 @@ describe('createUserInputExtractionNode', () => {
         requiredProperties,
         toolId: 'test-input-extraction',
         logger: mockLogger,
+        userInputProperty: 'userInput',
       });
 
       expect(node).toBeDefined();
-    });
-
-    it('should use default userInputProperty when not specified', () => {
-      const node = createUserInputExtractionNode({
-        requiredProperties,
-        toolId: 'test-input-extraction',
-      });
-
-      expect(node).toBeDefined();
-      expect(node.name).toBe('userInputExtraction');
-
-      // Verify it uses 'userInput' by default
-      const mockService: InputExtractionServiceProvider = {
-        extractProperties: () => ({
-          extractedProperties: { platform: 'iOS' },
-        }),
-      };
-
-      const nodeWithService = createUserInputExtractionNode({
-        requiredProperties,
-        toolId: 'test-input-extraction',
-        extractionService: mockService,
-      });
-
-      const state = createTestState({
-        userInput: 'test input',
-      });
-
-      const result = nodeWithService.execute(state);
-      expect(result).toBeDefined();
     });
 
     it('should allow custom userInputProperty to be specified', () => {
@@ -198,6 +172,7 @@ describe('createUserInputExtractionNode', () => {
         toolId,
         toolExecutor: mockToolExecutor,
         logger: mockLogger,
+        userInputProperty: 'userInput',
       });
 
       const state = createTestState({
@@ -226,6 +201,7 @@ describe('createUserInputExtractionNode', () => {
         toolId,
         toolExecutor: mockToolExecutor,
         logger: mockLogger,
+        userInputProperty: 'userInput',
       });
 
       const state = createTestState({
@@ -237,29 +213,6 @@ describe('createUserInputExtractionNode', () => {
       expect(result.platform).toBe(extractedProps.platform);
       expect(result.projectName).toBe(extractedProps.projectName);
       expect(mockToolExecutor.getCallHistory().length).toBeGreaterThan(0);
-    });
-
-    it('should use default userInputProperty when not provided', () => {
-      const toolId = 'test-input-extraction';
-      mockToolExecutor.setResult(toolId, {
-        extractedProperties: {
-          platform: 'Android',
-        },
-      });
-
-      const node = createUserInputExtractionNode({
-        requiredProperties,
-        toolId,
-        toolExecutor: mockToolExecutor,
-        logger: mockLogger,
-      });
-
-      const state = createTestState({
-        userInput: 'Android app',
-      });
-
-      const result = node.execute(state);
-      expect(result).toBeDefined();
     });
   });
 
@@ -279,6 +232,7 @@ describe('createUserInputExtractionNode', () => {
         requiredProperties,
         toolId: 'test-input-extraction',
         extractionService: mockService,
+        userInputProperty: 'userInput',
       });
 
       const state = createTestState({
@@ -307,6 +261,7 @@ describe('createUserInputExtractionNode', () => {
         requiredProperties,
         toolId: 'test-input-extraction',
         extractionService: mockService,
+        userInputProperty: 'userInput',
       });
 
       const state = createTestState({
