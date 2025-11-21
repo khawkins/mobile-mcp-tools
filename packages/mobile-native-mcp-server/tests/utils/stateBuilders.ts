@@ -33,6 +33,7 @@ export function createTestState(overrides: Partial<State> = {}): State {
     // Plan phase state
     validEnvironment: undefined,
     validPlatformSetup: undefined,
+    validPluginSetup: undefined,
     workflowFatalErrorMessages: undefined,
 
     // Android setup state

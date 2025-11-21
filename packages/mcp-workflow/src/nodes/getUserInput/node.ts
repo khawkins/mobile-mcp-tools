@@ -53,15 +53,17 @@ export interface GetUserInputNodeOptions<TState extends StateType<StateDefinitio
   /**
    * Property name in state that contains user input to extract from.
    * Must be a valid property of TState.
-   * Defaults to 'userInput' if not specified.
    *
    * @example
    *
-   * // State has a 'userInput' property - use default
-   * createUserInputExtractionNode({ ... });
+   * // State has a 'userInput' property
+   * createGetUserInputNode({
+   *   userInputProperty: 'userInput',
+   *   ...
+   * });
    *
-   * // State has a 'currentUtterance' property - specify it
-   * createUserInputExtractionNode({
+   * // State has a 'currentUtterance' property
+   * createGetUserInputNode({
    *   userInputProperty: 'currentUtterance',
    *   ...
    * });

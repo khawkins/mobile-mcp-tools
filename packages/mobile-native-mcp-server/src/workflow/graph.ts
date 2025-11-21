@@ -20,17 +20,18 @@ import { BuildRecoveryNode } from './nodes/buildRecovery.js';
 import { CheckBuildSuccessfulRouter } from './nodes/checkBuildSuccessfulRouter.js';
 import { DeploymentNode } from './nodes/deploymentNode.js';
 import { CompletionNode } from './nodes/completionNode.js';
-import { CheckPropertiesFulFilledRouter } from './nodes/checkPropertiesFulfilledRouter.js';
 import { FailureNode } from './nodes/failureNode.js';
 import { CheckEnvironmentValidatedRouter } from './nodes/checkEnvironmentValidated.js';
 import { PlatformCheckNode } from './nodes/checkPlatformSetup.js';
 import { CheckSetupValidatedRouter } from './nodes/checkSetupValidatedRouter.js';
 import { CheckAndroidSetupExtractedRouter } from './nodes/checkAndroidSetupExtractedRouter.js';
 import { ExtractAndroidSetupNode } from './nodes/extractAndroidSetup.js';
+import { PluginCheckNode } from './nodes/checkPluginSetup.js';
+import { CheckPluginValidatedRouter } from './nodes/checkPluginValidatedRouter.js';
 import {
   createGetUserInputNode,
   createUserInputExtractionNode,
-  //PropertyFulfilledResult,
+  CheckPropertiesFulfilledRouter,
 } from '@salesforce/magen-mcp-workflow';
 import { SFMOBILE_NATIVE_GET_INPUT_TOOL_ID } from '../tools/utils/sfmobile-native-get-input/metadata.js';
 import { SFMOBILE_NATIVE_INPUT_EXTRACTION_TOOL_ID } from '../tools/utils/sfmobile-native-input-extraction/metadata.js';
@@ -38,6 +39,7 @@ import { SFMOBILE_NATIVE_INPUT_EXTRACTION_TOOL_ID } from '../tools/utils/sfmobil
 const initialUserInputExtractionNode = createUserInputExtractionNode<State>({
   requiredProperties: WORKFLOW_USER_INPUT_PROPERTIES,
   toolId: SFMOBILE_NATIVE_INPUT_EXTRACTION_TOOL_ID,
+  userInputProperty: 'userInput',
 });
 
 const userInputNode = createGetUserInputNode<State>({
@@ -57,6 +59,7 @@ const extractAndroidSetupNode = new ExtractAndroidSetupNode();
 
 const environmentValidationNode = new EnvironmentValidationNode();
 const platformCheckNode = new PlatformCheckNode();
+const pluginCheckNode = new PluginCheckNode();
 const templateDiscoveryNode = new TemplateDiscoveryNode();
 const projectGenerationNode = new ProjectGenerationNode();
 const buildValidationNode = new BuildValidationNode();
@@ -64,17 +67,23 @@ const buildRecoveryNode = new BuildRecoveryNode();
 const deploymentNode = new DeploymentNode();
 const completionNode = new CompletionNode();
 const failureNode = new FailureNode();
-const checkPropertiesFulFilledRouter = new CheckPropertiesFulFilledRouter(
+const checkPropertiesFulFilledRouter = new CheckPropertiesFulfilledRouter<State>(
   platformCheckNode.name,
-  userInputNode.name
+  userInputNode.name,
+  WORKFLOW_USER_INPUT_PROPERTIES
 );
 const checkEnvironmentValidatedRouter = new CheckEnvironmentValidatedRouter(
   initialUserInputExtractionNode.name,
   failureNode.name
 );
 const checkSetupValidatedRouter = new CheckSetupValidatedRouter(
-  templateDiscoveryNode.name,
+  pluginCheckNode.name,
   getAndroidSetupNode.name,
+  failureNode.name
+);
+
+const checkPluginValidatedRouter = new CheckPluginValidatedRouter(
+  templateDiscoveryNode.name,
   failureNode.name
 );
 const checkAndroidSetupExtractedRouter = new CheckAndroidSetupExtractedRouter(
@@ -101,6 +110,7 @@ export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   .addNode(platformCheckNode.name, platformCheckNode.execute)
   .addNode(getAndroidSetupNode.name, getAndroidSetupNode.execute)
   .addNode(extractAndroidSetupNode.name, extractAndroidSetupNode.execute)
+  .addNode(pluginCheckNode.name, pluginCheckNode.execute)
   .addNode(templateDiscoveryNode.name, templateDiscoveryNode.execute)
   .addNode(projectGenerationNode.name, projectGenerationNode.execute)
   .addNode(buildValidationNode.name, buildValidationNode.execute)
@@ -118,6 +128,7 @@ export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   // Android setup recovery flow
   .addEdge(getAndroidSetupNode.name, extractAndroidSetupNode.name)
   .addConditionalEdges(extractAndroidSetupNode.name, checkAndroidSetupExtractedRouter.execute)
+  .addConditionalEdges(pluginCheckNode.name, checkPluginValidatedRouter.execute)
   .addEdge(templateDiscoveryNode.name, projectGenerationNode.name)
   .addEdge(projectGenerationNode.name, buildValidationNode.name)
   // Build validation with recovery loop (similar to user input loop)

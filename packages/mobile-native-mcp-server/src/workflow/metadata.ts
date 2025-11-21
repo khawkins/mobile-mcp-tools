@@ -86,6 +86,7 @@ export const MobileNativeWorkflowState = Annotation.Root({
   // Plan phase state
   validEnvironment: Annotation<boolean>,
   validPlatformSetup: Annotation<boolean>,
+  validPluginSetup: Annotation<boolean>,
   workflowFatalErrorMessages: Annotation<string[]>,
 
   // Android setup state (for recovery flow)
