@@ -36,6 +36,7 @@ export class ExtractAndroidSetupNode extends BaseNode<State> {
     this.baseExtractNode = createUserInputExtractionNode<State>({
       requiredProperties: ANDROID_SETUP_PROPERTIES,
       toolId: SFMOBILE_NATIVE_INPUT_EXTRACTION_TOOL_ID,
+      userInputProperty: 'userInput',
     });
   }
 
