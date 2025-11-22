@@ -139,8 +139,8 @@ describe('CheckSetupValidatedRouter', () => {
       const inputState = createTestState({
         platform: 'Android',
         validPlatformSetup: false,
-        android_home: null as any,
-        java_home: null as any,
+        android_home: null as unknown as string,
+        java_home: null as unknown as string,
       });
 
       const result = router.execute(inputState);

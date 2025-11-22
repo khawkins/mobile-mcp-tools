@@ -89,7 +89,7 @@ describe('CheckAndroidSetupExtractedRouter', () => {
 
     it('should route to failure node when android_home is null', () => {
       const inputState = createTestState({
-        android_home: null as any,
+        android_home: null as unknown as string,
         java_home: '/path/to/java',
       });
 
@@ -125,7 +125,7 @@ describe('CheckAndroidSetupExtractedRouter', () => {
     it('should route to failure node when java_home is null', () => {
       const inputState = createTestState({
         android_home: '/path/to/android',
-        java_home: null as any,
+        java_home: null as unknown as string,
       });
 
       const result = router.execute(inputState);
@@ -159,8 +159,8 @@ describe('CheckAndroidSetupExtractedRouter', () => {
 
     it('should route to failure node when both are null', () => {
       const inputState = createTestState({
-        android_home: null as any,
-        java_home: null as any,
+        android_home: null as unknown as string,
+        java_home: null as unknown as string,
       });
 
       const result = router.execute(inputState);
