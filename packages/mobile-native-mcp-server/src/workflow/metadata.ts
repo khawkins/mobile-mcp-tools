@@ -58,13 +58,13 @@ export const ANDROID_SETUP_PROPERTIES = {
       'Whether both Android SDK and Java 17+ are installed. If yes, ANDROID_HOME and JAVA_HOME paths must also be provided.',
     friendlyName: 'Android and Java installation status',
   } satisfies PropertyMetadata<z.ZodBoolean>,
-  android_home: {
+  androidHome: {
     zodType: z.string(),
     description:
       'The absolute path to ANDROID_HOME directory (e.g. /Users/username/Library/Android/sdk). Required if androidInstalled is true.',
     friendlyName: 'ANDROID_HOME path',
   } satisfies PropertyMetadata<z.ZodString>,
-  java_home: {
+  javaHome: {
     zodType: z.string(),
     description:
       'The absolute path to JAVA_HOME directory (e.g. /Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home). Required if androidInstalled is true.',
@@ -91,8 +91,8 @@ export const MobileNativeWorkflowState = Annotation.Root({
 
   // Android setup state (for recovery flow)
   androidInstalled: Annotation<z.infer<typeof ANDROID_SETUP_PROPERTIES.androidInstalled.zodType>>,
-  android_home: Annotation<z.infer<typeof ANDROID_SETUP_PROPERTIES.android_home.zodType>>,
-  java_home: Annotation<z.infer<typeof ANDROID_SETUP_PROPERTIES.java_home.zodType>>,
+  androidHome: Annotation<z.infer<typeof ANDROID_SETUP_PROPERTIES.androidHome.zodType>>,
+  javaHome: Annotation<z.infer<typeof ANDROID_SETUP_PROPERTIES.javaHome.zodType>>,
 
   selectedTemplate: Annotation<string>,
   projectName: Annotation<z.infer<typeof WORKFLOW_USER_INPUT_PROPERTIES.projectName.zodType>>,

@@ -27,8 +27,8 @@ export class CheckAndroidSetupExtractedRouter {
   }
 
   execute = (state: State): string => {
-    // Check if both android_home and java_home were extracted
-    if (state.android_home && state.java_home) {
+    // Check if both androidHome and javaHome were extracted
+    if (state.androidHome && state.javaHome) {
       return this.setupExtractedNodeName;
     }
 

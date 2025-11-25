@@ -101,13 +101,13 @@ describe('ExtractAndroidSetupNode', () => {
   describe('execute() - Both paths valid', () => {
     it('should set both environment variables when paths are valid', () => {
       const inputState = createTestState({
-        userInput: 'android_home=/valid/android java_home=/valid/java',
+        userInput: 'androidHome=/valid/android javaHome=/valid/java',
       });
 
       // Mock base extraction to return extracted paths
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: '/valid/android',
-        java_home: '/valid/java',
+        androidHome: '/valid/android',
+        javaHome: '/valid/java',
       });
 
       // Mock paths exist
@@ -117,8 +117,8 @@ describe('ExtractAndroidSetupNode', () => {
 
       expect(process.env.ANDROID_HOME).toBe('/valid/android');
       expect(process.env.JAVA_HOME).toBe('/valid/java');
-      expect(result.android_home).toBe('/valid/android');
-      expect(result.java_home).toBe('/valid/java');
+      expect(result.androidHome).toBe('/valid/android');
+      expect(result.javaHome).toBe('/valid/java');
       expect(result.workflowFatalErrorMessages).toBeUndefined();
     });
 
@@ -127,8 +127,8 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: '/valid/android',
-        java_home: '/valid/java',
+        androidHome: '/valid/android',
+        javaHome: '/valid/java',
       });
 
       mockExistsSync.mockReturnValue(true);
@@ -150,8 +150,8 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: '/valid/android',
-        java_home: '/invalid/java',
+        androidHome: '/valid/android',
+        javaHome: '/invalid/java',
       });
 
       mockExistsSync.mockReturnValueOnce(true); // android path exists
@@ -161,8 +161,8 @@ describe('ExtractAndroidSetupNode', () => {
 
       expect(process.env.ANDROID_HOME).toBe('/valid/android');
       expect(process.env.JAVA_HOME).toBeUndefined();
-      expect(result.android_home).toBe('/valid/android');
-      expect(result.java_home).toBeUndefined();
+      expect(result.androidHome).toBe('/valid/android');
+      expect(result.javaHome).toBeUndefined();
       expect(result.workflowFatalErrorMessages).toBeDefined();
       expect(result.workflowFatalErrorMessages).toContain(
         'JAVA_HOME path does not exist: /invalid/java'
@@ -174,8 +174,8 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: '/valid/android',
-        java_home: '/invalid/java',
+        androidHome: '/valid/android',
+        javaHome: '/invalid/java',
       });
 
       mockExistsSync.mockReturnValueOnce(true);
@@ -197,8 +197,8 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: '/invalid/android',
-        java_home: '/valid/java',
+        androidHome: '/invalid/android',
+        javaHome: '/valid/java',
       });
 
       mockExistsSync.mockReturnValueOnce(false); // android path doesn't exist
@@ -208,8 +208,8 @@ describe('ExtractAndroidSetupNode', () => {
 
       expect(process.env.ANDROID_HOME).toBeUndefined();
       expect(process.env.JAVA_HOME).toBe('/valid/java');
-      expect(result.android_home).toBeUndefined();
-      expect(result.java_home).toBe('/valid/java');
+      expect(result.androidHome).toBeUndefined();
+      expect(result.javaHome).toBe('/valid/java');
       expect(result.workflowFatalErrorMessages).toBeDefined();
       expect(result.workflowFatalErrorMessages).toContain(
         'ANDROID_HOME path does not exist: /invalid/android'
@@ -222,8 +222,8 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: '/invalid/android',
-        java_home: '/invalid/java',
+        androidHome: '/invalid/android',
+        javaHome: '/invalid/java',
       });
 
       mockExistsSync.mockReturnValue(false);
@@ -232,8 +232,8 @@ describe('ExtractAndroidSetupNode', () => {
 
       expect(process.env.ANDROID_HOME).toBeUndefined();
       expect(process.env.JAVA_HOME).toBeUndefined();
-      expect(result.android_home).toBeUndefined();
-      expect(result.java_home).toBeUndefined();
+      expect(result.androidHome).toBeUndefined();
+      expect(result.javaHome).toBeUndefined();
       expect(result.workflowFatalErrorMessages).toBeDefined();
       expect(result.workflowFatalErrorMessages).toHaveLength(2);
     });
@@ -242,8 +242,8 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: '/invalid/android',
-        java_home: '/invalid/java',
+        androidHome: '/invalid/android',
+        javaHome: '/invalid/java',
       });
 
       mockExistsSync.mockReturnValue(false);
@@ -263,8 +263,8 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: '/invalid/android',
-        java_home: '/invalid/java',
+        androidHome: '/invalid/android',
+        javaHome: '/invalid/java',
       });
 
       mockExistsSync.mockReturnValue(false);
@@ -280,14 +280,14 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        java_home: '/valid/java',
+        javaHome: '/valid/java',
       });
 
       mockExistsSync.mockReturnValue(true);
 
       const result = node.execute(inputState);
 
-      expect(result.android_home).toBeUndefined();
+      expect(result.androidHome).toBeUndefined();
       expect(result.workflowFatalErrorMessages).toContain('ANDROID_HOME was not provided');
     });
 
@@ -295,14 +295,14 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: '/valid/android',
+        androidHome: '/valid/android',
       });
 
       mockExistsSync.mockReturnValue(true);
 
       const result = node.execute(inputState);
 
-      expect(result.java_home).toBeUndefined();
+      expect(result.javaHome).toBeUndefined();
       expect(result.workflowFatalErrorMessages).toContain('JAVA_HOME was not provided');
     });
 
@@ -313,8 +313,8 @@ describe('ExtractAndroidSetupNode', () => {
 
       const result = node.execute(inputState);
 
-      expect(result.android_home).toBeUndefined();
-      expect(result.java_home).toBeUndefined();
+      expect(result.androidHome).toBeUndefined();
+      expect(result.javaHome).toBeUndefined();
       expect(result.workflowFatalErrorMessages).toBeDefined();
       expect(result.workflowFatalErrorMessages).toHaveLength(2);
       expect(result.workflowFatalErrorMessages).toContain('ANDROID_HOME was not provided');
@@ -327,7 +327,7 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: '/invalid/android',
+        androidHome: '/invalid/android',
         workflowFatalErrorMessages: ['Existing error'],
       });
 
@@ -345,8 +345,8 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: undefined,
-        java_home: undefined,
+        androidHome: undefined,
+        javaHome: undefined,
       });
 
       const result = node.execute(inputState);
@@ -361,8 +361,8 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: '/valid/android',
-        java_home: '/valid/java',
+        androidHome: '/valid/android',
+        javaHome: '/valid/java',
         androidInstalled: true,
         someOtherProperty: 'value',
       });
@@ -381,14 +381,14 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: '',
-        java_home: '',
+        androidHome: '',
+        javaHome: '',
       });
 
       const result = node.execute(inputState);
 
-      expect(result.android_home).toBeUndefined();
-      expect(result.java_home).toBeUndefined();
+      expect(result.androidHome).toBeUndefined();
+      expect(result.javaHome).toBeUndefined();
       expect(result.workflowFatalErrorMessages).toHaveLength(2);
     });
 
@@ -396,8 +396,8 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: '/path with spaces/android',
-        java_home: '/path with spaces/java',
+        androidHome: '/path with spaces/android',
+        javaHome: '/path with spaces/java',
       });
 
       mockExistsSync.mockReturnValue(true);
@@ -412,8 +412,8 @@ describe('ExtractAndroidSetupNode', () => {
       const inputState = createTestState({});
 
       (node as NodeWithBaseExtract).baseExtractNode.execute = vi.fn().mockReturnValue({
-        android_home: '/path/to/android-sdk_r24',
-        java_home: '/path/to/java_17.0.1',
+        androidHome: '/path/to/android-sdk_r24',
+        javaHome: '/path/to/java_17.0.1',
       });
 
       mockExistsSync.mockReturnValue(true);

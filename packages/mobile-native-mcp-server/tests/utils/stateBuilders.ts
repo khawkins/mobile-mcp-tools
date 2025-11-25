@@ -38,8 +38,8 @@ export function createTestState(overrides: Partial<State> = {}): State {
 
     // Android setup state
     androidInstalled: undefined,
-    android_home: undefined,
-    java_home: undefined,
+    androidHome: undefined,
+    javaHome: undefined,
 
     selectedTemplate: undefined,
     projectName: undefined,

@@ -40,7 +40,7 @@ export class CheckSetupValidatedRouter {
     }
 
     // If platform is Android and Android/Java paths are missing, route to Android setup
-    if (state.platform === 'Android' && (!state.android_home || !state.java_home)) {
+    if (state.platform === 'Android' && (!state.androidHome || !state.javaHome)) {
       return this.androidSetupNodeName;
     }
 

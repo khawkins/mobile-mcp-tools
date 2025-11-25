@@ -30,10 +30,10 @@ describe('CheckAndroidSetupExtractedRouter', () => {
   });
 
   describe('execute() - Both paths present', () => {
-    it('should route to setup extracted node when both android_home and java_home are present', () => {
+    it('should route to setup extracted node when both androidHome and javaHome are present', () => {
       const inputState = createTestState({
-        android_home: '/path/to/android',
-        java_home: '/path/to/java',
+        androidHome: '/path/to/android',
+        javaHome: '/path/to/java',
       });
 
       const result = router.execute(inputState);
@@ -43,8 +43,8 @@ describe('CheckAndroidSetupExtractedRouter', () => {
 
     it('should route to setup extracted node with different paths', () => {
       const inputState = createTestState({
-        android_home: '/different/android/path',
-        java_home: '/different/java/path',
+        androidHome: '/different/android/path',
+        javaHome: '/different/java/path',
       });
 
       const result = router.execute(inputState);
@@ -54,8 +54,8 @@ describe('CheckAndroidSetupExtractedRouter', () => {
 
     it('should route to setup extracted node with paths containing special characters', () => {
       const inputState = createTestState({
-        android_home: '/path-with_special/chars/android',
-        java_home: '/path-with_special/chars/java',
+        androidHome: '/path-with_special/chars/android',
+        javaHome: '/path-with_special/chars/java',
       });
 
       const result = router.execute(inputState);
@@ -64,11 +64,11 @@ describe('CheckAndroidSetupExtractedRouter', () => {
     });
   });
 
-  describe('execute() - Missing android_home', () => {
-    it('should route to failure node when android_home is undefined', () => {
+  describe('execute() - Missing androidHome', () => {
+    it('should route to failure node when androidHome is undefined', () => {
       const inputState = createTestState({
-        android_home: undefined,
-        java_home: '/path/to/java',
+        androidHome: undefined,
+        javaHome: '/path/to/java',
       });
 
       const result = router.execute(inputState);
@@ -76,10 +76,10 @@ describe('CheckAndroidSetupExtractedRouter', () => {
       expect(result).toBe(failureNodeName);
     });
 
-    it('should route to failure node when android_home is empty string', () => {
+    it('should route to failure node when androidHome is empty string', () => {
       const inputState = createTestState({
-        android_home: '',
-        java_home: '/path/to/java',
+        androidHome: '',
+        javaHome: '/path/to/java',
       });
 
       const result = router.execute(inputState);
@@ -87,10 +87,10 @@ describe('CheckAndroidSetupExtractedRouter', () => {
       expect(result).toBe(failureNodeName);
     });
 
-    it('should route to failure node when android_home is null', () => {
+    it('should route to failure node when androidHome is null', () => {
       const inputState = createTestState({
-        android_home: null as unknown as string,
-        java_home: '/path/to/java',
+        androidHome: null as unknown as string,
+        javaHome: '/path/to/java',
       });
 
       const result = router.execute(inputState);
@@ -99,11 +99,11 @@ describe('CheckAndroidSetupExtractedRouter', () => {
     });
   });
 
-  describe('execute() - Missing java_home', () => {
-    it('should route to failure node when java_home is undefined', () => {
+  describe('execute() - Missing javaHome', () => {
+    it('should route to failure node when javaHome is undefined', () => {
       const inputState = createTestState({
-        android_home: '/path/to/android',
-        java_home: undefined,
+        androidHome: '/path/to/android',
+        javaHome: undefined,
       });
 
       const result = router.execute(inputState);
@@ -111,10 +111,10 @@ describe('CheckAndroidSetupExtractedRouter', () => {
       expect(result).toBe(failureNodeName);
     });
 
-    it('should route to failure node when java_home is empty string', () => {
+    it('should route to failure node when javaHome is empty string', () => {
       const inputState = createTestState({
-        android_home: '/path/to/android',
-        java_home: '',
+        androidHome: '/path/to/android',
+        javaHome: '',
       });
 
       const result = router.execute(inputState);
@@ -122,10 +122,10 @@ describe('CheckAndroidSetupExtractedRouter', () => {
       expect(result).toBe(failureNodeName);
     });
 
-    it('should route to failure node when java_home is null', () => {
+    it('should route to failure node when javaHome is null', () => {
       const inputState = createTestState({
-        android_home: '/path/to/android',
-        java_home: null as unknown as string,
+        androidHome: '/path/to/android',
+        javaHome: null as unknown as string,
       });
 
       const result = router.execute(inputState);
@@ -137,8 +137,8 @@ describe('CheckAndroidSetupExtractedRouter', () => {
   describe('execute() - Both missing', () => {
     it('should route to failure node when both are undefined', () => {
       const inputState = createTestState({
-        android_home: undefined,
-        java_home: undefined,
+        androidHome: undefined,
+        javaHome: undefined,
       });
 
       const result = router.execute(inputState);
@@ -148,8 +148,8 @@ describe('CheckAndroidSetupExtractedRouter', () => {
 
     it('should route to failure node when both are empty strings', () => {
       const inputState = createTestState({
-        android_home: '',
-        java_home: '',
+        androidHome: '',
+        javaHome: '',
       });
 
       const result = router.execute(inputState);
@@ -159,8 +159,8 @@ describe('CheckAndroidSetupExtractedRouter', () => {
 
     it('should route to failure node when both are null', () => {
       const inputState = createTestState({
-        android_home: null as unknown as string,
-        java_home: null as unknown as string,
+        androidHome: null as unknown as string,
+        javaHome: null as unknown as string,
       });
 
       const result = router.execute(inputState);
@@ -180,9 +180,9 @@ describe('CheckAndroidSetupExtractedRouter', () => {
   });
 
   describe('execute() - Edge cases', () => {
-    it('should handle state with only android_home', () => {
+    it('should handle state with only androidHome', () => {
       const inputState = createTestState({
-        android_home: '/path/to/android',
+        androidHome: '/path/to/android',
       });
 
       const result = router.execute(inputState);
@@ -190,9 +190,9 @@ describe('CheckAndroidSetupExtractedRouter', () => {
       expect(result).toBe(failureNodeName);
     });
 
-    it('should handle state with only java_home', () => {
+    it('should handle state with only javaHome', () => {
       const inputState = createTestState({
-        java_home: '/path/to/java',
+        javaHome: '/path/to/java',
       });
 
       const result = router.execute(inputState);
@@ -202,23 +202,23 @@ describe('CheckAndroidSetupExtractedRouter', () => {
 
     it('should not modify input state', () => {
       const inputState = createTestState({
-        android_home: '/path/to/android',
-        java_home: '/path/to/java',
+        androidHome: '/path/to/android',
+        javaHome: '/path/to/java',
       });
 
-      const originalAndroidHome = inputState.android_home;
-      const originalJavaHome = inputState.java_home;
+      const originalAndroidHome = inputState.androidHome;
+      const originalJavaHome = inputState.javaHome;
 
       router.execute(inputState);
 
-      expect(inputState.android_home).toBe(originalAndroidHome);
-      expect(inputState.java_home).toBe(originalJavaHome);
+      expect(inputState.androidHome).toBe(originalAndroidHome);
+      expect(inputState.javaHome).toBe(originalJavaHome);
     });
 
     it('should produce consistent results for same state', () => {
       const inputState = createTestState({
-        android_home: '/path/to/android',
-        java_home: '/path/to/java',
+        androidHome: '/path/to/android',
+        javaHome: '/path/to/java',
       });
 
       const result1 = router.execute(inputState);
@@ -231,13 +231,13 @@ describe('CheckAndroidSetupExtractedRouter', () => {
   describe('execute() - Multiple invocations', () => {
     it('should handle sequential calls with different states', () => {
       const state1 = createTestState({
-        android_home: '/path/to/android',
-        java_home: '/path/to/java',
+        androidHome: '/path/to/android',
+        javaHome: '/path/to/java',
       });
 
       const state2 = createTestState({
-        android_home: undefined,
-        java_home: undefined,
+        androidHome: undefined,
+        javaHome: undefined,
       });
 
       const result1 = router.execute(state1);
@@ -249,13 +249,13 @@ describe('CheckAndroidSetupExtractedRouter', () => {
 
     it('should maintain independence across invocations', () => {
       const successState = createTestState({
-        android_home: '/path/to/android',
-        java_home: '/path/to/java',
+        androidHome: '/path/to/android',
+        javaHome: '/path/to/java',
       });
 
       const failureState = createTestState({
-        android_home: undefined,
-        java_home: '/path/to/java',
+        androidHome: undefined,
+        javaHome: '/path/to/java',
       });
 
       router.execute(successState);
@@ -268,8 +268,8 @@ describe('CheckAndroidSetupExtractedRouter', () => {
   describe('execute() - State with other properties', () => {
     it('should ignore other state properties', () => {
       const inputState = createTestState({
-        android_home: '/path/to/android',
-        java_home: '/path/to/java',
+        androidHome: '/path/to/android',
+        javaHome: '/path/to/java',
         platform: 'Android',
         projectName: 'TestProject',
         validPlatformSetup: false,
@@ -280,16 +280,16 @@ describe('CheckAndroidSetupExtractedRouter', () => {
       expect(result).toBe(setupExtractedNodeName);
     });
 
-    it('should only depend on android_home and java_home', () => {
+    it('should only depend on androidHome and javaHome', () => {
       const state1 = createTestState({
-        android_home: '/path/to/android',
-        java_home: '/path/to/java',
+        androidHome: '/path/to/android',
+        javaHome: '/path/to/java',
         platform: 'iOS',
       });
 
       const state2 = createTestState({
-        android_home: '/path/to/android',
-        java_home: '/path/to/java',
+        androidHome: '/path/to/android',
+        javaHome: '/path/to/java',
         platform: 'Android',
       });
 

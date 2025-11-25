@@ -19,7 +19,7 @@ import { saveEnvVarsToFile } from '../utils/envConfig.js';
  * Node that extracts Android setup information from user input and sets environment variables.
  *
  * This node:
- * 1. Extracts android_home and java_home from user input
+ * 1. Extracts androidHome and javaHome from user input
  * 2. Validates that the paths exist
  * 3. Sets ANDROID_HOME and JAVA_HOME in process.env
  * 4. Saves valid paths to ~/.magen/env_vars for future use
@@ -45,8 +45,8 @@ export class ExtractAndroidSetupNode extends BaseNode<State> {
     const errorMessages: string[] = [];
 
     // Validate extracted paths
-    const androidHomePath = result.android_home as string | undefined;
-    const javaHomePath = result.java_home as string | undefined;
+    const androidHomePath = result.androidHome as string | undefined;
+    const javaHomePath = result.javaHome as string | undefined;
 
     const validAndroidHome =
       androidHomePath && fs.existsSync(androidHomePath) ? androidHomePath : undefined;
@@ -57,10 +57,10 @@ export class ExtractAndroidSetupNode extends BaseNode<State> {
       process.env.ANDROID_HOME = validAndroidHome;
       this.logger.debug(`Set ANDROID_HOME: ${validAndroidHome}`);
     } else if (androidHomePath) {
-      result.android_home = undefined;
+      result.androidHome = undefined;
       errorMessages.push(`ANDROID_HOME path does not exist: ${androidHomePath}`);
     } else {
-      result.android_home = undefined;
+      result.androidHome = undefined;
       errorMessages.push('ANDROID_HOME was not provided');
     }
 
@@ -69,10 +69,10 @@ export class ExtractAndroidSetupNode extends BaseNode<State> {
       process.env.JAVA_HOME = validJavaHome;
       this.logger.debug(`Set JAVA_HOME: ${validJavaHome}`);
     } else if (javaHomePath) {
-      result.java_home = undefined;
+      result.javaHome = undefined;
       errorMessages.push(`JAVA_HOME path does not exist: ${javaHomePath}`);
     } else {
-      result.java_home = undefined;
+      result.javaHome = undefined;
       errorMessages.push('JAVA_HOME was not provided');
     }
 

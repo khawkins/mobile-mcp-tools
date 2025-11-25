@@ -61,8 +61,8 @@ describe('CheckSetupValidatedRouter', () => {
       const inputState = createTestState({
         platform: 'Android',
         validPlatformSetup: true,
-        android_home: '/path/to/android',
-        java_home: '/path/to/java',
+        androidHome: '/path/to/android',
+        javaHome: '/path/to/java',
       });
 
       const result = router.execute(inputState);
@@ -87,8 +87,8 @@ describe('CheckSetupValidatedRouter', () => {
       const inputState = createTestState({
         platform: 'Android',
         validPlatformSetup: false,
-        android_home: undefined,
-        java_home: undefined,
+        androidHome: undefined,
+        javaHome: undefined,
       });
 
       const result = router.execute(inputState);
@@ -96,12 +96,12 @@ describe('CheckSetupValidatedRouter', () => {
       expect(result).toBe(androidSetupNodeName);
     });
 
-    it('should route to androidSetup node for Android with false setup and missing android_home', () => {
+    it('should route to androidSetup node for Android with false setup and missing androidHome', () => {
       const inputState = createTestState({
         platform: 'Android',
         validPlatformSetup: false,
-        android_home: undefined,
-        java_home: '/path/to/java',
+        androidHome: undefined,
+        javaHome: '/path/to/java',
       });
 
       const result = router.execute(inputState);
@@ -109,12 +109,12 @@ describe('CheckSetupValidatedRouter', () => {
       expect(result).toBe(androidSetupNodeName);
     });
 
-    it('should route to androidSetup node for Android with false setup and missing java_home', () => {
+    it('should route to androidSetup node for Android with false setup and missing javaHome', () => {
       const inputState = createTestState({
         platform: 'Android',
         validPlatformSetup: false,
-        android_home: '/path/to/android',
-        java_home: undefined,
+        androidHome: '/path/to/android',
+        javaHome: undefined,
       });
 
       const result = router.execute(inputState);
@@ -126,8 +126,8 @@ describe('CheckSetupValidatedRouter', () => {
       const inputState = createTestState({
         platform: 'Android',
         validPlatformSetup: false,
-        android_home: '',
-        java_home: '',
+        androidHome: '',
+        javaHome: '',
       });
 
       const result = router.execute(inputState);
@@ -139,8 +139,8 @@ describe('CheckSetupValidatedRouter', () => {
       const inputState = createTestState({
         platform: 'Android',
         validPlatformSetup: false,
-        android_home: null as unknown as string,
-        java_home: null as unknown as string,
+        androidHome: null as unknown as string,
+        javaHome: null as unknown as string,
       });
 
       const result = router.execute(inputState);
@@ -154,8 +154,8 @@ describe('CheckSetupValidatedRouter', () => {
       const inputState = createTestState({
         platform: 'Android',
         validPlatformSetup: false,
-        android_home: '/path/to/android',
-        java_home: '/path/to/java',
+        androidHome: '/path/to/android',
+        javaHome: '/path/to/java',
       });
 
       const result = router.execute(inputState);
@@ -167,8 +167,8 @@ describe('CheckSetupValidatedRouter', () => {
       const inputState = createTestState({
         platform: 'Android',
         validPlatformSetup: false,
-        android_home: '/invalid/android',
-        java_home: '/invalid/java',
+        androidHome: '/invalid/android',
+        javaHome: '/invalid/java',
       });
 
       const result = router.execute(inputState);
@@ -193,8 +193,8 @@ describe('CheckSetupValidatedRouter', () => {
       const inputState = createTestState({
         platform: 'iOS',
         validPlatformSetup: false,
-        android_home: undefined,
-        java_home: undefined,
+        androidHome: undefined,
+        javaHome: undefined,
       });
 
       const result = router.execute(inputState);
@@ -278,8 +278,8 @@ describe('CheckSetupValidatedRouter', () => {
       const inputState = createTestState({
         platform: 'Android',
         validPlatformSetup: false,
-        android_home: '/path',
-        java_home: '/path',
+        androidHome: '/path',
+        javaHome: '/path',
       });
 
       const result = router.execute(inputState);
@@ -341,18 +341,18 @@ describe('CheckSetupValidatedRouter', () => {
       expect(result).toBe(setupValidatedNodeName);
     });
 
-    it('should only depend on validPlatformSetup, platform, android_home, and java_home', () => {
+    it('should only depend on validPlatformSetup, platform, androidHome, and javaHome', () => {
       const state1 = createTestState({
         platform: 'Android',
         validPlatformSetup: false,
-        android_home: undefined,
+        androidHome: undefined,
         projectName: 'Project1',
       });
 
       const state2 = createTestState({
         platform: 'Android',
         validPlatformSetup: false,
-        android_home: undefined,
+        androidHome: undefined,
         projectName: 'Project2',
       });
 
@@ -381,8 +381,8 @@ describe('CheckSetupValidatedRouter', () => {
       const inputState = createTestState({
         platform: 'Android',
         validPlatformSetup: true,
-        android_home: '/Users/test/Library/Android/sdk',
-        java_home: '/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home',
+        androidHome: '/Users/test/Library/Android/sdk',
+        javaHome: '/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home',
       });
 
       const result = router.execute(inputState);
@@ -394,8 +394,8 @@ describe('CheckSetupValidatedRouter', () => {
       const inputState = createTestState({
         platform: 'Android',
         validPlatformSetup: false,
-        android_home: undefined,
-        java_home: undefined,
+        androidHome: undefined,
+        javaHome: undefined,
       });
 
       const result = router.execute(inputState);
@@ -419,8 +419,8 @@ describe('CheckSetupValidatedRouter', () => {
       const inputState = createTestState({
         platform: 'Android',
         validPlatformSetup: false,
-        android_home: '/path/to/android',
-        java_home: '/path/to/java',
+        androidHome: '/path/to/android',
+        javaHome: '/path/to/java',
         workflowFatalErrorMessages: ['Android SDK version mismatch'],
       });
 
