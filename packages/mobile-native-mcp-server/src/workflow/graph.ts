@@ -28,6 +28,7 @@ import { CheckAndroidSetupExtractedRouter } from './nodes/checkAndroidSetupExtra
 import { ExtractAndroidSetupNode } from './nodes/extractAndroidSetup.js';
 import { PluginCheckNode } from './nodes/checkPluginSetup.js';
 import { CheckPluginValidatedRouter } from './nodes/checkPluginValidatedRouter.js';
+import { CheckProjectGenerationRouter } from './nodes/checkProjectGenerationRouter.js';
 import {
   createGetUserInputNode,
   createUserInputExtractionNode,
@@ -91,6 +92,11 @@ const checkAndroidSetupExtractedRouter = new CheckAndroidSetupExtractedRouter(
   failureNode.name
 );
 
+const checkProjectGenerationRouter = new CheckProjectGenerationRouter(
+  buildValidationNode.name,
+  failureNode.name
+);
+
 const checkBuildSuccessfulRouter = new CheckBuildSuccessfulRouter(
   deploymentNode.name,
   buildRecoveryNode.name,
@@ -130,7 +136,7 @@ export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   .addConditionalEdges(extractAndroidSetupNode.name, checkAndroidSetupExtractedRouter.execute)
   .addConditionalEdges(pluginCheckNode.name, checkPluginValidatedRouter.execute)
   .addEdge(templateDiscoveryNode.name, projectGenerationNode.name)
-  .addEdge(projectGenerationNode.name, buildValidationNode.name)
+  .addConditionalEdges(projectGenerationNode.name, checkProjectGenerationRouter.execute)
   // Build validation with recovery loop (similar to user input loop)
   .addConditionalEdges(buildValidationNode.name, checkBuildSuccessfulRouter.execute)
   .addEdge(buildRecoveryNode.name, buildValidationNode.name)
