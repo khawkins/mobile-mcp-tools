@@ -6,6 +6,7 @@
  */
 
 import { State } from '../metadata.js';
+import { createComponentLogger } from '@salesforce/magen-mcp-workflow';
 
 /**
  * Conditional router edge to check if Android setup extraction was successful.
@@ -14,6 +15,7 @@ import { State } from '../metadata.js';
 export class CheckAndroidSetupExtractedRouter {
   private readonly setupExtractedNodeName: string;
   private readonly failureNodeName: string;
+  private readonly logger = createComponentLogger('CheckAndroidSetupExtractedRouter');
 
   /**
    * Creates a new CheckAndroidSetupExtractedRouter.
@@ -29,10 +31,18 @@ export class CheckAndroidSetupExtractedRouter {
   execute = (state: State): string => {
     // Check if both androidHome and javaHome were extracted
     if (state.androidHome && state.javaHome) {
+      this.logger.info('Android setup successfully extracted, routing to platform check');
       return this.setupExtractedNodeName;
     }
 
     // If either is missing, route to failure
+    const missingPaths: string[] = [];
+    if (!state.androidHome) missingPaths.push('androidHome');
+    if (!state.javaHome) missingPaths.push('javaHome');
+
+    this.logger.warn(
+      `Android setup extraction failed. Missing: ${missingPaths.join(', ')}. Routing to failure.`
+    );
     return this.failureNodeName;
   };
 }
