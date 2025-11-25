@@ -12,7 +12,7 @@ import { MockLogger } from '../../utils/MockLogger.js';
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
 
-// Mock execSync and existsSync
+// Mock execSync, existsSync, and readdirSync
 vi.mock('child_process', () => ({
   execSync: vi.fn(),
 }));
@@ -22,6 +22,7 @@ vi.mock('fs', async importOriginal => {
   return {
     ...actual,
     existsSync: vi.fn(),
+    readdirSync: vi.fn(),
   };
 });
 
@@ -30,17 +31,21 @@ describe('ProjectGenerationNode', () => {
   let mockLogger: MockLogger;
   let mockExecSync: ReturnType<typeof vi.fn>;
   let mockExistsSync: ReturnType<typeof vi.fn>;
+  let mockReaddirSync: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     mockLogger = new MockLogger();
     node = new ProjectGenerationNode(mockLogger);
     mockExecSync = vi.mocked(childProcess.execSync);
     mockExistsSync = vi.mocked(fs.existsSync);
+    mockReaddirSync = vi.mocked(fs.readdirSync);
     mockExecSync.mockReset();
     mockExistsSync.mockReset();
+    mockReaddirSync.mockReset();
 
     // Default to success case
     mockExistsSync.mockReturnValue(true);
+    mockReaddirSync.mockReturnValue(['MyApp.xcodeproj'] as unknown as string[]);
   });
 
   afterEach(() => {
@@ -148,7 +153,7 @@ describe('ProjectGenerationNode', () => {
       );
     });
 
-    it('should not validate Android project structure for iOS', () => {
+    it('should validate iOS project structure', () => {
       const inputState = createTestState({
         platform: 'iOS',
         selectedTemplate: 'ContactsApp',
@@ -160,12 +165,133 @@ describe('ProjectGenerationNode', () => {
       });
 
       mockExecSync.mockReturnValue('Success');
+      mockReaddirSync.mockReturnValue(['MyiOSApp.xcodeproj', 'Podfile'] as unknown as string[]);
+      mockExistsSync.mockReturnValue(true);
 
       const result = node.execute(inputState);
 
       expect(result.workflowFatalErrorMessages).toBeUndefined();
-      // existsSync should not be called for iOS
-      expect(mockExistsSync).not.toHaveBeenCalled();
+      // Should validate iOS project structure by reading directory
+      expect(mockReaddirSync).toHaveBeenCalled();
+    });
+  });
+
+  describe('execute() - iOS Platform - Validation Failures', () => {
+    it('should fail when .xcodeproj directory is missing', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockReaddirSync.mockReturnValue(['Podfile', 'README.md'] as unknown as string[]);
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages).toHaveLength(1);
+      expect(result.workflowFatalErrorMessages![0]).toContain(
+        'not a valid iOS project. Missing required files'
+      );
+    });
+
+    it('should fail when readdirSync throws an error', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockReaddirSync.mockImplementation(() => {
+        throw new Error('ENOENT: no such file or directory');
+      });
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages![0]).toContain('not a valid iOS project');
+    });
+
+    it('should succeed when .xcodeproj exists even if other files are missing', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      // Only .xcodeproj exists, no Podfile
+      mockReaddirSync.mockReturnValue(['MyiOSApp.xcodeproj'] as unknown as string[]);
+      mockExistsSync.mockReturnValue(true);
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+      expect(result.projectPath).toBeDefined();
+    });
+
+    it('should handle .xcworkspace files in project directory', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockReaddirSync.mockReturnValue([
+        'MyiOSApp.xcodeproj',
+        'MyiOSApp.xcworkspace',
+        'Podfile',
+      ] as unknown as string[]);
+      mockExistsSync.mockReturnValue(true);
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+      expect(result.projectPath).toBeDefined();
+    });
+
+    it('should detect .xcodeproj even with different naming', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      // Project name doesn't match .xcodeproj name
+      mockReaddirSync.mockReturnValue([
+        'DifferentName.xcodeproj',
+        'Podfile',
+      ] as unknown as string[]);
+      mockExistsSync.mockReturnValue(true);
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+      expect(result.projectPath).toBeDefined();
     });
   });
 
@@ -380,6 +506,80 @@ describe('ProjectGenerationNode', () => {
     });
   });
 
+  describe('execute() - Project Directory Verification', () => {
+    it('should fail when project directory does not exist after command execution', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Command completed');
+      // First call to existsSync (project directory check) returns false
+      // This simulates the directory not being created
+      mockExistsSync.mockReturnValue(false);
+
+      const result = node.execute(inputState);
+
+      expect(result.projectPath).toBeUndefined();
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages).toHaveLength(1);
+      expect(result.workflowFatalErrorMessages![0]).toContain('Project directory not found');
+      expect(result.workflowFatalErrorMessages![0]).toContain(
+        'command executed successfully but the project was not created'
+      );
+    });
+
+    it('should log error when project directory does not exist', () => {
+      const inputState = createTestState({
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Command completed');
+      mockExistsSync.mockReturnValue(false);
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const errorLogs = mockLogger.getLogsByLevel('error');
+      const missingDirLog = errorLogs.find(log =>
+        log.message.includes('Project directory not found after command execution')
+      );
+      expect(missingDirLog).toBeDefined();
+    });
+
+    it('should proceed with validation when project directory exists', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockExistsSync.mockReturnValue(true);
+      mockReaddirSync.mockReturnValue(['MyiOSApp.xcodeproj'] as unknown as string[]);
+
+      const result = node.execute(inputState);
+
+      expect(result.projectPath).toBeDefined();
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+    });
+  });
+
   describe('execute() - Command Execution Errors', () => {
     it('should handle execSync throwing an error', () => {
       const inputState = createTestState({
@@ -514,7 +714,7 @@ describe('ProjectGenerationNode', () => {
 
       const debugLogs = mockLogger.getLogsByLevel('debug');
       const postExecutionLog = debugLogs.find(log =>
-        log.message.includes('Project generation completed')
+        log.message.includes('Command executed successfully')
       );
       expect(postExecutionLog).toBeDefined();
     });
@@ -543,6 +743,31 @@ describe('ProjectGenerationNode', () => {
       expect(validationLog).toBeDefined();
     });
 
+    it('should log iOS validation success', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockReaddirSync.mockReturnValue(['MyiOSApp.xcodeproj'] as unknown as string[]);
+      mockExistsSync.mockReturnValue(true);
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const debugLogs = mockLogger.getLogsByLevel('debug');
+      const validationLog = debugLogs.find(log =>
+        log.message.includes('iOS project structure validation passed')
+      );
+      expect(validationLog).toBeDefined();
+    });
+
     it('should log warning for missing Android files', () => {
       const inputState = createTestState({
         platform: 'Android',
@@ -555,13 +780,68 @@ describe('ProjectGenerationNode', () => {
       });
 
       mockExecSync.mockReturnValue('Success');
-      mockExistsSync.mockReturnValue(false);
+      // First call (project directory check) returns true, subsequent calls return false
+      let callCount = 0;
+      mockExistsSync.mockImplementation(() => {
+        callCount++;
+        return callCount === 1; // Only first call returns true
+      });
       mockLogger.reset();
 
       node.execute(inputState);
 
       const warnLogs = mockLogger.getLogsByLevel('warn');
       expect(warnLogs.length).toBeGreaterThan(0);
+    });
+
+    it('should log warning for missing iOS .xcodeproj', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockReaddirSync.mockReturnValue(['Podfile', 'README.md'] as unknown as string[]);
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const warnLogs = mockLogger.getLogsByLevel('warn');
+      const missingXcodeprojLog = warnLogs.find(log =>
+        log.message.includes('Missing required .xcodeproj directory')
+      );
+      expect(missingXcodeprojLog).toBeDefined();
+    });
+
+    it('should log warning when iOS project directory cannot be read', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockReaddirSync.mockImplementation(() => {
+        throw new Error('EACCES: permission denied');
+      });
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const warnLogs = mockLogger.getLogsByLevel('warn');
+      const readFailLog = warnLogs.find(log =>
+        log.message.includes('Failed to read iOS project directory')
+      );
+      expect(readFailLog).toBeDefined();
     });
 
     it('should log error when command fails', () => {
@@ -611,6 +891,77 @@ describe('ProjectGenerationNode', () => {
         expect(log.message).not.toContain('secret-client-id-12345');
         expect(log.message).not.toContain('secret-callback');
       });
+    });
+
+    it('should log "Command executed successfully" before validation', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Project created successfully');
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const debugLogs = mockLogger.getLogsByLevel('debug');
+      const commandExecutedLog = debugLogs.find(log =>
+        log.message.includes('Command executed successfully')
+      );
+      expect(commandExecutedLog).toBeDefined();
+    });
+
+    it('should log "Project generation completed successfully" only after validation passes', () => {
+      const inputState = createTestState({
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockExistsSync.mockReturnValue(true);
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const infoLogs = mockLogger.getLogsByLevel('info');
+      const completionLog = infoLogs.find(log =>
+        log.message.includes('Project generation completed successfully')
+      );
+      expect(completionLog).toBeDefined();
+    });
+
+    it('should not log completion message when validation fails', () => {
+      const inputState = createTestState({
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockExistsSync.mockReturnValue(false); // Validation will fail
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const infoLogs = mockLogger.getLogsByLevel('info');
+      const completionLog = infoLogs.find(log =>
+        log.message.includes('Project generation completed successfully')
+      );
+      expect(completionLog).toBeUndefined();
     });
   });
 

@@ -8,7 +8,7 @@
 import { BaseNode, createComponentLogger, Logger } from '@salesforce/magen-mcp-workflow';
 import { State } from '../metadata.js';
 import { execSync } from 'child_process';
-import { existsSync } from 'fs';
+import { existsSync, readdirSync } from 'fs';
 import { join, resolve } from 'path';
 import { MOBILE_SDK_TEMPLATES_PATH } from '../../common.js';
 
@@ -36,12 +36,27 @@ export class ProjectGenerationNode extends BaseNode<State> {
       // Execute the command directly without exposing credentials to LLM
       const output = execSync(command, { encoding: 'utf-8', timeout: 120000 });
 
-      this.logger.debug('Project generation completed', { output });
+      this.logger.debug('Command executed successfully', {
+        outputLength: output.length,
+        hasOutput: output.trim().length > 0,
+      });
 
       // Determine project path (the CLI creates the project in the current working directory)
       const projectPath = resolve(process.cwd(), state.projectName);
 
-      // Validate Android project structure if platform is Android
+      // Verify project directory was created
+      if (!existsSync(projectPath)) {
+        this.logger.error(
+          `Project directory not found after command execution. Expected path: ${projectPath}`
+        );
+        return {
+          workflowFatalErrorMessages: [
+            `Project directory not found at ${projectPath}. The command executed successfully but the project was not created in the expected location.`,
+          ],
+        };
+      }
+
+      // Validate project structure based on platform
       if (state.platform === 'Android') {
         const isValidAndroidProject = this.validateAndroidProjectStructure(projectPath);
         if (!isValidAndroidProject) {
@@ -52,7 +67,23 @@ export class ProjectGenerationNode extends BaseNode<State> {
           };
         }
         this.logger.debug('Android project structure validation passed', { projectPath });
+      } else if (state.platform === 'iOS') {
+        const isValidiOSProject = this.validateiOSProjectStructure(projectPath);
+        if (!isValidiOSProject) {
+          return {
+            workflowFatalErrorMessages: [
+              `Generated project at ${projectPath} is not a valid iOS project. Missing required files or directories.`,
+            ],
+          };
+        }
+        this.logger.debug('iOS project structure validation passed', { projectPath });
       }
+
+      // Log success only after all validation passes
+      this.logger.info('Project generation completed successfully', {
+        projectPath,
+        platform: state.platform,
+      });
 
       return {
         projectPath,
@@ -124,6 +155,38 @@ export class ProjectGenerationNode extends BaseNode<State> {
         });
         return false;
       }
+    }
+
+    return true;
+  }
+
+  /**
+   * Validates that the generated iOS project has the required structure and files
+   */
+  private validateiOSProjectStructure(projectPath: string): boolean {
+    // Check for .xcodeproj directory (required)
+    let foundXcodeproj = false;
+    try {
+      const files = readdirSync(projectPath);
+      for (const file of files) {
+        if (file.endsWith('.xcodeproj')) {
+          const fullPath = join(projectPath, file);
+          if (existsSync(fullPath)) {
+            foundXcodeproj = true;
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.warn('Failed to read iOS project directory', { projectPath, error });
+      return false;
+    }
+
+    if (!foundXcodeproj) {
+      this.logger.warn('Missing required .xcodeproj directory in iOS project', {
+        projectPath,
+      });
+      return false;
     }
 
     return true;
