@@ -339,9 +339,9 @@ describe('ProjectGenerationNode', () => {
       const result = node.execute(inputState);
 
       expect(result.workflowFatalErrorMessages).toBeUndefined();
-      // Should check for Android manifest
+      // Should check for Android manifest (using regex to handle both Unix and Windows path separators)
       expect(mockExistsSync).toHaveBeenCalledWith(
-        expect.stringContaining('app/src/main/AndroidManifest.xml')
+        expect.stringMatching(/app[/\\]src[/\\]main[/\\]AndroidManifest\.xml/)
       );
     });
 
