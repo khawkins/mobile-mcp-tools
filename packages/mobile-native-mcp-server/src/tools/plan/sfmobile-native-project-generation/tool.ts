@@ -52,12 +52,9 @@ export class SFMobileNativeProjectGenerationTool extends AbstractNativeProjectMa
 
       ${this.generateStepExecuteCliCommand(1, input)}
 
-      ${this.generateStepVerifyProjectStructure(2, input)}
-
       ## Success Criteria
 
       ✅ Project generated successfully from template "${input.selectedTemplate}"
-      ✅ Project structure verified
     `;
   }
 
@@ -67,36 +64,27 @@ export class SFMobileNativeProjectGenerationTool extends AbstractNativeProjectMa
   ): string {
     const platformLower = input.platform.toLowerCase();
 
+    // Build template properties flags if they exist
+    let templatePropertiesFlags = '';
+    if (input.templateProperties && Object.keys(input.templateProperties).length > 0) {
+      const propertyFlags = Object.entries(input.templateProperties)
+        .map(([key, value]) => `--template-property-${key}="${value}"`)
+        .join(' ');
+      templatePropertiesFlags = ` ${propertyFlags}`;
+    }
+
     return dedent`
       ## Step ${stepNumber}: Execute Platform-Specific CLI Command
 
       Generate the project using the Salesforce Mobile SDK CLI:
 
       \`\`\`bash
-      sf mobilesdk ${platformLower} createwithtemplate --templatesource="${MOBILE_SDK_TEMPLATES_PATH}" --template="${input.selectedTemplate}" --appname="${input.projectName}" --packagename="${input.packageName}" --organization="${input.organization} --consumerkey="${input.connectedAppClientId}" --callbackurl="${input.connectedAppCallbackUri}" --loginserver="${input.loginHost}"
+      sf mobilesdk ${platformLower} createwithtemplate --templatesource="${MOBILE_SDK_TEMPLATES_PATH}" --template="${input.selectedTemplate}" --appname="${input.projectName}" --packagename="${input.packageName}" --organization="${input.organization} --consumerkey="${input.connectedAppClientId}" --callbackurl="${input.connectedAppCallbackUri}" --loginserver="${input.loginHost} ${templatePropertiesFlags}"
       \`\`\`
 
-      **Expected Outcome**: A new ${input.platform} project directory named "${input.projectName}" will be created with the template structure. The output of the command will indicate the location of the bootconfig.plist file, take note of this for oauth configuration!
+      **Expected Outcome**: A new ${input.platform} project directory named "${input.projectName}" will be created with the template structure.
 
       NOTE: it is VERY IMPORTANT to use the above command EXACTLY to generate the project. Do not use any other configuration method to generate the project. If the above command fails do not try to generate the project using any other method. Instead report back error to the user.
-    `;
-  }
-
-  private generateStepVerifyProjectStructure(
-    stepNumber: number,
-    input: ProjectGenerationWorkflowInput
-  ): string {
-    return dedent`
-      ## Step ${stepNumber}: Verify Project Structure
-
-      Navigate to the project directory and verify the basic structure:
-
-      \`\`\`bash
-      cd "${input.projectName}"
-      ls -la
-      \`\`\`
-
-      **Expected Structure**: You should see platform-specific files and directories appropriate for ${input.platform} development.
     `;
   }
 }

@@ -9,7 +9,7 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { SFMobileNativeTemplateDiscoveryTool } from './tools/plan/sfmobile-native-template-discovery/tool.js';
+import { SFMobileNativeTemplateSelectionTool } from './tools/plan/sfmobile-native-template-selection/tool.js';
 import { UtilsXcodeAddFilesTool } from './tools/utils/utils-xcode-add-files/tool.js';
 
 import { SFMobileNativeDeploymentTool } from './tools/run/sfmobile-native-deployment/tool.js';
@@ -52,7 +52,7 @@ const orchestratorAnnotations: ToolAnnotations = {
 const orchestrator = new MobileNativeOrchestrator(server);
 const getInputTool = createSFMobileNativeGetInputTool(server);
 const inputExtractionTool = createSFMobileNativeInputExtractionTool(server);
-const templateDiscoveryTool = new SFMobileNativeTemplateDiscoveryTool(server);
+const templateSelectionTool = new SFMobileNativeTemplateSelectionTool(server);
 const projectGenerationTool = new SFMobileNativeProjectGenerationTool(server);
 const buildTool = new SFMobileNativeBuildTool(server);
 const buildRecoveryTool = new SFMobileNativeBuildRecoveryTool(server);
@@ -73,7 +73,7 @@ orchestrator.register(orchestratorAnnotations);
 // Register all other tools with read-only annotations
 getInputTool.register(readOnlyAnnotations);
 inputExtractionTool.register(readOnlyAnnotations);
-templateDiscoveryTool.register(readOnlyAnnotations);
+templateSelectionTool.register(readOnlyAnnotations);
 projectGenerationTool.register(readOnlyAnnotations);
 buildTool.register(readOnlyAnnotations);
 buildRecoveryTool.register(readOnlyAnnotations);

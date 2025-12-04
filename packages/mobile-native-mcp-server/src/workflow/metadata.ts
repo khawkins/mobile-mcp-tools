@@ -7,8 +7,23 @@
 
 import { Annotation } from '@langchain/langgraph';
 import z from 'zod';
-import { PLATFORM_ENUM, PROJECT_NAME_FIELD } from '../common/schemas.js';
+import { PLATFORM_ENUM, PROJECT_NAME_FIELD, TemplateListOutput } from '../common/schemas.js';
 import { PropertyMetadata, PropertyMetadataCollection } from '@salesforce/magen-mcp-workflow';
+
+/**
+ * Metadata for a custom template property
+ * This matches the structure returned from template discovery
+ */
+export interface TemplatePropertyMetadata {
+  value?: string;
+  required: boolean;
+  description: string;
+}
+
+/**
+ * Collection of template property metadata
+ */
+export type TemplatePropertiesMetadata = Record<string, TemplatePropertyMetadata>;
 
 /**
  * Definition of all user input properties required by the mobile native workflow.
@@ -81,6 +96,7 @@ export type AndroidSetupProperties = typeof ANDROID_SETUP_PROPERTIES;
 export const MobileNativeWorkflowState = Annotation.Root({
   // Core workflow data
   userInput: Annotation<unknown>,
+  templatePropertiesUserInput: Annotation<unknown>,
   platform: Annotation<z.infer<typeof WORKFLOW_USER_INPUT_PROPERTIES.platform.zodType>>,
 
   // Plan phase state
@@ -88,6 +104,7 @@ export const MobileNativeWorkflowState = Annotation.Root({
   validPlatformSetup: Annotation<boolean>,
   validPluginSetup: Annotation<boolean>,
   workflowFatalErrorMessages: Annotation<string[]>,
+  templateOptions: Annotation<TemplateListOutput>,
 
   // Android setup state (for recovery flow)
   androidInstalled: Annotation<z.infer<typeof ANDROID_SETUP_PROPERTIES.androidInstalled.zodType>>,
@@ -95,6 +112,8 @@ export const MobileNativeWorkflowState = Annotation.Root({
   javaHome: Annotation<z.infer<typeof ANDROID_SETUP_PROPERTIES.javaHome.zodType>>,
 
   selectedTemplate: Annotation<string>,
+  templateProperties: Annotation<Record<string, string>>,
+  templatePropertiesMetadata: Annotation<TemplatePropertiesMetadata>,
   projectName: Annotation<z.infer<typeof WORKFLOW_USER_INPUT_PROPERTIES.projectName.zodType>>,
   projectPath: Annotation<string>,
   packageName: Annotation<z.infer<typeof WORKFLOW_USER_INPUT_PROPERTIES.packageName.zodType>>,
