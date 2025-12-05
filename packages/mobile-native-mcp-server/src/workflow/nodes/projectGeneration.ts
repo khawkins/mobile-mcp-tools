@@ -34,7 +34,7 @@ export class ProjectGenerationNode extends BaseNode<State> {
       }
 
       // Build the sf mobilesdk command with all parameters including sensitive credentials
-      const command = `sf mobilesdk ${platformLower} createwithtemplate --templatesource="${MOBILE_SDK_TEMPLATES_PATH}" --template="${state.selectedTemplate}" --appname="${state.projectName}" --packagename="${state.packageName}" --organization="${state.organization}" --consumerkey="${state.connectedAppClientId}" --callbackurl="${state.connectedAppCallbackUri}" --loginserver="${state.loginHost || 'https://login.salesforce.com'}" ${templatePropertiesFlags}`;
+      const command = `sf mobilesdk ${platformLower} createwithtemplate --templatesource="${MOBILE_SDK_TEMPLATES_PATH}" --template="${state.selectedTemplate}" --appname="${state.projectName}" --packagename="${state.packageName}" --organization="${state.organization}" --consumerkey="${state.connectedAppClientId}" --callbackurl="${state.connectedAppCallbackUri}" --loginserver="${state.loginHost}" ${templatePropertiesFlags}`;
 
       this.logger.debug('Executing project generation command', {
         template: state.selectedTemplate,
