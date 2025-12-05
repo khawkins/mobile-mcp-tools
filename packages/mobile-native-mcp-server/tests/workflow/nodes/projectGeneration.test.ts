@@ -1119,6 +1119,154 @@ describe('ProjectGenerationNode', () => {
     });
   });
 
+  describe('execute() - Template Properties', () => {
+    it('should include template properties flags when templateProperties exist', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+        loginHost: 'https://login.salesforce.com',
+        templateProperties: {
+          customField: 'customValue',
+        },
+      });
+
+      mockExecSync.mockReturnValue('Success');
+
+      node.execute(inputState);
+
+      expect(mockExecSync).toHaveBeenCalledWith(
+        expect.stringContaining('--template-property-customField="customValue"'),
+        expect.any(Object)
+      );
+    });
+
+    it('should include multiple template properties flags', () => {
+      const inputState = createTestState({
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+        templateProperties: {
+          apiVersion: '60.0',
+          customObject: 'Account',
+          enableFeatureX: 'true',
+        },
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockExistsSync.mockReturnValue(true);
+
+      node.execute(inputState);
+
+      const command = mockExecSync.mock.calls[0][0] as string;
+      expect(command).toContain('--template-property-apiVersion="60.0"');
+      expect(command).toContain('--template-property-customObject="Account"');
+      expect(command).toContain('--template-property-enableFeatureX="true"');
+    });
+
+    it('should not include template properties flags when templateProperties is undefined', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+        templateProperties: undefined,
+      });
+
+      mockExecSync.mockReturnValue('Success');
+
+      node.execute(inputState);
+
+      const command = mockExecSync.mock.calls[0][0] as string;
+      expect(command).not.toContain('--template-property-');
+    });
+
+    it('should not include template properties flags when templateProperties is empty', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+        templateProperties: {},
+      });
+
+      mockExecSync.mockReturnValue('Success');
+
+      node.execute(inputState);
+
+      const command = mockExecSync.mock.calls[0][0] as string;
+      expect(command).not.toContain('--template-property-');
+    });
+
+    it('should log template properties in debug message', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+        templateProperties: {
+          customProp: 'customVal',
+        },
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const debugLogs = mockLogger.getLogsByLevel('debug');
+      const preExecutionLog = debugLogs.find(log =>
+        log.message.includes('Executing project generation command')
+      );
+      expect(preExecutionLog).toBeDefined();
+      // The log should include templateProperties in its data
+      const logData = preExecutionLog?.data as Record<string, unknown> | undefined;
+      expect(logData).toHaveProperty('templateProperties');
+      expect(logData?.templateProperties).toEqual({ customProp: 'customVal' });
+    });
+
+    it('should handle template properties with special characters in values', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+        templateProperties: {
+          description: 'My App Description',
+          url: 'https://example.com/api',
+        },
+      });
+
+      mockExecSync.mockReturnValue('Success');
+
+      node.execute(inputState);
+
+      const command = mockExecSync.mock.calls[0][0] as string;
+      expect(command).toContain('--template-property-description="My App Description"');
+      expect(command).toContain('--template-property-url="https://example.com/api"');
+    });
+  });
+
   describe('execute() - Edge Cases', () => {
     it('should handle project names with spaces', () => {
       const inputState = createTestState({

@@ -24,13 +24,28 @@ export class ProjectGenerationNode extends BaseNode<State> {
     try {
       const platformLower = state.platform.toLowerCase();
 
+      // Build template properties flags if they exist
+      let templatePropertiesFlags = '';
+      if (state.templateProperties && Object.keys(state.templateProperties).length > 0) {
+        const propertyFlags = Object.entries(state.templateProperties)
+          .map(([key, value]) => `--template-property-${key}="${value}"`)
+          .join(' ');
+        templatePropertiesFlags = ` ${propertyFlags}`;
+      }
+
       // Build the sf mobilesdk command with all parameters including sensitive credentials
-      const command = `sf mobilesdk ${platformLower} createwithtemplate --templatesource="${MOBILE_SDK_TEMPLATES_PATH}" --template="${state.selectedTemplate}" --appname="${state.projectName}" --packagename="${state.packageName}" --organization="${state.organization}" --consumerkey="${state.connectedAppClientId}" --callbackurl="${state.connectedAppCallbackUri}" --loginserver="${state.loginHost || 'https://login.salesforce.com'}"`;
+      const command = `sf mobilesdk ${platformLower} createwithtemplate --templatesource="${MOBILE_SDK_TEMPLATES_PATH}" --template="${state.selectedTemplate}" --appname="${state.projectName}" --packagename="${state.packageName}" --organization="${state.organization}" --consumerkey="${state.connectedAppClientId}" --callbackurl="${state.connectedAppCallbackUri}" --loginserver="${state.loginHost || 'https://login.salesforce.com'}" ${templatePropertiesFlags}`;
 
       this.logger.debug('Executing project generation command', {
         template: state.selectedTemplate,
         projectName: state.projectName,
         platform: state.platform,
+        packageName: state.packageName,
+        organization: state.organization,
+        connectedAppClientId: state.connectedAppClientId,
+        connectedAppCallbackUri: state.connectedAppCallbackUri,
+        loginHost: state.loginHost,
+        templateProperties: state.templateProperties,
       });
 
       // Execute the command directly without exposing credentials to LLM

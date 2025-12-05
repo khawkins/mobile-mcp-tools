@@ -13,7 +13,8 @@ import {
   ANDROID_SETUP_PROPERTIES,
 } from './metadata.js';
 import { EnvironmentValidationNode } from './nodes/environment.js';
-import { TemplateDiscoveryNode } from './nodes/templateDiscovery.js';
+import { TemplateOptionsFetchNode } from './nodes/templateOptionsFetch.js';
+import { TemplateSelectionNode } from './nodes/templateSelection.js';
 import { ProjectGenerationNode } from './nodes/projectGeneration.js';
 import { BuildValidationNode } from './nodes/buildValidation.js';
 import { BuildRecoveryNode } from './nodes/buildRecovery.js';
@@ -24,6 +25,9 @@ import { FailureNode } from './nodes/failureNode.js';
 import { CheckEnvironmentValidatedRouter } from './nodes/checkEnvironmentValidated.js';
 import { PlatformCheckNode } from './nodes/checkPlatformSetup.js';
 import { CheckSetupValidatedRouter } from './nodes/checkSetupValidatedRouter.js';
+import { TemplatePropertiesExtractionNode } from './nodes/templatePropertiesExtraction.js';
+import { TemplatePropertiesUserInputNode } from './nodes/templatePropertiesUserInput.js';
+import { CheckTemplatePropertiesFulfilledRouter } from './nodes/checkTemplatePropertiesFulfilledRouter.js';
 import { CheckAndroidSetupExtractedRouter } from './nodes/checkAndroidSetupExtractedRouter.js';
 import { ExtractAndroidSetupNode } from './nodes/extractAndroidSetup.js';
 import { PluginCheckNode } from './nodes/checkPluginSetup.js';
@@ -61,7 +65,10 @@ const extractAndroidSetupNode = new ExtractAndroidSetupNode();
 const environmentValidationNode = new EnvironmentValidationNode();
 const platformCheckNode = new PlatformCheckNode();
 const pluginCheckNode = new PluginCheckNode();
-const templateDiscoveryNode = new TemplateDiscoveryNode();
+const templateOptionsFetchNode = new TemplateOptionsFetchNode();
+const templateSelectionNode = new TemplateSelectionNode();
+const templatePropertiesExtractionNode = new TemplatePropertiesExtractionNode();
+const templatePropertiesUserInputNode = new TemplatePropertiesUserInputNode();
 const projectGenerationNode = new ProjectGenerationNode();
 const buildValidationNode = new BuildValidationNode();
 const buildRecoveryNode = new BuildRecoveryNode();
@@ -84,7 +91,7 @@ const checkSetupValidatedRouter = new CheckSetupValidatedRouter(
 );
 
 const checkPluginValidatedRouter = new CheckPluginValidatedRouter(
-  templateDiscoveryNode.name,
+  templateOptionsFetchNode.name,
   failureNode.name
 );
 const checkAndroidSetupExtractedRouter = new CheckAndroidSetupExtractedRouter(
@@ -103,6 +110,11 @@ const checkBuildSuccessfulRouter = new CheckBuildSuccessfulRouter(
   failureNode.name
 );
 
+const checkTemplatePropertiesFulfilledRouter = new CheckTemplatePropertiesFulfilledRouter(
+  projectGenerationNode.name,
+  templatePropertiesUserInputNode.name
+);
+
 /**
  * The main workflow graph for mobile native app development
  * Follows the Plan → Design/Iterate → Run three-phase architecture
@@ -117,7 +129,10 @@ export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   .addNode(getAndroidSetupNode.name, getAndroidSetupNode.execute)
   .addNode(extractAndroidSetupNode.name, extractAndroidSetupNode.execute)
   .addNode(pluginCheckNode.name, pluginCheckNode.execute)
-  .addNode(templateDiscoveryNode.name, templateDiscoveryNode.execute)
+  .addNode(templateOptionsFetchNode.name, templateOptionsFetchNode.execute)
+  .addNode(templateSelectionNode.name, templateSelectionNode.execute)
+  .addNode(templatePropertiesExtractionNode.name, templatePropertiesExtractionNode.execute)
+  .addNode(templatePropertiesUserInputNode.name, templatePropertiesUserInputNode.execute)
   .addNode(projectGenerationNode.name, projectGenerationNode.execute)
   .addNode(buildValidationNode.name, buildValidationNode.execute)
   .addNode(buildRecoveryNode.name, buildRecoveryNode.execute)
@@ -135,7 +150,13 @@ export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
   .addEdge(getAndroidSetupNode.name, extractAndroidSetupNode.name)
   .addConditionalEdges(extractAndroidSetupNode.name, checkAndroidSetupExtractedRouter.execute)
   .addConditionalEdges(pluginCheckNode.name, checkPluginValidatedRouter.execute)
-  .addEdge(templateDiscoveryNode.name, projectGenerationNode.name)
+  .addEdge(templateOptionsFetchNode.name, templateSelectionNode.name)
+  .addEdge(templateSelectionNode.name, templatePropertiesExtractionNode.name)
+  .addConditionalEdges(
+    templatePropertiesExtractionNode.name,
+    checkTemplatePropertiesFulfilledRouter.execute
+  )
+  .addEdge(templatePropertiesUserInputNode.name, templatePropertiesExtractionNode.name)
   .addConditionalEdges(projectGenerationNode.name, checkProjectGenerationRouter.execute)
   // Build validation with recovery loop (similar to user input loop)
   .addConditionalEdges(buildValidationNode.name, checkBuildSuccessfulRouter.execute)
