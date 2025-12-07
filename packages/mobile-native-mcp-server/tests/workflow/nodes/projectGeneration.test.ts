@@ -5,22 +5,51 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { ProjectGenerationNode } from '../../../src/workflow/nodes/projectGeneration.js';
-import { MockToolExecutor } from '../../utils/MockToolExecutor.js';
-import { MockLogger } from '../../utils/MockLogger.js';
 import { createTestState } from '../../utils/stateBuilders.js';
-import { PROJECT_GENERATION_TOOL } from '../../../src/tools/plan/sfmobile-native-project-generation/metadata.js';
+import { MockLogger } from '../../utils/MockLogger.js';
+import * as childProcess from 'child_process';
+import * as fs from 'fs';
+
+// Mock execSync, existsSync, and readdirSync
+vi.mock('child_process', () => ({
+  execSync: vi.fn(),
+}));
+
+vi.mock('fs', async importOriginal => {
+  const actual = (await importOriginal()) as typeof import('fs');
+  return {
+    ...actual,
+    existsSync: vi.fn(),
+    readdirSync: vi.fn(),
+  };
+});
 
 describe('ProjectGenerationNode', () => {
   let node: ProjectGenerationNode;
-  let mockToolExecutor: MockToolExecutor;
   let mockLogger: MockLogger;
+  let mockExecSync: ReturnType<typeof vi.fn>;
+  let mockExistsSync: ReturnType<typeof vi.fn>;
+  let mockReaddirSync: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    mockToolExecutor = new MockToolExecutor();
     mockLogger = new MockLogger();
-    node = new ProjectGenerationNode(mockToolExecutor, mockLogger);
+    node = new ProjectGenerationNode(mockLogger);
+    mockExecSync = vi.mocked(childProcess.execSync);
+    mockExistsSync = vi.mocked(fs.existsSync);
+    mockReaddirSync = vi.mocked(fs.readdirSync);
+    mockExecSync.mockReset();
+    mockExistsSync.mockReset();
+    mockReaddirSync.mockReset();
+
+    // Default to success case
+    mockExistsSync.mockReturnValue(true);
+    mockReaddirSync.mockReturnValue(['MyApp.xcodeproj'] as unknown as string[]);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   describe('Constructor', () => {
@@ -28,693 +57,1304 @@ describe('ProjectGenerationNode', () => {
       expect(node.name).toBe('generateProject');
     });
 
-    it('should extend AbstractToolNode', () => {
+    it('should extend BaseNode', () => {
       expect(node).toBeDefined();
       expect(node.name).toBeDefined();
       expect(node.execute).toBeDefined();
     });
 
-    it('should use provided tool executor', () => {
-      expect(node['toolExecutor']).toBe(mockToolExecutor);
+    it('should create default logger when none provided', () => {
+      const nodeWithoutLogger = new ProjectGenerationNode();
+      expect(nodeWithoutLogger).toBeDefined();
     });
 
     it('should use provided logger', () => {
-      expect(node['logger']).toBe(mockLogger);
-    });
-
-    it('should create default tool executor when none provided', () => {
-      const nodeWithoutExecutor = new ProjectGenerationNode(undefined, mockLogger);
-      expect(nodeWithoutExecutor['toolExecutor']).toBeDefined();
-      expect(nodeWithoutExecutor['toolExecutor']).not.toBe(mockToolExecutor);
-    });
-
-    it('should create default logger when none provided', () => {
-      const nodeWithoutLogger = new ProjectGenerationNode(mockToolExecutor);
-      expect(nodeWithoutLogger['logger']).toBeDefined();
-      expect(nodeWithoutLogger['logger']).not.toBe(mockLogger);
+      const customLogger = new MockLogger();
+      const nodeWithCustomLogger = new ProjectGenerationNode(customLogger);
+      expect(nodeWithCustomLogger['logger']).toBe(customLogger);
     });
   });
 
-  describe('execute() - Tool Invocation', () => {
-    it('should invoke project generation tool with correct tool metadata', () => {
+  describe('execute() - iOS Platform - Success', () => {
+    it('should generate iOS project successfully', () => {
       const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
         platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'TestOrg',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
         connectedAppClientId: 'client123',
         connectedAppCallbackUri: 'myapp://callback',
         loginHost: 'https://login.salesforce.com',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
+      mockExecSync.mockReturnValue('Project generated successfully');
 
-      node.execute(inputState);
+      const result = node.execute(inputState);
 
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall).toBeDefined();
-      expect(lastCall?.llmMetadata.name).toBe(PROJECT_GENERATION_TOOL.toolId);
-      expect(lastCall?.llmMetadata.description).toBe(PROJECT_GENERATION_TOOL.description);
+      expect(result.projectPath).toBeDefined();
+      expect(result.projectPath).toContain('MyiOSApp');
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+      expect(mockExecSync).toHaveBeenCalledWith(
+        expect.stringContaining('sf mobilesdk ios createwithtemplate'),
+        expect.objectContaining({ encoding: 'utf-8', timeout: 120000 })
+      );
     });
 
-    it('should pass all required fields to project generation tool', () => {
-      const testTemplate = 'iOSNativeSwiftTemplate';
-      const testProjectName = 'MyApp';
-      const testPlatform = 'iOS';
-      const testPackageName = 'com.example.myapp';
-      const testOrganization = 'Example Corp';
-      const testClientId = 'client123';
-      const testCallbackUri = 'myapp://oauth';
-      const testLoginHost = 'https://test.salesforce.com';
-
+    it('should use correct command format for iOS', () => {
       const inputState = createTestState({
-        selectedTemplate: testTemplate,
-        projectName: testProjectName,
-        platform: testPlatform as 'iOS',
-        packageName: testPackageName,
-        organization: testOrganization,
-        connectedAppClientId: testClientId,
-        connectedAppCallbackUri: testCallbackUri,
-        loginHost: testLoginHost,
-      });
-
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
-
-      node.execute(inputState);
-
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input).toBeDefined();
-      expect(lastCall?.input.selectedTemplate).toBe(testTemplate);
-      expect(lastCall?.input.projectName).toBe(testProjectName);
-      expect(lastCall?.input.platform).toBe(testPlatform);
-      expect(lastCall?.input.packageName).toBe(testPackageName);
-      expect(lastCall?.input.organization).toBe(testOrganization);
-      expect(lastCall?.input.connectedAppClientId).toBe(testClientId);
-      expect(lastCall?.input.connectedAppCallbackUri).toBe(testCallbackUri);
-      expect(lastCall?.input.loginHost).toBe(testLoginHost);
-    });
-
-    it('should validate result against project generation result schema', () => {
-      const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
         platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'TestOrg',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
         connectedAppClientId: 'client123',
         connectedAppCallbackUri: 'myapp://callback',
-        loginHost: 'https://login.salesforce.com',
+        loginHost: undefined,
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
-
-      expect(() => {
-        node.execute(inputState);
-      }).not.toThrow();
-    });
-  });
-
-  describe('execute() - iOS Project Generation', () => {
-    it('should handle iOS Swift template', () => {
-      const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'ContactListApp',
-        platform: 'iOS',
-        packageName: 'com.salesforce.contactlist',
-        organization: 'Salesforce',
-        connectedAppClientId: '3MVG9test',
-        connectedAppCallbackUri: 'contactlist://oauth',
-        loginHost: 'https://login.salesforce.com',
-      });
-
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/Users/dev/ContactListApp-iOS',
-      });
+      mockExecSync.mockReturnValue('Success');
 
       node.execute(inputState);
 
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.platform).toBe('iOS');
-      expect(lastCall?.input.selectedTemplate).toBe('iOSNativeSwiftTemplate');
+      expect(mockExecSync).toHaveBeenCalledWith(
+        expect.stringContaining('--template="ContactsApp"'),
+        expect.any(Object)
+      );
+      expect(mockExecSync).toHaveBeenCalledWith(
+        expect.stringContaining('--appname="MyiOSApp"'),
+        expect.any(Object)
+      );
+      expect(mockExecSync).toHaveBeenCalledWith(
+        expect.stringContaining('--consumerkey="client123"'),
+        expect.any(Object)
+      );
     });
 
-    it('should handle iOS MobileSyncExplorer template', () => {
+    it('should validate iOS project structure', () => {
       const inputState = createTestState({
-        selectedTemplate: 'MobileSyncExplorerSwift',
-        projectName: 'SyncApp',
         platform: 'iOS',
-        packageName: 'com.salesforce.sync',
-        organization: 'Salesforce',
-        connectedAppClientId: '3MVG9test',
-        connectedAppCallbackUri: 'syncapp://oauth',
-        loginHost: 'https://login.salesforce.com',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/Users/dev/SyncApp-iOS',
-      });
+      mockExecSync.mockReturnValue('Success');
+      mockReaddirSync.mockReturnValue(['MyiOSApp.xcodeproj', 'Podfile'] as unknown as string[]);
+      mockExistsSync.mockReturnValue(true);
 
-      node.execute(inputState);
+      const result = node.execute(inputState);
 
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.selectedTemplate).toBe('MobileSyncExplorerSwift');
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+      // Should validate iOS project structure by reading directory
+      expect(mockReaddirSync).toHaveBeenCalled();
     });
   });
 
-  describe('execute() - Android Project Generation', () => {
-    it('should handle Android Kotlin template', () => {
+  describe('execute() - iOS Platform - Validation Failures', () => {
+    it('should fail when .xcodeproj directory is missing', () => {
       const inputState = createTestState({
-        selectedTemplate: 'AndroidNativeKotlinTemplate',
-        projectName: 'ContactListApp',
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockReaddirSync.mockReturnValue(['Podfile', 'README.md'] as unknown as string[]);
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages).toHaveLength(1);
+      expect(result.workflowFatalErrorMessages![0]).toContain(
+        'not a valid iOS project. Missing required files'
+      );
+    });
+
+    it('should fail when readdirSync throws an error', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockReaddirSync.mockImplementation(() => {
+        throw new Error('ENOENT: no such file or directory');
+      });
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages![0]).toContain('not a valid iOS project');
+    });
+
+    it('should succeed when .xcodeproj exists even if other files are missing', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      // Only .xcodeproj exists, no Podfile
+      mockReaddirSync.mockReturnValue(['MyiOSApp.xcodeproj'] as unknown as string[]);
+      mockExistsSync.mockReturnValue(true);
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+      expect(result.projectPath).toBeDefined();
+    });
+
+    it('should handle .xcworkspace files in project directory', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockReaddirSync.mockReturnValue([
+        'MyiOSApp.xcodeproj',
+        'MyiOSApp.xcworkspace',
+        'Podfile',
+      ] as unknown as string[]);
+      mockExistsSync.mockReturnValue(true);
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+      expect(result.projectPath).toBeDefined();
+    });
+
+    it('should detect .xcodeproj even with different naming', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      // Project name doesn't match .xcodeproj name
+      mockReaddirSync.mockReturnValue([
+        'DifferentName.xcodeproj',
+        'Podfile',
+      ] as unknown as string[]);
+      mockExistsSync.mockReturnValue(true);
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+      expect(result.projectPath).toBeDefined();
+    });
+  });
+
+  describe('execute() - Android Platform - Success', () => {
+    it('should generate Android project successfully with valid structure', () => {
+      const inputState = createTestState({
         platform: 'Android',
-        packageName: 'com.salesforce.contactlist',
-        organization: 'Salesforce',
-        connectedAppClientId: '3MVG9test',
-        connectedAppCallbackUri: 'contactlist://oauth',
-        loginHost: 'https://login.salesforce.com',
-      });
-
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/home/dev/ContactListApp-Android',
-      });
-
-      node.execute(inputState);
-
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.platform).toBe('Android');
-      expect(lastCall?.input.selectedTemplate).toBe('AndroidNativeKotlinTemplate');
-    });
-
-    it('should handle Android MobileSyncExplorer template', () => {
-      const inputState = createTestState({
-        selectedTemplate: 'MobileSyncExplorerKotlinTemplate',
-        projectName: 'SyncApp',
-        platform: 'Android',
-        packageName: 'com.salesforce.sync',
-        organization: 'Salesforce',
-        connectedAppClientId: '3MVG9test',
-        connectedAppCallbackUri: 'syncapp://oauth',
-        loginHost: 'https://login.salesforce.com',
-      });
-
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/home/dev/SyncApp-Android',
-      });
-
-      node.execute(inputState);
-
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.selectedTemplate).toBe('MobileSyncExplorerKotlinTemplate');
-    });
-  });
-
-  describe('execute() - Package Names', () => {
-    it('should handle standard package name format', () => {
-      const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
-        platform: 'iOS',
-        packageName: 'com.company.app',
-        organization: 'Company',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
         connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'app://callback',
-        loginHost: 'https://login.salesforce.com',
-      });
-
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
-
-      node.execute(inputState);
-
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.packageName).toBe('com.company.app');
-    });
-
-    it('should handle reverse domain notation', () => {
-      const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
-        platform: 'iOS',
-        packageName: 'io.github.myproject.mobile',
-        organization: 'GitHub Project',
-        connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'app://callback',
-        loginHost: 'https://login.salesforce.com',
-      });
-
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
-
-      node.execute(inputState);
-
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.packageName).toBe('io.github.myproject.mobile');
-    });
-  });
-
-  describe('execute() - Login Hosts', () => {
-    it('should handle production login host', () => {
-      const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
-        platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'TestOrg',
-        connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'app://callback',
-        loginHost: 'https://login.salesforce.com',
-      });
-
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
-
-      node.execute(inputState);
-
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.loginHost).toBe('https://login.salesforce.com');
-    });
-
-    it('should handle sandbox login host', () => {
-      const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
-        platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'TestOrg',
-        connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'app://callback',
+        connectedAppCallbackUri: 'myapp://callback',
         loginHost: 'https://test.salesforce.com',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
+      mockExecSync.mockReturnValue('Project generated successfully');
+      mockExistsSync.mockReturnValue(true); // All files exist
 
-      node.execute(inputState);
+      const result = node.execute(inputState);
 
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.loginHost).toBe('https://test.salesforce.com');
+      expect(result.projectPath).toBeDefined();
+      expect(result.projectPath).toContain('MyAndroidApp');
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+      expect(mockExecSync).toHaveBeenCalledWith(
+        expect.stringContaining('sf mobilesdk android createwithtemplate'),
+        expect.objectContaining({ encoding: 'utf-8', timeout: 120000 })
+      );
     });
 
-    it('should handle custom domain login host', () => {
+    it('should validate Android project structure', () => {
       const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
-        platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'TestOrg',
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
         connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'app://callback',
-        loginHost: 'https://mycompany.my.salesforce.com',
+        connectedAppCallbackUri: 'myapp://callback',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
+      mockExecSync.mockReturnValue('Success');
+      mockExistsSync.mockReturnValue(true);
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+      // Should check for Android manifest (using regex to handle both Unix and Windows path separators)
+      expect(mockExistsSync).toHaveBeenCalledWith(
+        expect.stringMatching(/app[/\\]src[/\\]main[/\\]AndroidManifest\.xml/)
+      );
+    });
+
+    it('should accept Kotlin build files as alternative', () => {
+      const inputState = createTestState({
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
       });
 
-      node.execute(inputState);
+      mockExecSync.mockReturnValue('Success');
 
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.loginHost).toBe('https://mycompany.my.salesforce.com');
+      // Mock scenario: Groovy files don't exist, but Kotlin files do
+      mockExistsSync.mockImplementation((path: string) => {
+        const pathStr = String(path);
+        if (pathStr.endsWith('.gradle')) return false;
+        if (pathStr.endsWith('.gradle.kts')) return true;
+        return true; // Other files exist
+      });
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+    });
+
+    it('should accept Groovy build files', () => {
+      const inputState = createTestState({
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+
+      // Mock scenario: Groovy files exist, Kotlin files don't
+      mockExistsSync.mockImplementation((path: string) => {
+        const pathStr = String(path);
+        if (pathStr.endsWith('.gradle.kts')) return false;
+        if (pathStr.endsWith('.gradle')) return true;
+        return true; // Other files exist
+      });
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
     });
   });
 
-  describe('execute() - Return Value', () => {
-    it('should return project path in result', () => {
+  describe('execute() - Android Platform - Validation Failures', () => {
+    it('should fail when build.gradle and build.gradle.kts both missing', () => {
       const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
-        platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'TestOrg',
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
         connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'app://callback',
-        loginHost: 'https://login.salesforce.com',
+        connectedAppCallbackUri: 'myapp://callback',
       });
 
-      const expectedResult = {
-        projectPath: '/Users/dev/TestApp',
-      };
+      mockExecSync.mockReturnValue('Success');
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, expectedResult);
+      // Mock: Both build.gradle and build.gradle.kts don't exist
+      mockExistsSync.mockImplementation((path: string) => {
+        const pathStr = String(path);
+        if (pathStr.includes('build.gradle')) return false;
+        return true;
+      });
 
       const result = node.execute(inputState);
 
-      expect(result).toEqual(expectedResult);
-      expect(result.projectPath).toBe('/Users/dev/TestApp');
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages).toHaveLength(1);
+      expect(result.workflowFatalErrorMessages![0]).toContain(
+        'not a valid Android project. Missing required files'
+      );
     });
 
-    it('should return validated result from tool executor', () => {
+    it('should fail when AndroidManifest.xml is missing', () => {
       const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
-        platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'TestOrg',
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
         connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'app://callback',
-        loginHost: 'https://login.salesforce.com',
+        connectedAppCallbackUri: 'myapp://callback',
       });
 
-      const expectedResult = {
-        projectPath: '/path/to/project',
-      };
+      mockExecSync.mockReturnValue('Success');
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, expectedResult);
+      mockExistsSync.mockImplementation((path: string) => {
+        const pathStr = String(path);
+        if (pathStr.includes('AndroidManifest.xml')) return false;
+        return true;
+      });
 
       const result = node.execute(inputState);
 
-      expect(result).toEqual(expectedResult);
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages![0]).toContain(
+        'not a valid Android project. Missing required files'
+      );
     });
 
-    it('should return partial state object', () => {
+    it('should fail when app directory is missing', () => {
       const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
-        platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'TestOrg',
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
         connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'app://callback',
-        loginHost: 'https://login.salesforce.com',
+        connectedAppCallbackUri: 'myapp://callback',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
+      mockExecSync.mockReturnValue('Success');
+
+      mockExistsSync.mockImplementation((path: string) => {
+        const pathStr = String(path);
+        if (pathStr.endsWith('/app') || pathStr.endsWith('\\app')) return false;
+        return true;
       });
 
       const result = node.execute(inputState);
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe('object');
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages![0]).toContain('not a valid Android project');
+    });
+
+    it('should fail when settings.gradle and settings.gradle.kts both missing', () => {
+      const inputState = createTestState({
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+
+      mockExistsSync.mockImplementation((path: string) => {
+        const pathStr = String(path);
+        if (pathStr.includes('settings.gradle')) return false;
+        return true;
+      });
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages![0]).toContain('not a valid Android project');
+    });
+  });
+
+  describe('execute() - Project Directory Verification', () => {
+    it('should fail when project directory does not exist after command execution', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Command completed');
+      // First call to existsSync (project directory check) returns false
+      // This simulates the directory not being created
+      mockExistsSync.mockReturnValue(false);
+
+      const result = node.execute(inputState);
+
+      expect(result.projectPath).toBeUndefined();
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages).toHaveLength(1);
+      expect(result.workflowFatalErrorMessages![0]).toContain('Project directory not found');
+      expect(result.workflowFatalErrorMessages![0]).toContain(
+        'command executed successfully but the project was not created'
+      );
+    });
+
+    it('should log error when project directory does not exist', () => {
+      const inputState = createTestState({
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Command completed');
+      mockExistsSync.mockReturnValue(false);
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const errorLogs = mockLogger.getLogsByLevel('error');
+      const missingDirLog = errorLogs.find(log =>
+        log.message.includes('Project directory not found after command execution')
+      );
+      expect(missingDirLog).toBeDefined();
+    });
+
+    it('should proceed with validation when project directory exists', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockExistsSync.mockReturnValue(true);
+      mockReaddirSync.mockReturnValue(['MyiOSApp.xcodeproj'] as unknown as string[]);
+
+      const result = node.execute(inputState);
+
+      expect(result.projectPath).toBeDefined();
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+    });
+  });
+
+  describe('execute() - Command Execution Errors', () => {
+    it('should handle execSync throwing an error', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockImplementation(() => {
+        throw new Error('Command not found: sf');
+      });
+
+      const result = node.execute(inputState);
+
+      expect(result.projectPath).toBeUndefined();
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages).toHaveLength(1);
+      expect(result.workflowFatalErrorMessages![0]).toContain('Failed to generate project');
+      expect(result.workflowFatalErrorMessages![0]).toContain('Command not found: sf');
+    });
+
+    it('should handle non-Error exceptions', () => {
+      const inputState = createTestState({
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockImplementation(() => {
+        throw 'Unknown error';
+      });
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages![0]).toContain('Failed to generate project');
+      expect(result.workflowFatalErrorMessages![0]).toContain('Unknown error');
+    });
+
+    it('should handle timeout errors', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockImplementation(() => {
+        const error = new Error('Command timed out after 120000ms');
+        throw error;
+      });
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages![0]).toContain('timed out');
+    });
+
+    it('should handle permission errors', () => {
+      const inputState = createTestState({
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockImplementation(() => {
+        throw new Error('EACCES: permission denied');
+      });
+
+      const result = node.execute(inputState);
+
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(result.workflowFatalErrorMessages![0]).toContain('permission denied');
     });
   });
 
   describe('execute() - Logging', () => {
-    it('should log tool invocation details', () => {
+    it('should log debug message before command execution', () => {
       const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
         platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'TestOrg',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
         connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'app://callback',
-        loginHost: 'https://login.salesforce.com',
+        connectedAppCallbackUri: 'myapp://callback',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
+      mockExecSync.mockReturnValue('Success');
       mockLogger.reset();
 
       node.execute(inputState);
 
       const debugLogs = mockLogger.getLogsByLevel('debug');
-      expect(debugLogs.length).toBeGreaterThan(0);
-
       const preExecutionLog = debugLogs.find(log =>
-        log.message.includes('Tool invocation data (pre-execution)')
+        log.message.includes('Executing project generation command')
       );
       expect(preExecutionLog).toBeDefined();
     });
 
-    it('should log tool result', () => {
+    it('should log debug message after command execution', () => {
       const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
-        platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'TestOrg',
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
         connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'app://callback',
-        loginHost: 'https://login.salesforce.com',
+        connectedAppCallbackUri: 'myapp://callback',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
+      mockExecSync.mockReturnValue('Success');
+      mockExistsSync.mockReturnValue(true);
       mockLogger.reset();
 
       node.execute(inputState);
 
       const debugLogs = mockLogger.getLogsByLevel('debug');
       const postExecutionLog = debugLogs.find(log =>
-        log.message.includes('Tool execution result (post-execution)')
+        log.message.includes('Command executed successfully')
       );
       expect(postExecutionLog).toBeDefined();
     });
-  });
 
-  describe('execute() - State Independence', () => {
-    it('should only use required fields from state', () => {
+    it('should log Android validation success', () => {
       const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
-        platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'TestOrg',
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
         connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'app://callback',
-        loginHost: 'https://login.salesforce.com',
-        // Other state properties that should not be passed
-        buildType: 'debug',
-        targetDevice: 'iPhone 15',
+        connectedAppCallbackUri: 'myapp://callback',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
+      mockExecSync.mockReturnValue('Success');
+      mockExistsSync.mockReturnValue(true);
+      mockLogger.reset();
 
       node.execute(inputState);
 
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input).toHaveProperty('selectedTemplate');
-      expect(lastCall?.input).toHaveProperty('projectName');
-      expect(lastCall?.input).toHaveProperty('platform');
-      expect(lastCall?.input).toHaveProperty('packageName');
-      expect(lastCall?.input).toHaveProperty('organization');
-      expect(lastCall?.input).toHaveProperty('connectedAppClientId');
-      expect(lastCall?.input).toHaveProperty('connectedAppCallbackUri');
-      expect(lastCall?.input).toHaveProperty('loginHost');
-      expect(lastCall?.input).not.toHaveProperty('buildType');
-      expect(lastCall?.input).not.toHaveProperty('targetDevice');
+      const debugLogs = mockLogger.getLogsByLevel('debug');
+      const validationLog = debugLogs.find(log =>
+        log.message.includes('Android project structure validation passed')
+      );
+      expect(validationLog).toBeDefined();
     });
 
-    it('should not modify input state', () => {
-      const originalTemplate = 'iOSNativeSwiftTemplate';
-      const originalProjectName = 'TestApp';
-
+    it('should log iOS validation success', () => {
       const inputState = createTestState({
-        selectedTemplate: originalTemplate,
-        projectName: originalProjectName,
         platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'TestOrg',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
         connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'app://callback',
-        loginHost: 'https://login.salesforce.com',
+        connectedAppCallbackUri: 'myapp://callback',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
+      mockExecSync.mockReturnValue('Success');
+      mockReaddirSync.mockReturnValue(['MyiOSApp.xcodeproj'] as unknown as string[]);
+      mockExistsSync.mockReturnValue(true);
+      mockLogger.reset();
 
       node.execute(inputState);
 
-      expect(inputState.selectedTemplate).toBe(originalTemplate);
-      expect(inputState.projectName).toBe(originalProjectName);
+      const debugLogs = mockLogger.getLogsByLevel('debug');
+      const validationLog = debugLogs.find(log =>
+        log.message.includes('iOS project structure validation passed')
+      );
+      expect(validationLog).toBeDefined();
+    });
+
+    it('should log warning for missing Android files', () => {
+      const inputState = createTestState({
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      // First call (project directory check) returns true, subsequent calls return false
+      let callCount = 0;
+      mockExistsSync.mockImplementation(() => {
+        callCount++;
+        return callCount === 1; // Only first call returns true
+      });
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const warnLogs = mockLogger.getLogsByLevel('warn');
+      expect(warnLogs.length).toBeGreaterThan(0);
+    });
+
+    it('should log warning for missing iOS .xcodeproj', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockReaddirSync.mockReturnValue(['Podfile', 'README.md'] as unknown as string[]);
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const warnLogs = mockLogger.getLogsByLevel('warn');
+      const missingXcodeprojLog = warnLogs.find(log =>
+        log.message.includes('Missing required .xcodeproj directory')
+      );
+      expect(missingXcodeprojLog).toBeDefined();
+    });
+
+    it('should log warning when iOS project directory cannot be read', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockReaddirSync.mockImplementation(() => {
+        throw new Error('EACCES: permission denied');
+      });
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const warnLogs = mockLogger.getLogsByLevel('warn');
+      const readFailLog = warnLogs.find(log =>
+        log.message.includes('Failed to read iOS project directory')
+      );
+      expect(readFailLog).toBeDefined();
+    });
+
+    it('should log error when command fails', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockImplementation(() => {
+        throw new Error('Command failed');
+      });
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const errorLogs = mockLogger.getLogsByLevel('error');
+      const commandFailLog = errorLogs.find(log =>
+        log.message.includes('Project generation failed')
+      );
+      expect(commandFailLog).toBeDefined();
+    });
+
+    it('should not log sensitive credentials in debug messages', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'secret-client-id-12345',
+        connectedAppCallbackUri: 'myapp://secret-callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const allLogs = mockLogger.logs;
+      // Verify sensitive data is not in log messages
+      allLogs.forEach(log => {
+        expect(log.message).not.toContain('secret-client-id-12345');
+        expect(log.message).not.toContain('secret-callback');
+      });
+    });
+
+    it('should log "Command executed successfully" before validation', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Project created successfully');
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const debugLogs = mockLogger.getLogsByLevel('debug');
+      const commandExecutedLog = debugLogs.find(log =>
+        log.message.includes('Command executed successfully')
+      );
+      expect(commandExecutedLog).toBeDefined();
+    });
+
+    it('should log "Project generation completed successfully" only after validation passes', () => {
+      const inputState = createTestState({
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockExistsSync.mockReturnValue(true);
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const infoLogs = mockLogger.getLogsByLevel('info');
+      const completionLog = infoLogs.find(log =>
+        log.message.includes('Project generation completed successfully')
+      );
+      expect(completionLog).toBeDefined();
+    });
+
+    it('should not log completion message when validation fails', () => {
+      const inputState = createTestState({
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockExistsSync.mockReturnValue(false); // Validation will fail
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const infoLogs = mockLogger.getLogsByLevel('info');
+      const completionLog = infoLogs.find(log =>
+        log.message.includes('Project generation completed successfully')
+      );
+      expect(completionLog).toBeUndefined();
+    });
+  });
+
+  describe('execute() - Return Value', () => {
+    it('should return partial state object on success', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+
+      const result = node.execute(inputState);
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('object');
+      expect(result).toHaveProperty('projectPath');
+      expect(typeof result.projectPath).toBe('string');
+    });
+
+    it('should return projectPath on success', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+
+      const result = node.execute(inputState);
+
+      expect(result.projectPath).toBeDefined();
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+    });
+
+    it('should return error messages on failure', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockImplementation(() => {
+        throw new Error('Failed');
+      });
+
+      const result = node.execute(inputState);
+
+      expect(result.projectPath).toBeUndefined();
+      expect(result.workflowFatalErrorMessages).toBeDefined();
+      expect(Array.isArray(result.workflowFatalErrorMessages)).toBe(true);
+    });
+  });
+
+  describe('execute() - Command Timeout Configuration', () => {
+    it('should set timeout to 120000ms', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+
+      node.execute(inputState);
+
+      expect(mockExecSync).toHaveBeenCalledWith(expect.any(String), {
+        encoding: 'utf-8',
+        timeout: 120000,
+      });
     });
   });
 
   describe('execute() - Real World Scenarios', () => {
-    it('should handle Contact List app iOS generation', () => {
+    it('should handle typical iOS project generation', () => {
       const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'ContactListApp',
         platform: 'iOS',
-        packageName: 'com.salesforce.contactlist',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'SalesApp',
+        packageName: 'com.salesforce.sales',
         organization: 'Salesforce',
-        connectedAppClientId: '3MVG9Kip4IKAZQEXPNwTYYd.example',
-        connectedAppCallbackUri: 'contactlist://oauth/callback',
+        connectedAppClientId: '3MVG9...actual_client_id',
+        connectedAppCallbackUri: 'salesapp://callback',
         loginHost: 'https://login.salesforce.com',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/Users/developer/ContactListApp-iOS',
-      });
+      mockExecSync.mockReturnValue('Project created successfully at /Users/developer/SalesApp');
 
       const result = node.execute(inputState);
 
-      expect(result).toBeDefined();
-      expect(result.projectPath).toBe('/Users/developer/ContactListApp-iOS');
-
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.projectName).toBe('ContactListApp');
-      expect(lastCall?.llmMetadata.name).toBe('sfmobile-native-project-generation');
+      expect(result.projectPath).toContain('SalesApp');
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
     });
 
-    it('should handle Contact List app Android generation', () => {
+    it('should handle typical Android project generation with sandbox', () => {
       const inputState = createTestState({
-        selectedTemplate: 'AndroidNativeKotlinTemplate',
-        projectName: 'ContactListApp',
         platform: 'Android',
-        packageName: 'com.salesforce.contactlist',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'SalesApp',
+        packageName: 'com.salesforce.sales',
         organization: 'Salesforce',
-        connectedAppClientId: '3MVG9Kip4IKAZQEXPNwTYYd.example',
-        connectedAppCallbackUri: 'contactlist://oauth/callback',
-        loginHost: 'https://login.salesforce.com',
+        connectedAppClientId: '3MVG9...actual_client_id',
+        connectedAppCallbackUri: 'salesapp://callback',
+        loginHost: 'https://test.salesforce.com',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/home/developer/ContactListApp-Android',
-      });
+      mockExecSync.mockReturnValue('Project created successfully');
+      mockExistsSync.mockReturnValue(true);
 
       const result = node.execute(inputState);
 
-      expect(result).toBeDefined();
-      expect(result.projectPath).toBe('/home/developer/ContactListApp-Android');
+      expect(result.projectPath).toContain('SalesApp');
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+      expect(mockExecSync).toHaveBeenCalledWith(
+        expect.stringContaining('https://test.salesforce.com'),
+        expect.any(Object)
+      );
     });
 
-    it('should handle generation after template discovery', () => {
+    it('should handle project generation in CI/CD environment', () => {
       const inputState = createTestState({
-        selectedTemplate: 'MobileSyncExplorerSwift',
-        projectName: 'SyncExplorer',
-        platform: 'iOS',
-        packageName: 'com.salesforce.syncexplorer',
-        organization: 'Salesforce',
-        connectedAppClientId: '3MVG9test',
-        connectedAppCallbackUri: 'syncexplorer://oauth',
-        loginHost: 'https://login.salesforce.com',
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'CIApp',
+        packageName: 'com.example.ciapp',
+        organization: 'CI',
+        connectedAppClientId: 'ci-client-123',
+        connectedAppCallbackUri: 'ciapp://callback',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/Users/dev/SyncExplorer',
+      mockExecSync.mockReturnValue('Success');
+      mockExistsSync.mockReturnValue(true);
+
+      const result = node.execute(inputState);
+
+      expect(result.projectPath).toBeDefined();
+      expect(result.workflowFatalErrorMessages).toBeUndefined();
+    });
+  });
+
+  describe('execute() - Template Properties', () => {
+    it('should include template properties flags when templateProperties exist', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+        loginHost: 'https://login.salesforce.com',
+        templateProperties: {
+          customField: 'customValue',
+        },
       });
+
+      mockExecSync.mockReturnValue('Success');
 
       node.execute(inputState);
 
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.selectedTemplate).toBe('MobileSyncExplorerSwift');
+      expect(mockExecSync).toHaveBeenCalledWith(
+        expect.stringContaining('--template-property-customField="customValue"'),
+        expect.any(Object)
+      );
+    });
+
+    it('should include multiple template properties flags', () => {
+      const inputState = createTestState({
+        platform: 'Android',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyAndroidApp',
+        packageName: 'com.example.myandroidapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+        templateProperties: {
+          apiVersion: '60.0',
+          customObject: 'Account',
+          enableFeatureX: 'true',
+        },
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockExistsSync.mockReturnValue(true);
+
+      node.execute(inputState);
+
+      const command = mockExecSync.mock.calls[0][0] as string;
+      expect(command).toContain('--template-property-apiVersion="60.0"');
+      expect(command).toContain('--template-property-customObject="Account"');
+      expect(command).toContain('--template-property-enableFeatureX="true"');
+    });
+
+    it('should not include template properties flags when templateProperties is undefined', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+        templateProperties: undefined,
+      });
+
+      mockExecSync.mockReturnValue('Success');
+
+      node.execute(inputState);
+
+      const command = mockExecSync.mock.calls[0][0] as string;
+      expect(command).not.toContain('--template-property-');
+    });
+
+    it('should not include template properties flags when templateProperties is empty', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+        templateProperties: {},
+      });
+
+      mockExecSync.mockReturnValue('Success');
+
+      node.execute(inputState);
+
+      const command = mockExecSync.mock.calls[0][0] as string;
+      expect(command).not.toContain('--template-property-');
+    });
+
+    it('should log template properties in debug message', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+        templateProperties: {
+          customProp: 'customVal',
+        },
+      });
+
+      mockExecSync.mockReturnValue('Success');
+      mockLogger.reset();
+
+      node.execute(inputState);
+
+      const debugLogs = mockLogger.getLogsByLevel('debug');
+      const preExecutionLog = debugLogs.find(log =>
+        log.message.includes('Executing project generation command')
+      );
+      expect(preExecutionLog).toBeDefined();
+      // The log should include templateProperties in its data
+      const logData = preExecutionLog?.data as Record<string, unknown> | undefined;
+      expect(logData).toHaveProperty('templateProperties');
+      expect(logData?.templateProperties).toEqual({ customProp: 'customVal' });
+    });
+
+    it('should handle template properties with special characters in values', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+        templateProperties: {
+          description: 'My App Description',
+          url: 'https://example.com/api',
+        },
+      });
+
+      mockExecSync.mockReturnValue('Success');
+
+      node.execute(inputState);
+
+      const command = mockExecSync.mock.calls[0][0] as string;
+      expect(command).toContain('--template-property-description="My App Description"');
+      expect(command).toContain('--template-property-url="https://example.com/api"');
     });
   });
 
   describe('execute() - Edge Cases', () => {
+    it('should handle project names with spaces', () => {
+      const inputState = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'My Sales App',
+        packageName: 'com.example.mysalesapp',
+        organization: 'ExampleOrg',
+        connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      mockExecSync.mockReturnValue('Success');
+
+      const result = node.execute(inputState);
+
+      expect(result.projectPath).toContain('My Sales App');
+    });
+
     it('should handle project names with special characters', () => {
       const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'My-App_v2.0',
         platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'TestOrg',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'My-App_2024',
+        packageName: 'com.example.myapp',
+        organization: 'ExampleOrg',
         connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'app://callback',
-        loginHost: 'https://login.salesforce.com',
+        connectedAppCallbackUri: 'myapp://callback',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
+      mockExecSync.mockReturnValue('Success');
 
-      node.execute(inputState);
+      const result = node.execute(inputState);
 
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.projectName).toBe('My-App_v2.0');
+      expect(result.projectPath).toContain('My-App_2024');
     });
 
-    it('should handle organization names with spaces', () => {
+    it('should handle very long project names', () => {
+      const longName = 'A'.repeat(100);
       const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
         platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'Acme Corporation Inc.',
+        selectedTemplate: 'ContactsApp',
+        projectName: longName,
+        packageName: 'com.example.app',
+        organization: 'ExampleOrg',
         connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'app://callback',
-        loginHost: 'https://login.salesforce.com',
+        connectedAppCallbackUri: 'myapp://callback',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
+      mockExecSync.mockReturnValue('Success');
 
-      node.execute(inputState);
+      const result = node.execute(inputState);
 
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.organization).toBe('Acme Corporation Inc.');
-    });
-
-    it('should handle callback URIs with query parameters', () => {
-      const inputState = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'TestApp',
-        platform: 'iOS',
-        packageName: 'com.test.app',
-        organization: 'TestOrg',
-        connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'myapp://oauth/callback?param=value',
-        loginHost: 'https://login.salesforce.com',
-      });
-
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
-
-      node.execute(inputState);
-
-      const lastCall = mockToolExecutor.getLastCall();
-      expect(lastCall?.input.connectedAppCallbackUri).toBe('myapp://oauth/callback?param=value');
+      expect(result.projectPath).toContain(longName);
     });
   });
 
-  describe('execute() - Multiple Invocations', () => {
-    it('should handle multiple sequential invocations', () => {
-      const state1 = createTestState({
-        selectedTemplate: 'iOSNativeSwiftTemplate',
-        projectName: 'App1',
+  describe('execute() - State Independence', () => {
+    it('should not modify input state', () => {
+      const inputState = createTestState({
         platform: 'iOS',
-        packageName: 'com.test.app1',
-        organization: 'TestOrg',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'MyiOSApp',
+        packageName: 'com.example.myiosapp',
+        organization: 'ExampleOrg',
         connectedAppClientId: 'client123',
+        connectedAppCallbackUri: 'myapp://callback',
+      });
+
+      const originalPlatform = inputState.platform;
+      const originalProjectName = inputState.projectName;
+
+      mockExecSync.mockReturnValue('Success');
+
+      node.execute(inputState);
+
+      expect(inputState.platform).toBe(originalPlatform);
+      expect(inputState.projectName).toBe(originalProjectName);
+    });
+
+    it('should handle multiple invocations independently', () => {
+      const state1 = createTestState({
+        platform: 'iOS',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'App1',
+        packageName: 'com.example.app1',
+        organization: 'Org1',
+        connectedAppClientId: 'client1',
         connectedAppCallbackUri: 'app1://callback',
-        loginHost: 'https://login.salesforce.com',
       });
 
       const state2 = createTestState({
-        selectedTemplate: 'AndroidNativeKotlinTemplate',
-        projectName: 'App2',
         platform: 'Android',
-        packageName: 'com.test.app2',
-        organization: 'TestOrg',
-        connectedAppClientId: 'client456',
+        selectedTemplate: 'ContactsApp',
+        projectName: 'App2',
+        packageName: 'com.example.app2',
+        organization: 'Org2',
+        connectedAppClientId: 'client2',
         connectedAppCallbackUri: 'app2://callback',
-        loginHost: 'https://test.salesforce.com',
       });
 
-      mockToolExecutor.setResult(PROJECT_GENERATION_TOOL.toolId, {
-        projectPath: '/path/to/project',
-      });
+      mockExecSync.mockReturnValue('Success');
+      mockExistsSync.mockReturnValue(true);
 
-      node.execute(state1);
-      const call1 = mockToolExecutor.getLastCall();
+      const result1 = node.execute(state1);
+      const result2 = node.execute(state2);
 
-      node.execute(state2);
-      const call2 = mockToolExecutor.getLastCall();
-
-      expect(call1?.input.projectName).toBe('App1');
-      expect(call1?.input.platform).toBe('iOS');
-      expect(call2?.input.projectName).toBe('App2');
-      expect(call2?.input.platform).toBe('Android');
+      expect(result1.projectPath).toContain('App1');
+      expect(result2.projectPath).toContain('App2');
+      expect(mockExecSync).toHaveBeenCalledTimes(2);
     });
   });
 });

@@ -41,7 +41,12 @@ export function createTestState(overrides: Partial<State> = {}): State {
     androidHome: undefined,
     javaHome: undefined,
 
+    // Template state
+    templateOptions: undefined,
+    templatePropertiesUserInput: undefined,
     selectedTemplate: undefined,
+    templateProperties: undefined,
+    templatePropertiesMetadata: undefined,
     projectName: undefined,
     projectPath: undefined,
     packageName: undefined,
