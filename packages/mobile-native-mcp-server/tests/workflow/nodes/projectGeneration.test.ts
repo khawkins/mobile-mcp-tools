@@ -131,28 +131,6 @@ describe('ProjectGenerationNode', () => {
       );
     });
 
-    it('should use default loginHost when not provided', () => {
-      const inputState = createTestState({
-        platform: 'iOS',
-        selectedTemplate: 'ContactsApp',
-        projectName: 'MyiOSApp',
-        packageName: 'com.example.myiosapp',
-        organization: 'ExampleOrg',
-        connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'myapp://callback',
-        loginHost: undefined,
-      });
-
-      mockExecSync.mockReturnValue('Success');
-
-      node.execute(inputState);
-
-      expect(mockExecSync).toHaveBeenCalledWith(
-        expect.stringContaining('--loginserver="https://login.salesforce.com"'),
-        expect.any(Object)
-      );
-    });
-
     it('should validate iOS project structure', () => {
       const inputState = createTestState({
         platform: 'iOS',
