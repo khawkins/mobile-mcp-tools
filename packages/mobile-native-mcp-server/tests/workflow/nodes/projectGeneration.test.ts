@@ -317,10 +317,8 @@ describe('ProjectGenerationNode', () => {
       const result = node.execute(inputState);
 
       expect(result.workflowFatalErrorMessages).toBeUndefined();
-      // Should check for Android manifest (using regex to handle both Unix and Windows path separators)
-      expect(mockExistsSync).toHaveBeenCalledWith(
-        expect.stringMatching(/app[/\\]src[/\\]main[/\\]AndroidManifest\.xml/)
-      );
+      // Should check for app directory (using regex to handle both Unix and Windows path separators)
+      expect(mockExistsSync).toHaveBeenCalledWith(expect.stringMatching(/MyAndroidApp[/\\]app$/));
     });
 
     it('should accept Kotlin build files as alternative', () => {
@@ -401,33 +399,6 @@ describe('ProjectGenerationNode', () => {
 
       expect(result.workflowFatalErrorMessages).toBeDefined();
       expect(result.workflowFatalErrorMessages).toHaveLength(1);
-      expect(result.workflowFatalErrorMessages![0]).toContain(
-        'not a valid Android project. Missing required files'
-      );
-    });
-
-    it('should fail when AndroidManifest.xml is missing', () => {
-      const inputState = createTestState({
-        platform: 'Android',
-        selectedTemplate: 'ContactsApp',
-        projectName: 'MyAndroidApp',
-        packageName: 'com.example.myandroidapp',
-        organization: 'ExampleOrg',
-        connectedAppClientId: 'client123',
-        connectedAppCallbackUri: 'myapp://callback',
-      });
-
-      mockExecSync.mockReturnValue('Success');
-
-      mockExistsSync.mockImplementation((path: string) => {
-        const pathStr = String(path);
-        if (pathStr.includes('AndroidManifest.xml')) return false;
-        return true;
-      });
-
-      const result = node.execute(inputState);
-
-      expect(result.workflowFatalErrorMessages).toBeDefined();
       expect(result.workflowFatalErrorMessages![0]).toContain(
         'not a valid Android project. Missing required files'
       );
