@@ -129,8 +129,6 @@ export class ProjectGenerationNode extends BaseNode<State> {
       // App module
       'app',
       'app/build.gradle',
-      // Android manifest
-      'app/src/main/AndroidManifest.xml',
     ];
 
     // Also check for Kotlin alternatives
