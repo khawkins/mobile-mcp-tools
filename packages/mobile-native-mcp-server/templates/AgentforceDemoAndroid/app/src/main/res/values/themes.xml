@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme using Material 3 -->
+    <style name="Theme.AgentforceDemo" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Primary brand color (Salesforce Blue) -->
+        <item name="android:colorPrimary">@color/salesforce_blue</item>
+        <item name="android:colorPrimaryDark">@color/salesforce_blue_dark</item>
+        <item name="android:colorAccent">@color/salesforce_blue</item>
+
+        <!-- Status bar color -->
+        <item name="android:statusBarColor">@color/salesforce_blue</item>
+
+        <!-- Navigation bar -->
+        <item name="android:navigationBarColor">@android:color/white</item>
+    </style>
+</resources>
