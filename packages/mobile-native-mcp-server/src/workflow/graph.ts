@@ -38,6 +38,7 @@ import {
   createGetUserInputNode,
   createUserInputExtractionNode,
   CheckPropertiesFulfilledRouter,
+  CommandRunner,
 } from '@salesforce/magen-mcp-workflow';
 import { SFMOBILE_NATIVE_GET_INPUT_TOOL_ID } from '../tools/utils/sfmobile-native-get-input/metadata.js';
 import { SFMOBILE_NATIVE_INPUT_EXTRACTION_TOOL_ID } from '../tools/utils/sfmobile-native-input-extraction/metadata.js';
@@ -70,7 +71,6 @@ const templateOptionsFetchNode = new TemplateOptionsFetchNode();
 const templateSelectionNode = new TemplateSelectionNode();
 const templatePropertiesExtractionNode = new TemplatePropertiesExtractionNode();
 const templatePropertiesUserInputNode = new TemplatePropertiesUserInputNode();
-const projectGenerationNode = new ProjectGenerationNode();
 const buildRecoveryNode = new BuildRecoveryNode();
 const deploymentNode = new DeploymentNode();
 const completionNode = new CompletionNode();
@@ -99,8 +99,10 @@ const checkAndroidSetupExtractedRouter = new CheckAndroidSetupExtractedRouter(
   failureNode.name
 );
 
+// Note: checkTemplatePropertiesFulfilledRouter references projectGenerationNode.name
+// which will be resolved at runtime when createMobileNativeWorkflow is called
 const checkTemplatePropertiesFulfilledRouter = new CheckTemplatePropertiesFulfilledRouter(
-  projectGenerationNode.name,
+  'generateProject', // Use the node name string directly since it's constant
   templatePropertiesUserInputNode.name
 );
 
@@ -108,13 +110,20 @@ const checkTemplatePropertiesFulfilledRouter = new CheckTemplatePropertiesFulfil
  * Creates the mobile native workflow graph with injected dependencies.
  *
  * @param buildExecutor - Build executor for executing builds with progress reporting
+ * @param commandRunner - Command runner for executing commands with progress reporting
  * @returns Configured workflow graph
  */
-export function createMobileNativeWorkflow(buildExecutor: BuildExecutor) {
+export function createMobileNativeWorkflow(
+  buildExecutor: BuildExecutor,
+  commandRunner: CommandRunner
+) {
+  // Create project generation node with CommandRunner
+  const projectGenerationNodeInstance = new ProjectGenerationNode(commandRunner);
+
   // Create build validation node with BuildExecutor
   const buildValidationNodeInstance = new BuildValidationNode(buildExecutor);
 
-  // Create routers that reference buildValidationNodeInstance
+  // Create routers that reference buildValidationNodeInstance and projectGenerationNodeInstance
   const checkProjectGenerationRouterInstance = new CheckProjectGenerationRouter(
     buildValidationNodeInstance.name,
     failureNode.name
@@ -140,7 +149,7 @@ export function createMobileNativeWorkflow(buildExecutor: BuildExecutor) {
       .addNode(templateSelectionNode.name, templateSelectionNode.execute)
       .addNode(templatePropertiesExtractionNode.name, templatePropertiesExtractionNode.execute)
       .addNode(templatePropertiesUserInputNode.name, templatePropertiesUserInputNode.execute)
-      .addNode(projectGenerationNode.name, projectGenerationNode.execute)
+      .addNode(projectGenerationNodeInstance.name, projectGenerationNodeInstance.execute)
       .addNode(buildValidationNodeInstance.name, buildValidationNodeInstance.execute)
       .addNode(buildRecoveryNode.name, buildRecoveryNode.execute)
       .addNode(deploymentNode.name, deploymentNode.execute)
@@ -167,7 +176,10 @@ export function createMobileNativeWorkflow(buildExecutor: BuildExecutor) {
         checkTemplatePropertiesFulfilledRouter.execute
       )
       .addEdge(templatePropertiesUserInputNode.name, templatePropertiesExtractionNode.name)
-      .addConditionalEdges(projectGenerationNode.name, checkProjectGenerationRouterInstance.execute)
+      .addConditionalEdges(
+        projectGenerationNodeInstance.name,
+        checkProjectGenerationRouterInstance.execute
+      )
       // Build validation with recovery loop (similar to user input loop)
       .addConditionalEdges(
         buildValidationNodeInstance.name,
