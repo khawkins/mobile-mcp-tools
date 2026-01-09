@@ -26,8 +26,8 @@
  */
 package com.salesforce.agentforcedemo
 
-import com.salesforce.android.agentforcesdk.AgentforceAuthCredentialProvider
-import com.salesforce.android.agentforcesdk.AgentforceAuthCredentials
+import com.salesforce.android.agentforceservice.AgentforceAuthCredentialProvider
+import com.salesforce.android.agentforceservice.AgentforceAuthCredentials
 
 /**
  * CredentialProvider provides authentication credentials for Agentforce SDK integration.

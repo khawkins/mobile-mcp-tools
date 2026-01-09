@@ -57,10 +57,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.salesforce.android.agentforcesdk.AgentforceClient
-import com.salesforce.android.agentforcesdk.AgentforceMode
-import com.salesforce.android.agentforcesdk.ServiceAgentConfiguration
-import com.salesforce.android.agentforcesdk.ui.AgentforceConversationContainer
+import com.salesforce.android.agentforcesdkimpl.AgentforceClient
+import com.salesforce.android.agentforcesdkimpl.configuration.AgentforceMode
+import com.salesforce.android.agentforcesdkimpl.configuration.ServiceAgentConfiguration
+import com.salesforce.android.agentforceservice.*
+
+//import com.salesforce.android.agentforcesdk.AgentforceMode
+//import com.salesforce.android.agentforcesdk.ServiceAgentConfiguration
+//import com.salesforce.android.agentforcesdk.ui.AgentforceConversationContainer
 
 /**
  * Main screen for Agentforce SDK integration.
@@ -106,12 +110,13 @@ fun AgentforceMainScreen(
     }
 
     // Start a conversation once client is initialized
-    val session = remember(isClientInitialized) {
+    val conversation = remember(isClientInitialized) {
         if (isClientInitialized) {
             // Start the conversation
             agentforceClient.startAgentforceConversation()
-            // Get the conversation session
-            agentforceClient.fetchAgentforceSession(settings.agentId)
+//            // Get the conversation session
+//            agentforceClient
+//            agentforceClient.fetchAgentforceSession(settings.agentId)
         } else {
             null
         }
@@ -131,11 +136,11 @@ fun AgentforceMainScreen(
     }
 
     // Show Agentforce chat UI when requested
-    if (viewModel.showAgentforceUI && session != null) {
-        AgentforceConversationContainer(
-            session = session,
-            onContainerClose = { viewModel.hideChat() }
-        )
+    if (viewModel.showAgentforceUI && conversation != null) {
+        agentforceClient.AgentforceLauncherContainer(conversation) {
+
+        }
+
     }
 }
 
