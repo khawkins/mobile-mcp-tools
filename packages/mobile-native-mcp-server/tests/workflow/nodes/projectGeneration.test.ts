@@ -994,10 +994,17 @@ describe('ProjectGenerationNode', () => {
 
       node.execute(inputState);
 
-      expect(mockExecSync).toHaveBeenCalledWith(expect.any(String), {
-        encoding: 'utf-8',
-        timeout: 120000,
-      });
+      expect(mockExecSync).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          encoding: 'utf-8',
+          timeout: 120000,
+          env: expect.objectContaining({
+            LANG: 'en_US.UTF-8',
+            LC_ALL: 'en_US.UTF-8',
+          }),
+        })
+      );
     });
   });
 
