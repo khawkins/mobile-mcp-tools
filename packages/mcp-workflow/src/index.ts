@@ -86,6 +86,7 @@ export {
   createUserInputExtractionNode,
   type GetUserInputNodeOptions,
   type UserInputExtractionNodeOptions,
+  type WorkflowRunnableConfig,
 } from './nodes/index.js';
 
 // Routers
@@ -114,3 +115,18 @@ export {
   ORCHESTRATOR_INPUT_SCHEMA,
   ORCHESTRATOR_OUTPUT_SCHEMA,
 } from './tools/orchestrator/index.js';
+
+// Execution Infrastructure
+export {
+  ProgressReporter,
+  NoOpProgressReporter,
+  MCPProgressReporter,
+  createMCPProgressReporter,
+  CommandRunner,
+  DefaultCommandRunner,
+  type Command,
+  type CommandResult,
+  type ProgressParseResult,
+  type ProgressParser,
+  type CommandExecutionOptions,
+} from './execution/index.js';

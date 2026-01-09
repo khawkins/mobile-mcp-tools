@@ -85,7 +85,7 @@ export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
     }
   };
 
-  private async processRequest(input: OrchestratorInput): Promise<OrchestratorOutput> {
+  protected async processRequest(input: OrchestratorInput): Promise<OrchestratorOutput> {
     // Generate or use existing thread ID for workflow session
     let threadId = '';
     try {
@@ -108,8 +108,9 @@ export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
       isResumption: !!input.workflowStateData?.thread_id,
     });
 
-    // Thread configuration for LangGraph
-    const threadConfig = { configurable: { thread_id: threadId } };
+    // Thread configuration for LangGraph - subclasses can override createThreadConfig
+    // to add additional configurable properties (e.g., progressReporter)
+    const threadConfig = this.createThreadConfig(threadId);
 
     // Get checkpointer from state manager
     const checkpointer = await this.stateManager.createCheckpointer();
@@ -186,6 +187,19 @@ export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
       orchestrationInstructionsPrompt:
         'The workflow has concluded. No further workflow actions are forthcoming.',
     };
+  }
+
+  /**
+   * Create the thread configuration for LangGraph workflow invocation.
+   *
+   * Subclasses can override this method to add additional properties to
+   * `configurable`, such as progressReporter for long-running operations.
+   *
+   * @param threadId - The thread ID for checkpointing
+   * @returns Configuration object for workflow invocation
+   */
+  protected createThreadConfig(threadId: string): { configurable: { thread_id: string } } {
+    return { configurable: { thread_id: threadId } };
   }
 
   /**

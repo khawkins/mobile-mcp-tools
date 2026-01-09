@@ -49,7 +49,13 @@ export class ProjectGenerationNode extends BaseNode<State> {
       });
 
       // Execute the command directly without exposing credentials to LLM
-      const output = execSync(command, { encoding: 'utf-8', timeout: 120000 });
+      // Set UTF-8 encoding environment variables for CocoaPods compatibility
+      const env = {
+        ...process.env,
+        LANG: 'en_US.UTF-8',
+        LC_ALL: 'en_US.UTF-8',
+      };
+      const output = execSync(command, { encoding: 'utf-8', timeout: 120000, env });
 
       this.logger.debug('Command executed successfully', {
         outputLength: output.length,

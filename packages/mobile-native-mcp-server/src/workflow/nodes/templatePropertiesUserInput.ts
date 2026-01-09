@@ -45,6 +45,6 @@ export class TemplatePropertiesUserInputNode {
     });
 
     // Execute the user input node
-    return userInputNode.execute(state);
+    return userInputNode.execute(state) as Partial<State>;
   };
 }

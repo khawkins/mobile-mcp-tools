@@ -47,7 +47,7 @@ function prepare(config, replaceInFiles, moveFile, removeFile) {
     var templateProjectFile = path.join(templateProjectDir, 'project.pbxproj');
     var templateSchemeFile = path.join(templateAppName + '.xcodeproj', 'xcshareddata', 'xcschemes', templateAppName + '.xcscheme');
     var templateEntitlementsFile = path.join(templateAppName, templateAppName + '.entitlements');
-    var templateBootconfigFile = path.join(templateAppName, 'bootconfig.plist');
+    var templateBootconfigFile = path.join(templateAppName, 'Resources', 'bootconfig.plist');
     var templateInfoFile = path.join(templateAppName, 'Info.plist');
 
     //

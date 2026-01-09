@@ -1,0 +1,55 @@
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: MIT
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
+ */
+
+import { ProgressReporter } from './progressReporter.js';
+
+/**
+ * Command structure for execution
+ */
+export interface Command {
+  executable: string;
+  args: string[];
+  env?: NodeJS.ProcessEnv;
+  cwd?: string;
+}
+
+/**
+ * Result of command execution
+ */
+export interface CommandResult {
+  exitCode: number | null;
+  signal: NodeJS.Signals | null;
+  stdout: string;
+  stderr: string;
+  success: boolean;
+  duration: number;
+}
+
+/**
+ * Progress parse result
+ */
+export interface ProgressParseResult {
+  progress: number;
+  message?: string;
+}
+
+/**
+ * Function type for parsing progress from command output
+ */
+export type ProgressParser = (output: string, currentProgress: number) => ProgressParseResult;
+
+/**
+ * Command execution options
+ */
+export interface CommandExecutionOptions {
+  env?: NodeJS.ProcessEnv;
+  timeout?: number;
+  cwd?: string;
+  progressParser?: ProgressParser;
+  progressReporter?: ProgressReporter;
+  outputFilePath?: string;
+}
