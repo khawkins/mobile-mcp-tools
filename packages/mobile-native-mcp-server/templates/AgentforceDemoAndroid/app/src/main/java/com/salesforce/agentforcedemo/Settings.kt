@@ -38,10 +38,10 @@ package com.salesforce.agentforcedemo
  * @property agentId The Agent ID from your enhanced in-app chat deployment configuration
  */
 data class Settings(
-    val serviceApiURL: String = "PLACEHOLDER_API_URL",
-    val organizationId: String = "PLACEHOLDER_ORGANIZATION_ID",
-    val esDeveloperName: String = "PLACEHOLDER_ES_DEVELOPER_NAME",
-    val agentId: String = "PLACEHOLDER_AGENT_ID"
+    val serviceApiURL: String = "https://dbm00000vkvf3ean-dev-ed.develop.my.salesforce-scrt.com",
+    val organizationId: String = "00Dbm00000VkVF3",
+    val esDeveloperName: String = "Banana_Support",
+    val agentId: String = "0XxEE0000001csr0AA"
 ) {
 }
 
