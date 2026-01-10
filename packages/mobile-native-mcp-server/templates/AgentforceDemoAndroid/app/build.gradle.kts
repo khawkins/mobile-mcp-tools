@@ -3,7 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("kotlinx-serialization")
-    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.0"
 }
 
 android {
@@ -96,6 +96,9 @@ dependencies {
 
     // Core KTX
     implementation("androidx.core:core-ktx:1.13.1")
+
+    // AppCompat for theme support (required by agentforce SDK)
+    implementation("androidx.appcompat:appcompat:1.6.1")
 
     // Debug
     debugImplementation("androidx.compose.ui:ui-tooling")

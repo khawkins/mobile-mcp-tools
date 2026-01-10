@@ -28,6 +28,7 @@ package com.salesforce.agentforcedemo
 
 import android.app.Application
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -122,6 +123,10 @@ fun AgentforceMainScreen(
         }
     }
 
+    // Observe the showAgentforceUI state to trigger recomposition
+    // Accessing viewModel.showAgentforceUI directly allows Compose to track the mutableStateOf
+    val showAgentforceUI = viewModel.showAgentforceUI
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -129,18 +134,19 @@ fun AgentforceMainScreen(
             )
         }
     ) { paddingValues ->
-        HomeContent(
-            modifier = Modifier.padding(paddingValues),
-            onStartChat = { viewModel.showChat() }
-        )
-    }
+        Box(modifier = Modifier.fillMaxSize()) {
+            HomeContent(
+                modifier = Modifier.padding(paddingValues),
+                onStartChat = { viewModel.showChat() }
+            )
 
-    // Show Agentforce chat UI when requested
-    if (viewModel.showAgentforceUI && conversation != null) {
-        agentforceClient.AgentforceLauncherContainer(conversation) {
+            // Show Agentforce chat UI when requested
+            if (showAgentforceUI && conversation != null) {
+                agentforceClient.AgentforceLauncherContainer(conversation) {
 
+                }
+            }
         }
-
     }
 }
 
