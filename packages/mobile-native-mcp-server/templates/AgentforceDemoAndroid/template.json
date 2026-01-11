@@ -22,12 +22,12 @@
       "description": "Configure AgentforceSDK settings including ES developer name, organization ID, and API URL",
       "files": [
         "app/src/main/java/com/salesforce/agentforcedemo/Settings.kt",
-        "app/src/main/java/com/salesforce/agentforcedemo/AgentforceMainScreen.kt",
+        "app/src/main/java/com/salesforce/agentforcedemo/AgentforceViewModel.kt",
         "app/src/main/java/com/salesforce/agentforcedemo/CredentialProvider.kt"
       ],
       "instructions": [
         "Update Settings.kt with your ES developer name, organization ID, API URL, and agent ID",
-        "Modify AgentforceMainScreen.kt to customize ServiceAgentConfiguration",
+        "Modify AgentforceViewModel.kt to customize ServiceAgentConfiguration",
         "Update CredentialProvider.kt with your credential handling logic"
       ]
     },
@@ -35,15 +35,16 @@
       "feature": "ui-customization",
       "description": "Customize the Jetpack Compose interface and chat experience",
       "files": [
-        "app/src/main/java/com/salesforce/agentforcedemo/AgentforceMainScreen.kt",
+        "app/src/main/java/com/salesforce/agentforcedemo/screens/HomeScreen.kt",
+        "app/src/main/java/com/salesforce/agentforcedemo/screens/ChatScreen.kt",
         "app/src/main/java/com/salesforce/agentforcedemo/AgentforceViewModel.kt",
         "app/src/main/res/values/themes.xml"
       ],
       "instructions": [
-        "Modify AgentforceMainScreen.kt to customize the main UI layout",
+        "Modify HomeScreen.kt to customize the home screen UI",
+        "Modify ChatScreen.kt to customize the chat UI",
         "Update AgentforceViewModel.kt to add custom state management",
-        "Customize Material 3 theme in themes.xml",
-        "Customize chat view appearance and behavior"
+        "Customize Material 3 theme in themes.xml"
       ]
     },
     {

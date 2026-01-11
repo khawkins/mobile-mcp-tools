@@ -30,11 +30,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.compose.rememberNavController
+import com.salesforce.agentforcedemo.navigation.NavigationGraph
 import com.salesforce.agentforcedemo.ui.theme.AgentforceDemoTheme
 
 /**
@@ -47,22 +49,30 @@ import com.salesforce.agentforcedemo.ui.theme.AgentforceDemoTheme
  *
  * ## Architecture
  * - Uses Jetpack Compose for modern declarative UI
+ * - Navigation component for screen navigation
  * - ViewModel pattern for state management
  * - Settings data class for SDK configuration
  *
  * ## Agentforce Integration
- * The AgentforceMainScreen composable handles:
+ * The ViewModel handles:
  * - AgentforceClient initialization
  * - Service agent configuration
  * - Chat conversation management
- * - Prebuilt UI display
+ *
+ * ## Navigation
+ * - HomeScreen: Main screen with button to launch chat
+ * - ChatScreen: Agentforce conversation UI with back navigation
  */
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: AgentforceViewModel by viewModels()
+    private lateinit var viewModel: AgentforceViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize ViewModel with application context
+        val factory = AgentforceViewModel.Factory(application)
+        viewModel = ViewModelProvider(this, factory)[AgentforceViewModel::class.java]
 
         // Enable edge-to-edge display
         enableEdgeToEdge()
@@ -73,9 +83,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AgentforceMainScreen(
-                        viewModel = viewModel,
-                        settings = Settings()
+                    val navController = rememberNavController()
+                    NavigationGraph(
+                        navController = navController,
+                        viewModel = viewModel
                     )
                 }
             }

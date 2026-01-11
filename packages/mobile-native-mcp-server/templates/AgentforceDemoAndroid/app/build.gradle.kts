@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
     id("kotlinx-serialization")
     id("org.jetbrains.kotlin.plugin.compose") version "2.1.0"
 }
@@ -85,11 +84,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     // Activity Compose
-    implementation("androidx.activity:activity-compose:1.9.0")
-
-    // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.activity:activity-compose:1.9.2")
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")

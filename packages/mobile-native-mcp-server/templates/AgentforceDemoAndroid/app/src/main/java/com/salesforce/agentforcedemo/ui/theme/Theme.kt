@@ -49,28 +49,36 @@ private val SalesforceBlueLight = Color(0xFF014486)
 
 private val DarkColorScheme = darkColorScheme(
     primary = SalesforceBlueDark,
+    onPrimary = Color.Black,
+    primaryContainer = Color(0xFF01579B),  // Dark blue container (matching sample app)
+    onPrimaryContainer = Color(0xFFE0E0E0),
     secondary = Color(0xFF9D53F2),
-    tertiary = Color(0xFF3BA755),
-    background = Color(0xFF1B1B1F),
-    surface = Color(0xFF1B1B1F),
-    onPrimary = Color.White,
     onSecondary = Color.White,
+    tertiary = Color(0xFF3BA755),
     onTertiary = Color.White,
-    onBackground = Color(0xFFE3E2E6),
-    onSurface = Color(0xFFE3E2E6)
+    background = Color(0xFF121212),
+    onBackground = Color(0xFFE0E0E0),
+    surface = Color(0xFF121212),
+    onSurface = Color(0xFFE0E0E0),
+    surfaceVariant = Color(0xFF1E1E1E),
+    onSurfaceVariant = Color(0xFFE0E0E0)
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = SalesforceBlue,
-    secondary = Color(0xFF7526E3),
-    tertiary = Color(0xFF2E844A),
-    background = Color(0xFFFEFBFF),
-    surface = Color(0xFFFEFBFF),
     onPrimary = Color.White,
+    primaryContainer = Color(0xFFE1F5FE),  // Light blue-gray container (matching sample app)
+    onPrimaryContainer = Color(0xFF1A1A1A),
+    secondary = Color(0xFF7526E3),
     onSecondary = Color.White,
+    tertiary = Color(0xFF2E844A),
     onTertiary = Color.White,
-    onBackground = Color(0xFF1B1B1F),
-    onSurface = Color(0xFF1B1B1F)
+    background = Color(0xFFFFFFFF),
+    onBackground = Color(0xFF1A1A1A),
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF1A1A1A),
+    surfaceVariant = Color(0xFFF5F5F5),
+    onSurfaceVariant = Color(0xFF1A1A1A)
 )
 
 /**
@@ -105,7 +113,10 @@ fun AgentforceDemoTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
+            // Use primaryContainer to match TopAppBar containerColor
+            window.statusBarColor = colorScheme.primaryContainer.toArgb()
+            // Light status bar icons for dark theme (light icons on dark background)
+            // Dark status bar icons for light theme (dark icons on light background)
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }

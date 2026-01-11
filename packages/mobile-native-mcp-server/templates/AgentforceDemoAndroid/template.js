@@ -53,20 +53,24 @@ function prepare(config, replaceInFiles, moveFile, removeFile) {
     var templateSettingsFile = path.join('app', 'src', 'main', 'java', 'com', 'salesforce', 'agentforcedemo', 'Settings.kt');
     var templateMainActivityFile = path.join('app', 'src', 'main', 'java', 'com', 'salesforce', 'agentforcedemo', 'MainActivity.kt');
     var templateMainApplicationFile = path.join('app', 'src', 'main', 'java', 'com', 'salesforce', 'agentforcedemo', 'MainApplication.kt');
-    var templateAgentforceMainScreenFile = path.join('app', 'src', 'main', 'java', 'com', 'salesforce', 'agentforcedemo', 'AgentforceMainScreen.kt');
     var templateAgentforceViewModelFile = path.join('app', 'src', 'main', 'java', 'com', 'salesforce', 'agentforcedemo', 'AgentforceViewModel.kt');
     var templateCredentialProviderFile = path.join('app', 'src', 'main', 'java', 'com', 'salesforce', 'agentforcedemo', 'CredentialProvider.kt');
     var templateThemeFile = path.join('app', 'src', 'main', 'java', 'com', 'salesforce', 'agentforcedemo', 'ui', 'theme', 'Theme.kt');
+    var templateNavigationFile = path.join('app', 'src', 'main', 'java', 'com', 'salesforce', 'agentforcedemo', 'navigation', 'Navigation.kt');
+    var templateHomeScreenFile = path.join('app', 'src', 'main', 'java', 'com', 'salesforce', 'agentforcedemo', 'screens', 'HomeScreen.kt');
+    var templateChatScreenFile = path.join('app', 'src', 'main', 'java', 'com', 'salesforce', 'agentforcedemo', 'screens', 'ChatScreen.kt');
 
     // All Kotlin source files for package name replacement
     var kotlinSourceFiles = [
         templateMainActivityFile,
         templateMainApplicationFile,
-        templateAgentforceMainScreenFile,
         templateAgentforceViewModelFile,
         templateCredentialProviderFile,
         templateSettingsFile,
-        templateThemeFile
+        templateThemeFile,
+        templateNavigationFile,
+        templateHomeScreenFile,
+        templateChatScreenFile
     ];
 
     //
@@ -119,30 +123,36 @@ function prepare(config, replaceInFiles, moveFile, removeFile) {
     //
     var tmpPathMainActivityFile = path.join('app', 'src', 'MainActivity.kt');
     var tmpPathMainApplicationFile = path.join('app', 'src', 'MainApplication.kt');
-    var tmpPathAgentforceMainScreenFile = path.join('app', 'src', 'AgentforceMainScreen.kt');
     var tmpPathAgentforceViewModelFile = path.join('app', 'src', 'AgentforceViewModel.kt');
     var tmpPathCredentialProviderFile = path.join('app', 'src', 'CredentialProvider.kt');
     var tmpPathSettingsFile = path.join('app', 'src', 'Settings.kt');
     var tmpPathThemeFile = path.join('app', 'src', 'Theme.kt');
+    var tmpPathNavigationFile = path.join('app', 'src', 'Navigation.kt');
+    var tmpPathHomeScreenFile = path.join('app', 'src', 'HomeScreen.kt');
+    var tmpPathChatScreenFile = path.join('app', 'src', 'ChatScreen.kt');
 
     moveFile(templateMainActivityFile, tmpPathMainActivityFile);
     moveFile(templateMainApplicationFile, tmpPathMainApplicationFile);
-    moveFile(templateAgentforceMainScreenFile, tmpPathAgentforceMainScreenFile);
     moveFile(templateAgentforceViewModelFile, tmpPathAgentforceViewModelFile);
     moveFile(templateCredentialProviderFile, tmpPathCredentialProviderFile);
     moveFile(templateSettingsFile, tmpPathSettingsFile);
     moveFile(templateThemeFile, tmpPathThemeFile);
+    moveFile(templateNavigationFile, tmpPathNavigationFile);
+    moveFile(templateHomeScreenFile, tmpPathHomeScreenFile);
+    moveFile(templateChatScreenFile, tmpPathChatScreenFile);
 
     removeFile(path.join('app', 'src', 'main', 'java', 'com'));
 
     var newPackagePath = ['app', 'src', 'main', 'java'].concat(config.packagename.split('.'));
     moveFile(tmpPathMainActivityFile, path.join.apply(null, newPackagePath.concat(['MainActivity.kt'])));
     moveFile(tmpPathMainApplicationFile, path.join.apply(null, newPackagePath.concat(['MainApplication.kt'])));
-    moveFile(tmpPathAgentforceMainScreenFile, path.join.apply(null, newPackagePath.concat(['AgentforceMainScreen.kt'])));
     moveFile(tmpPathAgentforceViewModelFile, path.join.apply(null, newPackagePath.concat(['AgentforceViewModel.kt'])));
     moveFile(tmpPathCredentialProviderFile, path.join.apply(null, newPackagePath.concat(['CredentialProvider.kt'])));
     moveFile(tmpPathSettingsFile, path.join.apply(null, newPackagePath.concat(['Settings.kt'])));
     moveFile(tmpPathThemeFile, path.join.apply(null, newPackagePath.concat(['ui', 'theme', 'Theme.kt'])));
+    moveFile(tmpPathNavigationFile, path.join.apply(null, newPackagePath.concat(['navigation', 'Navigation.kt'])));
+    moveFile(tmpPathHomeScreenFile, path.join.apply(null, newPackagePath.concat(['screens', 'HomeScreen.kt'])));
+    moveFile(tmpPathChatScreenFile, path.join.apply(null, newPackagePath.concat(['screens', 'ChatScreen.kt'])));
 
     //
     // Run install.js

@@ -26,38 +26,92 @@
  */
 package com.salesforce.agentforcedemo
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
-
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModelProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import com.salesforce.android.agentforcesdkimpl.AgentforceClient
+import com.salesforce.android.agentforcesdkimpl.configuration.AgentforceMode
+import com.salesforce.android.agentforcesdkimpl.configuration.ServiceAgentConfiguration
+import com.salesforce.android.agentforcesdkimpl.AgentforceConversation
 /**
- * ViewModel for managing Agentforce UI state.
+ * ViewModel for managing Agentforce state and client lifecycle.
  *
- * This ViewModel holds the UI state for the Agentforce chat interface,
+ * This ViewModel holds the Agentforce client and conversation state,
  * allowing the state to persist across configuration changes like
- * screen rotations.
+ * screen rotations and navigation.
+ *
+ * @param application The application context for initializing the Agentforce client
  */
-class AgentforceViewModel : ViewModel() {
+class AgentforceViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val settings = Settings()
 
     /**
-     * Controls the visibility of the Agentforce chat UI
+     * The Agentforce client instance
      */
-    var showAgentforceUI by mutableStateOf(false)
+    var agentforceClient: AgentforceClient? = null
         private set
 
+    private val _isClientInitialized = MutableStateFlow(false)
     /**
-     * Show the Agentforce chat UI
+     * Whether the Agentforce client has been initialized
      */
-    fun showChat() {
-        showAgentforceUI = true
+    val isClientInitialized: StateFlow<Boolean> = _isClientInitialized.asStateFlow()
+
+    private val _conversation = MutableStateFlow<AgentforceConversation?>(null)
+    /**
+     * The current Agentforce conversation
+     */
+    val conversation: StateFlow<AgentforceConversation?> = _conversation.asStateFlow()
+
+    init {
+        initializeClient()
     }
 
     /**
-     * Hide the Agentforce chat UI
+     * Initialize the Agentforce client with service agent configuration
      */
-    fun hideChat() {
-        showAgentforceUI = false
+    private fun initializeClient() {
+        val agentforceMode = AgentforceMode.ServiceAgent(
+            serviceAgentConfiguration = ServiceAgentConfiguration.builder(
+                serviceApiURL = settings.serviceApiURL,
+                organizationId = settings.organizationId,
+                esDeveloperName = settings.esDeveloperName
+            ).build()
+        )
+
+        agentforceClient = AgentforceClient().apply {
+            init(
+                authCredentialProvider = CredentialProvider(),
+                agentforceMode = agentforceMode,
+                application = getApplication()
+            )
+        }
+        _isClientInitialized.value = true
+    }
+
+    /**
+     * Start a new Agentforce conversation
+     */
+    fun startConversation() {
+        agentforceClient?.let { client ->
+            _conversation.value = client.startAgentforceConversation()
+        }
+    }
+
+    /**
+     * Factory for creating AgentforceViewModel with application context
+     */
+    class Factory(private val application: Application) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(AgentforceViewModel::class.java)) {
+                return AgentforceViewModel(application) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
     }
 }
-

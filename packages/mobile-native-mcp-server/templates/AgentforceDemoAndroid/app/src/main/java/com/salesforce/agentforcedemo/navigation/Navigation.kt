@@ -24,23 +24,52 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.salesforce.agentforcedemo
+package com.salesforce.agentforcedemo.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.salesforce.agentforcedemo.AgentforceViewModel
+import com.salesforce.agentforcedemo.screens.ChatScreen
+import com.salesforce.agentforcedemo.screens.HomeScreen
 
 /**
- * Settings data class for Agentforce SDK configuration.
- *
- * Contains the required parameters for initializing the Agentforce service agent.
- * Update the placeholder values with your actual deployment configuration from Salesforce.
- *
- * @property serviceApiURL The API URL from your enhanced in-app chat deployment configuration
- * @property organizationId The Organization ID from your enhanced in-app chat deployment configuration
- * @property esDeveloperName The ES developer name from your enhanced in-app chat deployment configuration
- * @property agentId The Agent ID from your enhanced in-app chat deployment configuration
+ * Sealed class representing the navigation destinations in the app.
  */
-data class Settings(
-    val serviceApiURL: String = "PLACEHOLDER_API_URL",
-    val organizationId: String = "PLACEHOLDER_ORGANIZATION_ID",
-    val esDeveloperName: String = "PLACEHOLDER_ES_DEVELOPER_NAME",
-    val agentId: String = "PLACEHOLDER_AGENT_ID"
-)
+sealed class Screen(val route: String) {
+    object Home : Screen("home")
+    object Chat : Screen("chat")
+}
+
+/**
+ * Navigation graph for the Agentforce Demo app.
+ *
+ * @param navController The navigation controller for managing navigation
+ * @param viewModel The ViewModel managing Agentforce state
+ */
+@Composable
+fun NavigationGraph(
+    navController: NavHostController,
+    viewModel: AgentforceViewModel
+) {
+    NavHost(
+        navController = navController,
+        startDestination = Screen.Home.route
+    ) {
+        composable(Screen.Home.route) {
+            HomeScreen(
+                viewModel = viewModel,
+                onLaunchChat = { navController.navigate(Screen.Chat.route) }
+            )
+        }
+
+        composable(Screen.Chat.route) {
+            ChatScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+    }
+}
 
