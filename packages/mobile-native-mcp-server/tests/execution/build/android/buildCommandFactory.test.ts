@@ -7,7 +7,6 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AndroidBuildCommandFactory } from '../../../../src/execution/build/android/buildCommandFactory.js';
-import { PlatformEnum } from '../../../../src/common/schemas.js';
 import { PROGRESS_COMPLETE } from '../../../../src/execution/build/types.js';
 
 describe('AndroidBuildCommandFactory', () => {
@@ -20,7 +19,6 @@ describe('AndroidBuildCommandFactory', () => {
   describe('create', () => {
     it('should create command with correct executable', () => {
       const params = {
-        platform: 'Android' as PlatformEnum,
         projectPath: '/path/to/project',
         projectName: 'TestApp',
         buildOutputDir: '/output',
@@ -34,7 +32,6 @@ describe('AndroidBuildCommandFactory', () => {
 
     it('should include project path in command', () => {
       const params = {
-        platform: 'Android' as PlatformEnum,
         projectPath: '/custom/path',
         projectName: 'TestApp',
         buildOutputDir: '/output',
@@ -47,7 +44,6 @@ describe('AndroidBuildCommandFactory', () => {
 
     it('should include gradlew build command', () => {
       const params = {
-        platform: 'Android' as PlatformEnum,
         projectPath: '/path/to/project',
         projectName: 'TestApp',
         buildOutputDir: '/output',
@@ -60,7 +56,6 @@ describe('AndroidBuildCommandFactory', () => {
 
     it('should set cwd to project path', () => {
       const params = {
-        platform: 'Android' as PlatformEnum,
         projectPath: '/path/to/project',
         projectName: 'TestApp',
         buildOutputDir: '/output',
@@ -73,7 +68,6 @@ describe('AndroidBuildCommandFactory', () => {
 
     it('should use process.env for environment', () => {
       const params = {
-        platform: 'Android' as PlatformEnum,
         projectPath: '/path/to/project',
         projectName: 'TestApp',
         buildOutputDir: '/output',
