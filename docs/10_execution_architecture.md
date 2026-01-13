@@ -174,48 +174,41 @@ interface BuildCommandFactory {
 
 ### Workflow Creation
 
-The workflow graph is created via a factory function that accepts dependencies:
+The workflow graph is created via a factory function that constructs its dependencies internally:
 
 ```typescript
-function createMobileNativeWorkflow(
-  buildExecutor: BuildExecutor,
-  sendNotification: SendNotification
-): StateGraph
+function createMobileNativeWorkflow(logger?: Logger): StateGraph
 ```
 
-This pattern enables:
-- **Testability**: Dependencies can be mocked for testing
-- **Flexibility**: Different implementations can be injected
-- **Explicit Dependencies**: Clear contract of what the workflow needs
+This pattern:
+- **Encapsulates Infrastructure**: The workflow owns its execution dependencies (CommandRunner, BuildExecutor)
+- **Simplifies the API**: Callers only need to provide an optional logger
+- **Maintains Testability**: Individual components (BuildExecutor, CommandRunner) can still be tested in isolation
 
 ### Component Construction
 
-Components are constructed at the orchestrator level:
+Components are constructed within the workflow factory:
 
 ```typescript
-// Orchestrator creates dependencies
-import {
-  DefaultCommandRunner,
-  MCPProgressReporter,
-} from '@salesforce/magen-mcp-workflow';
-import { DefaultBuildExecutor } from '../execution/build/buildExecutor.js';
+// graph.ts - workflow owns its infrastructure
+export function createMobileNativeWorkflow(logger?: Logger) {
+  const commandRunner = new DefaultCommandRunner(logger);
+  const buildExecutor = new DefaultBuildExecutor(
+    commandRunner,
+    defaultTempDirectoryManager,
+    logger
+  );
+  // ... build workflow graph with buildExecutor
+}
 
-const commandRunner = new DefaultCommandRunner(logger);
-const buildExecutor = new DefaultBuildExecutor(
-  commandRunner,
-  tempDirManager,
-  logger
-);
-const progressReporter = new MCPProgressReporter(sendNotification, progressToken);
-
-// Workflow receives dependencies
-const workflow = createMobileNativeWorkflow(buildExecutor);
+// Orchestrator simply invokes the factory
+const workflow = createMobileNativeWorkflow(logger);
 ```
 
 This ensures:
-- Dependencies are created once and reused
-- Lifecycle is managed at the appropriate level
-- Components remain focused on their responsibilities
+- The orchestrator focuses on orchestration, not infrastructure construction
+- Workflow infrastructure is colocated with the workflow definition
+- Individual components remain independently testable
 
 ## Progress Reporting Flow
 

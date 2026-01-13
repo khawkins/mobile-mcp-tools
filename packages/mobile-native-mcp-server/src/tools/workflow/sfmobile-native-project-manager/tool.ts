@@ -10,7 +10,6 @@ import {
   OrchestratorTool,
   OrchestratorConfig,
   WorkflowStateManager,
-  DefaultCommandRunner,
   MCPProgressReporter,
   ProgressReporter,
   type Logger,
@@ -20,8 +19,6 @@ import {
 } from '@salesforce/magen-mcp-workflow';
 import { createMobileNativeWorkflow } from '../../../workflow/graph.js';
 import { ORCHESTRATOR_TOOL } from './metadata.js';
-import { DefaultBuildExecutor } from '../../../execution/index.js';
-import { defaultTempDirectoryManager } from '../../../common.js';
 
 /**
  * Mobile Native Orchestrator Tool
@@ -41,20 +38,12 @@ export class MobileNativeOrchestrator extends OrchestratorTool {
     const mobileNativeWorkflowStateManagerLogger =
       logger ?? createWorkflowLogger('MobileNativeWorkflowStateManager');
 
-    // Create execution dependencies
-    const commandRunner = new DefaultCommandRunner(logger);
-    const buildExecutor = new DefaultBuildExecutor(
-      commandRunner,
-      defaultTempDirectoryManager,
-      logger
-    );
-
     const config: OrchestratorConfig = {
       toolId: ORCHESTRATOR_TOOL.toolId,
       title: 'Salesforce Mobile Native Project Manager',
       description:
         'Orchestrates the end-to-end workflow for generating Salesforce native mobile apps.',
-      workflow: createMobileNativeWorkflow(buildExecutor),
+      workflow: createMobileNativeWorkflow(logger),
       stateManager: new WorkflowStateManager({
         environment,
         logger: mobileNativeWorkflowStateManagerLogger,
