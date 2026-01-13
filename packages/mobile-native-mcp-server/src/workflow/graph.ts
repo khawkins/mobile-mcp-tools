@@ -17,7 +17,7 @@ import { TemplateOptionsFetchNode } from './nodes/templateOptionsFetch.js';
 import { TemplateSelectionNode } from './nodes/templateSelection.js';
 import { ProjectGenerationNode } from './nodes/projectGeneration.js';
 import { BuildValidationNode } from './nodes/buildValidation.js';
-import { BuildExecutor } from '../execution/build/buildExecutor.js';
+import { DefaultBuildExecutor } from '../execution/build/buildExecutor.js';
 import { BuildRecoveryNode } from './nodes/buildRecovery.js';
 import { CheckBuildSuccessfulRouter } from './nodes/checkBuildSuccessfulRouter.js';
 import { DeploymentNode } from './nodes/deploymentNode.js';
@@ -38,10 +38,12 @@ import {
   createGetUserInputNode,
   createUserInputExtractionNode,
   CheckPropertiesFulfilledRouter,
-  CommandRunner,
+  DefaultCommandRunner,
+  type Logger,
 } from '@salesforce/magen-mcp-workflow';
 import { SFMOBILE_NATIVE_GET_INPUT_TOOL_ID } from '../tools/utils/sfmobile-native-get-input/metadata.js';
 import { SFMOBILE_NATIVE_INPUT_EXTRACTION_TOOL_ID } from '../tools/utils/sfmobile-native-input-extraction/metadata.js';
+import { defaultTempDirectoryManager } from '../common.js';
 
 const initialUserInputExtractionNode = createUserInputExtractionNode<State>({
   requiredProperties: WORKFLOW_USER_INPUT_PROPERTIES,
@@ -107,19 +109,19 @@ const checkTemplatePropertiesFulfilledRouter = new CheckTemplatePropertiesFulfil
 );
 
 /**
- * Creates the mobile native workflow graph with injected dependencies.
- *
- * @param buildExecutor - Build executor for executing builds with progress reporting
- * @param commandRunner - Command runner for executing commands with progress reporting
+ * Creates the mobile native workflow graph.
+ * @param logger - Optional logger
  * @returns Configured workflow graph
  */
-export function createMobileNativeWorkflow(
-  buildExecutor: BuildExecutor,
-  commandRunner: CommandRunner
-) {
+export function createMobileNativeWorkflow(logger?: Logger) {
+  const commandRunner = new DefaultCommandRunner(logger);
+  const buildExecutor = new DefaultBuildExecutor(
+    commandRunner,
+    defaultTempDirectoryManager,
+    logger
+  );
   // Create project generation node with CommandRunner
-  const projectGenerationNodeInstance = new ProjectGenerationNode(commandRunner);
-
+  const projectGenerationNodeInstance = new ProjectGenerationNode(commandRunner, logger);
   // Create build validation node with BuildExecutor
   const buildValidationNodeInstance = new BuildValidationNode(buildExecutor);
 
