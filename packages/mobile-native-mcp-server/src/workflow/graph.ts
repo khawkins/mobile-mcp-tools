@@ -112,12 +112,8 @@ export function createMobileNativeWorkflow(logger?: Logger) {
     defaultTempDirectoryManager,
     logger
   );
-  // Create project generation node with CommandRunner
   const projectGenerationNode = new ProjectGenerationNode(commandRunner, logger);
-  // Create build validation node with BuildExecutor
   const buildValidationNodeInstance = new BuildValidationNode(buildExecutor);
-
-  // Create routers that reference buildValidationNodeInstance and projectGenerationNodeInstance
   const checkProjectGenerationRouterInstance = new CheckProjectGenerationRouter(
     buildValidationNodeInstance.name,
     failureNode.name
