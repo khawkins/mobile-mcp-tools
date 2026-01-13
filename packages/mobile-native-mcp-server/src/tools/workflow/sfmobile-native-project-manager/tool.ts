@@ -11,7 +11,7 @@ import {
   OrchestratorConfig,
   WorkflowStateManager,
   DefaultCommandRunner,
-  createMCPProgressReporter,
+  MCPProgressReporter,
   ProgressReporter,
   type Logger,
   type WorkflowEnvironment,
@@ -93,13 +93,19 @@ export class MobileNativeOrchestrator extends OrchestratorTool {
     }
   ) => {
     // Extract sendNotification and progressToken from request context
+    // sendNotification should always be provided by the MCP server
     const sendNotification = extra?.sendNotification;
+    if (!sendNotification) {
+      throw new Error(
+        'sendNotification is required but was not provided by MCP server. This indicates a configuration issue.'
+      );
+    }
     const progressToken =
       extra?._meta?.progressToken ??
       `progress-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     // Create MCP progress reporter and store for createThreadConfig
-    this.currentProgressReporter = createMCPProgressReporter(sendNotification, progressToken);
+    this.currentProgressReporter = new MCPProgressReporter(sendNotification, progressToken);
 
     this.logger.debug('Orchestrator tool called with input', input);
     try {

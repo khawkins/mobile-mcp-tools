@@ -36,7 +36,7 @@ The execution architecture distinguishes between two concepts:
 
 Contains reusable components that can be used for any command execution, exported from `@salesforce/magen-mcp-workflow`:
 
-- **`progressReporter.ts`**: Abstract progress reporting interface and MCP implementation (`ProgressReporter`, `NoOpProgressReporter`, `MCPProgressReporter`, `createMCPProgressReporter`)
+- **`progressReporter.ts`**: Abstract progress reporting interface and MCP implementation (`ProgressReporter`, `MCPProgressReporter`)
 - **`commandRunner.ts`**: Generic command execution abstraction (`CommandRunner`, `DefaultCommandRunner`)
 - **`types.ts`**: Generic types (`Command`, `CommandResult`, `ProgressParseResult`, `ProgressParser`, `CommandExecutionOptions`)
 - **`index.ts`**: Exports all generic execution components
@@ -76,7 +76,7 @@ This organization provides:
 
 **Flow**:
 1. Orchestrator extracts `sendNotification` function and `progressToken` from MCP request context
-2. Creates `MCPProgressReporter` using `createMCPProgressReporter()` helper
+2. Creates `MCPProgressReporter` instance directly
 3. Passes `ProgressReporter` to workflow graph creation
 4. Workflow passes reporter to nodes that need it (e.g., `BuildValidationNode`)
 
@@ -196,7 +196,7 @@ Components are constructed at the orchestrator level:
 // Orchestrator creates dependencies
 import {
   DefaultCommandRunner,
-  createMCPProgressReporter,
+  MCPProgressReporter,
 } from '@salesforce/magen-mcp-workflow';
 import { DefaultBuildExecutor } from '../execution/build/buildExecutor.js';
 
@@ -206,7 +206,7 @@ const buildExecutor = new DefaultBuildExecutor(
   tempDirManager,
   logger
 );
-const progressReporter = createMCPProgressReporter(sendNotification, progressToken);
+const progressReporter = new MCPProgressReporter(sendNotification, progressToken);
 
 // Workflow receives dependencies
 const workflow = createMobileNativeWorkflow(buildExecutor);
@@ -223,7 +223,7 @@ This ensures:
 
 1. **MCP Request Arrives**: Contains `progressToken` in metadata
 2. **Orchestrator Extracts Context**: Gets `sendNotification` function and `progressToken`
-3. **ProgressReporter Created**: `createMCPProgressReporter()` validates token and creates reporter
+3. **ProgressReporter Created**: `MCPProgressReporter` instance created with `sendNotification` and `progressToken`
 4. **Workflow Receives Reporter**: Passed to workflow creation function
 
 ### During Execution
