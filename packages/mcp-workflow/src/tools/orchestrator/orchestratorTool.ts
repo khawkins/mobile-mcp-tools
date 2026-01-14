@@ -196,7 +196,20 @@ export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
   }
 
   /**
-   * Create orchestration prompt for LLM with embedded tool invocation data and workflow state.
+   * Create the thread configuration for LangGraph workflow invocation.
+   *
+   * Subclasses can override this method to add additional properties to
+   * `configurable`, such as progressReporter for long-running operations.
+   *
+   * @param threadId - The thread ID for checkpointing
+   * @returns Configuration object for workflow invocation
+   */
+  protected createThreadConfig(threadId: string): { configurable: { thread_id: string } } {
+    return { configurable: { thread_id: threadId } };
+  }
+
+  /**
+   * Create orchestration prompt for LLM with embedded tool invocation data and workflow state
    * Used in delegate mode - instructs LLM to call a separate MCP tool.
    */
   private createOrchestrationPrompt(
@@ -265,6 +278,17 @@ instructions for continuing the workflow.
     );
     const inputDataJson = JSON.stringify(nodeGuidanceData.input, null, 2);
 
+    // Build example section if provided
+    const exampleSection = nodeGuidanceData.exampleOutput
+      ? `
+For example, a properly formatted result should look like:
+
+\`\`\`json
+${nodeGuidanceData.exampleOutput}
+\`\`\`
+`
+      : '';
+
     return `
 # ROLE
 
@@ -289,27 +313,24 @@ ${inputSchemaJson}
 ${inputDataJson}
 \`\`\`
 
-# EXPECTED OUTPUT FORMAT
+# POST-TASK INSTRUCTIONS
 
-Your response must conform to the following schema:
+After completing the task described above, you MUST return your result to the orchestrator
+by invoking the \`${this.toolMetadata.toolId}\` tool.
+
+Provide the following input values to the \`${this.toolMetadata.toolId}\` tool:
+
+- \`${WORKFLOW_PROPERTY_NAMES.userInput}\`: Your formatted result (see OUTPUT FORMAT below).
+- \`${WORKFLOW_PROPERTY_NAMES.workflowStateData}\`: ${JSON.stringify(workflowStateData)}
+
+# OUTPUT FORMAT
+
+**IMPORTANT:** Your \`${WORKFLOW_PROPERTY_NAMES.userInput}\` value MUST conform to the following JSON schema:
 
 \`\`\`json
 ${resultSchemaJson}
 \`\`\`
-
-# POST-TASK INSTRUCTIONS
-
-After completing the task described above, you MUST return your result to the orchestrator:
-
-1. **Format your result** according to the "EXPECTED OUTPUT FORMAT" schema above.
-
-2. **Invoke the orchestrator tool** (\`${this.toolMetadata.toolId}\`) to continue the workflow.
-
-3. **Provide input values** to the orchestrator tool:
-   - \`${WORKFLOW_PROPERTY_NAMES.userInput}\`: Your formatted result from step 1.
-   - \`${WORKFLOW_PROPERTY_NAMES.workflowStateData}\`: ${JSON.stringify(workflowStateData)}
-
-This will continue the workflow orchestration process.
+${exampleSection}
 `;
   }
 }

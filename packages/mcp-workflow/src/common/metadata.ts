@@ -86,6 +86,12 @@ export interface NodeGuidanceData<TInputSchema extends z.ZodObject<z.ZodRawShape
   inputSchema: TInputSchema;
   /** Zod schema defining expected output structure for result validation */
   resultSchema: z.ZodObject<z.ZodRawShape>;
+  /**
+   * Optional example output to help the LLM understand the expected response format.
+   * When provided, this concrete example is shown alongside the schema to improve
+   * LLM compliance with the expected structure.
+   */
+  exampleOutput?: string;
 }
 
 /**

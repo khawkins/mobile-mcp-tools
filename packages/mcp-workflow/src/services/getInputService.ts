@@ -73,6 +73,15 @@ export class GetInputService extends AbstractService implements GetInputServiceP
     const metadata = createGetInputMetadata(this.toolId);
     const input = { propertiesRequiringInput: unfulfilledProperties };
 
+    // Build a concrete example based on the actual properties being requested
+    const exampleProperties = unfulfilledProperties.reduce(
+      (acc, prop) => {
+        acc[prop.propertyName] = `<user's ${prop.friendlyName} value>`;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+
     // Create NodeGuidanceData for direct guidance mode
     // The orchestrator will generate the guidance prompt directly using taskGuidance
     const nodeGuidanceData: NodeGuidanceData<typeof GET_INPUT_WORKFLOW_INPUT_SCHEMA> = {
@@ -81,6 +90,14 @@ export class GetInputService extends AbstractService implements GetInputServiceP
       input,
       taskGuidance: metadata.generateTaskGuidance!(input),
       resultSchema: metadata.resultSchema,
+      // Provide example to help LLM understand the expected userUtterance wrapper
+      exampleOutput: JSON.stringify(
+        {
+          userUtterance: exampleProperties,
+        },
+        null,
+        2
+      ),
     };
 
     // Execute tool with logging and validation
