@@ -69,8 +69,8 @@ const mobileAppProjectPrompt = new MobileAppProjectPrompt(server);
 orchestrator.register(orchestratorAnnotations);
 
 // Register all other tools with read-only annotations
-getInputTool.register(readOnlyAnnotations);
-inputExtractionTool.register(readOnlyAnnotations);
+//getInputTool.register(readOnlyAnnotations);
+//inputExtractionTool.register(readOnlyAnnotations);
 templateSelectionTool.register(readOnlyAnnotations);
 buildTool.register(readOnlyAnnotations);
 buildRecoveryTool.register(readOnlyAnnotations);
