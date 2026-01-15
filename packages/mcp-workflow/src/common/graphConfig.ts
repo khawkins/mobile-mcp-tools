@@ -26,10 +26,10 @@ export interface BaseGraphConfig {
  * Extended RunnableConfig with workflow-specific configurable properties.
  * Nodes access runtime context via config.configurable.
  *
- * The configurable property is required and contains our workflow-specific
- * BaseGraphConfig properties. This allows nodes to safely access thread_id
- * and progressReporter when available.
+ * The configurable property extends RunnableConfig's configurable with
+ * our workflow-specific BaseGraphConfig properties. This allows nodes
+ * to safely access thread_id and progressReporter when available.
  */
 export interface WorkflowRunnableConfig extends RunnableConfig {
-  configurable: BaseGraphConfig;
+  configurable?: RunnableConfig['configurable'] & Partial<BaseGraphConfig>;
 }
