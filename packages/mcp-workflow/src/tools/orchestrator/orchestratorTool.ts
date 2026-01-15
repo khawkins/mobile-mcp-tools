@@ -18,7 +18,7 @@ import {
   WORKFLOW_PROPERTY_NAMES,
   WorkflowStateData,
 } from '../../common/metadata.js';
-import type { BaseGraphConfig, WorkflowRunnableConfig } from '../../common/graphConfig.js';
+import type { WorkflowRunnableConfig } from '../../common/graphConfig.js';
 import { MCPProgressReporter, type ProgressReporter } from '../../execution/progressReporter.js';
 import { WorkflowStateManager } from '../../checkpointing/workflowStateManager.js';
 import { OrchestratorConfig } from './config.js';
