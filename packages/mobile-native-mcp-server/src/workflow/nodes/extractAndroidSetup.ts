@@ -41,7 +41,7 @@ export class ExtractAndroidSetupNode extends BaseNode<State> {
   }
 
   execute = (state: State): Partial<State> => {
-    const result = this.baseExtractNode.execute(state);
+    const result = this.baseExtractNode.execute(state) as Partial<State>;
     const errorMessages: string[] = [];
 
     // Validate extracted paths

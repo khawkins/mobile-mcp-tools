@@ -78,6 +78,9 @@ export {
   INPUT_EXTRACTION_WORKFLOW_RESULT_SCHEMA,
 } from './tools/utilities/index.js';
 
+// Graph Configuration
+export { type BaseGraphConfig, type WorkflowRunnableConfig } from './common/graphConfig.js';
+
 // Base Node Classes
 export {
   BaseNode,
@@ -114,3 +117,16 @@ export {
   ORCHESTRATOR_INPUT_SCHEMA,
   ORCHESTRATOR_OUTPUT_SCHEMA,
 } from './tools/orchestrator/index.js';
+
+// Execution Infrastructure
+export {
+  ProgressReporter,
+  MCPProgressReporter,
+  CommandRunner,
+  DefaultCommandRunner,
+  type Command,
+  type CommandResult,
+  type ProgressParseResult,
+  type ProgressParser,
+  type CommandExecutionOptions,
+} from './execution/index.js';

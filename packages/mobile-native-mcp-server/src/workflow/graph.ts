@@ -17,6 +17,7 @@ import { TemplateOptionsFetchNode } from './nodes/templateOptionsFetch.js';
 import { TemplateSelectionNode } from './nodes/templateSelection.js';
 import { ProjectGenerationNode } from './nodes/projectGeneration.js';
 import { BuildValidationNode } from './nodes/buildValidation.js';
+import { DefaultBuildExecutor } from '../execution/build/buildExecutor.js';
 import { BuildRecoveryNode } from './nodes/buildRecovery.js';
 import { CheckBuildSuccessfulRouter } from './nodes/checkBuildSuccessfulRouter.js';
 import { DeploymentNode } from './nodes/deploymentNode.js';
@@ -37,9 +38,12 @@ import {
   createGetUserInputNode,
   createUserInputExtractionNode,
   CheckPropertiesFulfilledRouter,
+  DefaultCommandRunner,
+  type Logger,
 } from '@salesforce/magen-mcp-workflow';
 import { SFMOBILE_NATIVE_GET_INPUT_TOOL_ID } from '../tools/utils/sfmobile-native-get-input/metadata.js';
 import { SFMOBILE_NATIVE_INPUT_EXTRACTION_TOOL_ID } from '../tools/utils/sfmobile-native-input-extraction/metadata.js';
+import { defaultTempDirectoryManager } from '../common.js';
 
 const initialUserInputExtractionNode = createUserInputExtractionNode<State>({
   requiredProperties: WORKFLOW_USER_INPUT_PROPERTIES,
@@ -69,8 +73,6 @@ const templateOptionsFetchNode = new TemplateOptionsFetchNode();
 const templateSelectionNode = new TemplateSelectionNode();
 const templatePropertiesExtractionNode = new TemplatePropertiesExtractionNode();
 const templatePropertiesUserInputNode = new TemplatePropertiesUserInputNode();
-const projectGenerationNode = new ProjectGenerationNode();
-const buildValidationNode = new BuildValidationNode();
 const buildRecoveryNode = new BuildRecoveryNode();
 const deploymentNode = new DeploymentNode();
 const completionNode = new CompletionNode();
@@ -98,70 +100,87 @@ const checkAndroidSetupExtractedRouter = new CheckAndroidSetupExtractedRouter(
   platformCheckNode.name,
   failureNode.name
 );
-
-const checkProjectGenerationRouter = new CheckProjectGenerationRouter(
-  buildValidationNode.name,
-  failureNode.name
-);
-
-const checkBuildSuccessfulRouter = new CheckBuildSuccessfulRouter(
-  deploymentNode.name,
-  buildRecoveryNode.name,
-  failureNode.name
-);
-
-const checkTemplatePropertiesFulfilledRouter = new CheckTemplatePropertiesFulfilledRouter(
-  projectGenerationNode.name,
-  templatePropertiesUserInputNode.name
-);
-
 /**
- * The main workflow graph for mobile native app development
- * Follows the Plan → Design/Iterate → Run three-phase architecture
- * Steel thread implementation starts with user input triage, then Plan → Run with basic Contact list app
+ * Creates the mobile native workflow graph.
+ * @param logger - Optional logger
+ * @returns Configured workflow graph
  */
-export const mobileNativeWorkflow = new StateGraph(MobileNativeWorkflowState)
-  // Add all workflow nodes
-  .addNode(environmentValidationNode.name, environmentValidationNode.execute)
-  .addNode(initialUserInputExtractionNode.name, initialUserInputExtractionNode.execute)
-  .addNode(userInputNode.name, userInputNode.execute)
-  .addNode(platformCheckNode.name, platformCheckNode.execute)
-  .addNode(getAndroidSetupNode.name, getAndroidSetupNode.execute)
-  .addNode(extractAndroidSetupNode.name, extractAndroidSetupNode.execute)
-  .addNode(pluginCheckNode.name, pluginCheckNode.execute)
-  .addNode(templateOptionsFetchNode.name, templateOptionsFetchNode.execute)
-  .addNode(templateSelectionNode.name, templateSelectionNode.execute)
-  .addNode(templatePropertiesExtractionNode.name, templatePropertiesExtractionNode.execute)
-  .addNode(templatePropertiesUserInputNode.name, templatePropertiesUserInputNode.execute)
-  .addNode(projectGenerationNode.name, projectGenerationNode.execute)
-  .addNode(buildValidationNode.name, buildValidationNode.execute)
-  .addNode(buildRecoveryNode.name, buildRecoveryNode.execute)
-  .addNode(deploymentNode.name, deploymentNode.execute)
-  .addNode(completionNode.name, completionNode.execute)
-  .addNode(failureNode.name, failureNode.execute)
+export function createMobileNativeWorkflow(logger?: Logger) {
+  const commandRunner = new DefaultCommandRunner(logger);
+  const buildExecutor = new DefaultBuildExecutor(
+    commandRunner,
+    defaultTempDirectoryManager,
+    logger
+  );
+  const projectGenerationNode = new ProjectGenerationNode(commandRunner, logger);
+  const buildValidationNodeInstance = new BuildValidationNode(buildExecutor);
+  const checkProjectGenerationRouterInstance = new CheckProjectGenerationRouter(
+    buildValidationNodeInstance.name,
+    failureNode.name
+  );
 
-  // Define workflow edges
-  .addEdge(START, environmentValidationNode.name)
-  .addConditionalEdges(environmentValidationNode.name, checkEnvironmentValidatedRouter.execute)
-  .addConditionalEdges(initialUserInputExtractionNode.name, checkPropertiesFulFilledRouter.execute)
-  .addEdge(userInputNode.name, initialUserInputExtractionNode.name)
-  .addConditionalEdges(platformCheckNode.name, checkSetupValidatedRouter.execute)
-  // Android setup recovery flow
-  .addEdge(getAndroidSetupNode.name, extractAndroidSetupNode.name)
-  .addConditionalEdges(extractAndroidSetupNode.name, checkAndroidSetupExtractedRouter.execute)
-  .addConditionalEdges(pluginCheckNode.name, checkPluginValidatedRouter.execute)
-  .addEdge(templateOptionsFetchNode.name, templateSelectionNode.name)
-  .addEdge(templateSelectionNode.name, templatePropertiesExtractionNode.name)
-  .addConditionalEdges(
-    templatePropertiesExtractionNode.name,
-    checkTemplatePropertiesFulfilledRouter.execute
-  )
-  .addEdge(templatePropertiesUserInputNode.name, templatePropertiesExtractionNode.name)
-  .addConditionalEdges(projectGenerationNode.name, checkProjectGenerationRouter.execute)
-  // Build validation with recovery loop (similar to user input loop)
-  .addConditionalEdges(buildValidationNode.name, checkBuildSuccessfulRouter.execute)
-  .addEdge(buildRecoveryNode.name, buildValidationNode.name)
-  // Continue to deployment and completion
-  .addEdge(deploymentNode.name, completionNode.name)
-  .addEdge(completionNode.name, END)
-  .addEdge(failureNode.name, END);
+  const checkBuildSuccessfulRouterInstance = new CheckBuildSuccessfulRouter(
+    deploymentNode.name,
+    buildRecoveryNode.name,
+    failureNode.name
+  );
+
+  const checkTemplatePropertiesFulfilledRouter = new CheckTemplatePropertiesFulfilledRouter(
+    projectGenerationNode.name,
+    templatePropertiesUserInputNode.name
+  );
+
+  return (
+    new StateGraph(MobileNativeWorkflowState)
+      // Add all workflow nodes
+      .addNode(environmentValidationNode.name, environmentValidationNode.execute)
+      .addNode(initialUserInputExtractionNode.name, initialUserInputExtractionNode.execute)
+      .addNode(userInputNode.name, userInputNode.execute)
+      .addNode(platformCheckNode.name, platformCheckNode.execute)
+      .addNode(getAndroidSetupNode.name, getAndroidSetupNode.execute)
+      .addNode(extractAndroidSetupNode.name, extractAndroidSetupNode.execute)
+      .addNode(pluginCheckNode.name, pluginCheckNode.execute)
+      .addNode(templateOptionsFetchNode.name, templateOptionsFetchNode.execute)
+      .addNode(templateSelectionNode.name, templateSelectionNode.execute)
+      .addNode(templatePropertiesExtractionNode.name, templatePropertiesExtractionNode.execute)
+      .addNode(templatePropertiesUserInputNode.name, templatePropertiesUserInputNode.execute)
+      .addNode(projectGenerationNode.name, projectGenerationNode.execute)
+      .addNode(buildValidationNodeInstance.name, buildValidationNodeInstance.execute)
+      .addNode(buildRecoveryNode.name, buildRecoveryNode.execute)
+      .addNode(deploymentNode.name, deploymentNode.execute)
+      .addNode(completionNode.name, completionNode.execute)
+      .addNode(failureNode.name, failureNode.execute)
+
+      // Define workflow edges
+      .addEdge(START, environmentValidationNode.name)
+      .addConditionalEdges(environmentValidationNode.name, checkEnvironmentValidatedRouter.execute)
+      .addConditionalEdges(
+        initialUserInputExtractionNode.name,
+        checkPropertiesFulFilledRouter.execute
+      )
+      .addEdge(userInputNode.name, initialUserInputExtractionNode.name)
+      .addConditionalEdges(platformCheckNode.name, checkSetupValidatedRouter.execute)
+      // Android setup recovery flow
+      .addEdge(getAndroidSetupNode.name, extractAndroidSetupNode.name)
+      .addConditionalEdges(extractAndroidSetupNode.name, checkAndroidSetupExtractedRouter.execute)
+      .addConditionalEdges(pluginCheckNode.name, checkPluginValidatedRouter.execute)
+      .addEdge(templateOptionsFetchNode.name, templateSelectionNode.name)
+      .addEdge(templateSelectionNode.name, templatePropertiesExtractionNode.name)
+      .addConditionalEdges(
+        templatePropertiesExtractionNode.name,
+        checkTemplatePropertiesFulfilledRouter.execute
+      )
+      .addEdge(templatePropertiesUserInputNode.name, templatePropertiesExtractionNode.name)
+      .addConditionalEdges(projectGenerationNode.name, checkProjectGenerationRouterInstance.execute)
+      // Build validation with recovery loop (similar to user input loop)
+      .addConditionalEdges(
+        buildValidationNodeInstance.name,
+        checkBuildSuccessfulRouterInstance.execute
+      )
+      .addEdge(buildRecoveryNode.name, buildValidationNodeInstance.name)
+      // Continue to deployment and completion
+      .addEdge(deploymentNode.name, completionNode.name)
+      .addEdge(completionNode.name, END)
+      .addEdge(failureNode.name, END)
+  );
+}
