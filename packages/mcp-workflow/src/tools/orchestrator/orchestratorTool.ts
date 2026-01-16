@@ -318,13 +318,11 @@ instructions for continuing the workflow.
     nodeGuidanceData: NodeGuidanceData<z.ZodObject<z.ZodRawShape>>,
     workflowStateData: WorkflowStateData
   ): string {
-    const inputSchemaJson = JSON.stringify(zodToJsonSchema(nodeGuidanceData.inputSchema), null, 2);
     const resultSchemaJson = JSON.stringify(
       zodToJsonSchema(nodeGuidanceData.resultSchema),
       null,
       2
     );
-    const inputDataJson = JSON.stringify(nodeGuidanceData.input, null, 2);
 
     // Build example section if provided
     const exampleSection = nodeGuidanceData.exampleOutput
@@ -346,20 +344,6 @@ you with direct guidance for the current task.
 # TASK GUIDANCE
 
 ${nodeGuidanceData.taskGuidance}
-
-# INPUT SCHEMA (for reference)
-
-The following schema defines the structure of the input data:
-
-\`\`\`json
-${inputSchemaJson}
-\`\`\`
-
-# INPUT DATA
-
-\`\`\`json
-${inputDataJson}
-\`\`\`
 
 # CRITICAL: REQUIRED NEXT STEP
 
@@ -386,6 +370,7 @@ The \`${WORKFLOW_PROPERTY_NAMES.userInput}\` parameter MUST be a JSON object con
 ${resultSchemaJson}
 \`\`\`
 ${exampleSection}
+
 # EXAMPLE TOOL CALL
 
 Here is an example of the EXACT format your tool call should follow:

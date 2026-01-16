@@ -772,7 +772,8 @@ describe('MobileNativeOrchestrator', () => {
       // Prompt should include workflow state data
       expect(prompt).toContain('workflowStateData');
       expect(prompt).toContain(JSON.stringify(workflowStateData));
-      expect(prompt).toContain('round-tripped back');
+      // Direct guidance mode uses different text than delegate mode
+      expect(prompt).toContain('REQUIRED NEXT STEP');
     });
 
     it('should handle workflow completion', async () => {

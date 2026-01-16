@@ -556,10 +556,13 @@ Gather user input for platform and projectName.
 
       const orchestrator = new OrchestratorTool(server, config);
 
-      const result = await orchestrator.handleRequest({
-        userInput: {},
-        workflowStateData: { thread_id: '' },
-      });
+      const result = await orchestrator.handleRequest(
+        {
+          userInput: {},
+          workflowStateData: { thread_id: '' },
+        },
+        createMockExtra()
+      );
 
       expect(result.structuredContent).toBeDefined();
       const output = result.structuredContent as { orchestrationInstructionsPrompt: string };
@@ -573,10 +576,8 @@ Gather user input for platform and projectName.
       expect(prompt).toContain('input gathering tool');
       expect(prompt).toContain('YOU MUST NOW WAIT for the user');
 
-      // Should contain input schema and data sections
-      expect(prompt).toContain('# INPUT SCHEMA');
-      expect(prompt).toContain('# INPUT DATA');
-      expect(prompt).toContain('propertiesRequiringInput');
+      // Input data is embedded directly in taskGuidance (no separate INPUT SCHEMA/DATA sections)
+      // The taskGuidance already contains all necessary context
 
       // Should contain critical next step instructions
       expect(prompt).toContain('# CRITICAL: REQUIRED NEXT STEP');
@@ -588,9 +589,8 @@ Gather user input for platform and projectName.
       expect(prompt).toContain('MUST be a JSON object conforming to this schema');
       expect(prompt).toContain('userUtterance');
 
-      // Should contain final reminder for compliance
-      expect(prompt).toContain('# FINAL REMINDER');
-      expect(prompt).toContain('workflow will FAIL');
+      // Should contain example tool call section
+      expect(prompt).toContain('# EXAMPLE TOOL CALL');
 
       // Should NOT contain delegate mode content
       expect(prompt).not.toContain('Invoke the following MCP server tool');
@@ -629,10 +629,13 @@ Gather user input for platform and projectName.
 
       const orchestrator = new OrchestratorTool(server, config);
 
-      const result = await orchestrator.handleRequest({
-        userInput: {},
-        workflowStateData: { thread_id: '' },
-      });
+      const result = await orchestrator.handleRequest(
+        {
+          userInput: {},
+          workflowStateData: { thread_id: '' },
+        },
+        createMockExtra()
+      );
 
       expect(result.structuredContent).toBeDefined();
       const output = result.structuredContent as { orchestrationInstructionsPrompt: string };
