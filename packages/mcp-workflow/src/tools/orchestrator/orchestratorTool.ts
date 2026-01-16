@@ -8,6 +8,8 @@
 import z from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { ServerRequest, ServerNotification } from '@modelcontextprotocol/sdk/types.js';
+import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import { Command } from '@langchain/langgraph';
 import { createWorkflowLogger } from '../../logging/logger.js';
 import { AbstractTool } from '../base/abstractTool.js';
@@ -19,6 +21,8 @@ import {
   WORKFLOW_PROPERTY_NAMES,
   WorkflowStateData,
 } from '../../common/metadata.js';
+import type { WorkflowRunnableConfig } from '../../common/graphConfig.js';
+import { MCPProgressReporter, type ProgressReporter } from '../../execution/progressReporter.js';
 import { WorkflowStateManager } from '../../checkpointing/workflowStateManager.js';
 import { OrchestratorConfig } from './config.js';
 import {
@@ -50,6 +54,7 @@ function generateUniqueThreadId(): string {
  */
 export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
   private readonly stateManager: WorkflowStateManager;
+  private currentProgressReporter: ProgressReporter | undefined;
 
   constructor(
     server: McpServer,
@@ -67,7 +72,13 @@ export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
   /**
    * Handle orchestrator requests - manages workflow state and execution
    */
-  public handleRequest = async (input: OrchestratorInput) => {
+  public handleRequest = async (
+    input: OrchestratorInput,
+    extra: RequestHandlerExtra<ServerRequest, ServerNotification>
+  ) => {
+    // Create progress reporter from MCP context
+    this.currentProgressReporter = this.createProgressReporter(extra);
+
     this.logger.debug('Orchestrator tool called with input', input);
     try {
       const result = await this.processRequest(input);
@@ -85,10 +96,29 @@ export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
     } catch (error) {
       this.logger.error('Error in orchestrator tool execution', error as Error);
       throw error;
+    } finally {
+      // Clear progress reporter after request completes
+      this.currentProgressReporter = undefined;
     }
   };
 
-  private async processRequest(input: OrchestratorInput): Promise<OrchestratorOutput> {
+  /**
+   * Creates a progress reporter from MCP request context.
+   *
+   * Subclasses can override this to provide custom progress reporting behavior.
+   *
+   * @param extra - The MCP request context containing sendNotification and metadata
+   * @returns A progress reporter instance, or undefined if progress reporting is disabled
+   */
+  protected createProgressReporter(
+    extra: RequestHandlerExtra<ServerRequest, ServerNotification>
+  ): ProgressReporter | undefined {
+    const { sendNotification, _meta } = extra;
+    const progressToken = _meta?.progressToken ? String(_meta.progressToken) : undefined;
+    return new MCPProgressReporter(sendNotification, progressToken);
+  }
+
+  protected async processRequest(input: OrchestratorInput): Promise<OrchestratorOutput> {
     // Generate or use existing thread ID for workflow session
     let threadId = '';
     try {
@@ -111,8 +141,8 @@ export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
       isResumption: !!input.workflowStateData?.thread_id,
     });
 
-    // Thread configuration for LangGraph
-    const threadConfig = { configurable: { thread_id: threadId } };
+    // Thread configuration for LangGraph - includes optional progress reporter
+    const threadConfig = this.createThreadConfig(threadId, this.getProgressReporter());
 
     // Get checkpointer from state manager
     const checkpointer = await this.stateManager.createCheckpointer();
@@ -202,10 +232,28 @@ export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
    * `configurable`, such as progressReporter for long-running operations.
    *
    * @param threadId - The thread ID for checkpointing
+   * @param progressReporter - Optional progress reporter for long-running operations
    * @returns Configuration object for workflow invocation
    */
-  protected createThreadConfig(threadId: string): { configurable: { thread_id: string } } {
-    return { configurable: { thread_id: threadId } };
+  protected createThreadConfig(
+    threadId: string,
+    progressReporter?: ProgressReporter
+  ): WorkflowRunnableConfig {
+    return {
+      configurable: {
+        thread_id: threadId,
+        progressReporter,
+      },
+    };
+  }
+
+  /**
+   * Get the progress reporter for the current request.
+   *
+   * @returns The progress reporter created from the current MCP request context, or undefined
+   */
+  protected getProgressReporter(): ProgressReporter | undefined {
+    return this.currentProgressReporter;
   }
 
   /**
