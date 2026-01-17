@@ -162,19 +162,4 @@ export interface WorkflowToolMetadata<
 > extends ToolMetadata<TInputSchema, TOutputSchema> {
   /** Holds the shape of the expected result for guidance-based tools */
   readonly resultSchema: TResultSchema;
-
-  /**
-   * Optional guidance generator for direct guidance mode.
-   *
-   * When defined, enables the tool to be used in direct guidance mode where the
-   * orchestrator generates guidance directly instead of delegating to this tool.
-   * This function should return the same guidance that the tool's handleRequest would generate.
-   *
-   * Note: The input type is Record<string, unknown> to avoid type contravariance issues
-   * with the generic type parameter. Implementations should cast to the specific input type.
-   *
-   * @param input - The input parameters (excludes workflowStateData)
-   * @returns The task guidance string for the LLM
-   */
-  readonly generateTaskGuidance?: (input: Record<string, unknown>) => string;
 }

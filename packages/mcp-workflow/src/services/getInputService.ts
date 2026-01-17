@@ -83,12 +83,11 @@ export class GetInputService extends AbstractService implements GetInputServiceP
     );
 
     // Create NodeGuidanceData for direct guidance mode
-    // The orchestrator will generate the guidance prompt directly using taskGuidance
     const nodeGuidanceData: NodeGuidanceData<typeof GET_INPUT_WORKFLOW_INPUT_SCHEMA> = {
       nodeId: metadata.toolId,
       inputSchema: metadata.inputSchema,
       input,
-      taskGuidance: metadata.generateTaskGuidance!(input),
+      taskGuidance: this.generateTaskGuidance(unfulfilledProperties),
       resultSchema: metadata.resultSchema,
       // Provide example to help LLM understand the expected userUtterance wrapper
       exampleOutput: JSON.stringify({ userUtterance: exampleProperties }),
@@ -101,5 +100,43 @@ export class GetInputService extends AbstractService implements GetInputServiceP
     );
 
     return validatedResult.userUtterance;
+  }
+
+  /**
+   * Generates the task guidance for user input collection.
+   *
+   * @param properties - Array of properties requiring user input
+   * @returns The guidance prompt string
+   */
+  private generateTaskGuidance(properties: GetInputProperty[]): string {
+    const propertiesDescription = properties
+      .map(
+        property =>
+          `- Property Name: ${property.propertyName}\n- Friendly Name: ${property.friendlyName}\n- Description: ${property.description}`
+      )
+      .join('\n\n');
+
+    return `
+# ROLE
+You are an input gathering tool, responsible for explicitly requesting and gathering the
+user's input for a set of unfulfilled properties.
+
+# TASK
+Your job is to provide a prompt to the user that outlines the details for a set of properties
+that require the user's input. The prompt should be polite and conversational.
+
+# CONTEXT
+Here is the list of properties that require the user's input, along with their describing
+metadata:
+
+${propertiesDescription}
+
+# INSTRUCTIONS
+1. Based on the properties listed in "CONTEXT", generate a prompt that outlines the details
+   for each property.
+2. Present the prompt to the user and instruct the user to provide their input.
+3. **IMPORTANT:** YOU MUST NOW WAIT for the user to provide a follow-up response to your prompt.
+    1. You CANNOT PROCEED FROM THIS STEP until the user has provided THEIR OWN INPUT VALUE.
+`;
   }
 }

@@ -1026,14 +1026,11 @@ export class InputExtractionTool extends AbstractWorkflowTool<InputExtractionToo
   }
 
   public handleRequest = async (input: InputExtractionWorkflowInput) => {
-    // Use the single source of truth for guidance generation from metadata
-    const guidance = this.toolMetadata.generateTaskGuidance!(input);
+    const guidance = generateInputExtractionTaskGuidance(input);
     return this.finalizeWorkflowToolOutput(guidance, input.workflowStateData, input.resultSchema);
   };
 }
 ```
-
-Note: The `generateTaskGuidance` function is defined in `metadata.ts` and provides the single source of truth for the extraction prompt. This enables direct guidance mode where the orchestrator can generate the guidance inline without requiring an intermediate tool call.
 
 **Design Rationale: Why Factory Functions?**
 
