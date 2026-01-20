@@ -9,6 +9,7 @@ import { State } from '../metadata.js';
 import { BaseNode, createComponentLogger, Logger } from '@salesforce/magen-mcp-workflow';
 import z from 'zod';
 import { execSync } from 'child_process';
+import { gte } from 'semver';
 
 const PLUGIN_INFO_SCHEMA = z.object({
   name: z.string(),
@@ -96,40 +97,13 @@ export class PluginCheckNode extends BaseNode<State> {
   }
 
   private isVersionSufficient(version: string): boolean {
-    // Parse semantic version: major.minor.patch[-prerelease]
-    const parseVersion = (v: string): { numeric: number[]; prerelease?: string } => {
-      const parts = v.split('-');
-      const numericPart = parts[0];
-      const prerelease = parts.length > 1 ? parts.slice(1).join('-') : undefined;
-      const numeric = numericPart.split('.').map(part => parseInt(part, 10) || 0);
-      return { numeric, prerelease };
-    };
-
-    const current = parseVersion(version);
-    const minimum = parseVersion(MINIMUM_PLUGIN_VERSION);
-
-    // Compare numeric parts (major.minor.patch)
-    for (let i = 0; i < Math.max(current.numeric.length, minimum.numeric.length); i++) {
-      const currentPart = current.numeric[i] || 0;
-      const minimumPart = minimum.numeric[i] || 0;
-
-      if (currentPart > minimumPart) return true;
-      if (currentPart < minimumPart) return false;
+    try {
+      return gte(version, MINIMUM_PLUGIN_VERSION);
+    } catch (error) {
+      // If version parsing fails, log and return false to be safe
+      this.logger.warn(`Failed to parse version for comparison: ${version}`, { error });
+      return false;
     }
-
-    // Numeric parts are equal, compare prerelease identifiers
-    // A version without prerelease is greater than one with prerelease
-    if (!current.prerelease && minimum.prerelease) return true;
-    if (current.prerelease && !minimum.prerelease) return false;
-    if (!current.prerelease && !minimum.prerelease) return true; // Both are stable, equal
-
-    // Both have prerelease, compare lexicographically
-    // For alpha versions: alpha.1 < alpha.2, alpha.1 < beta.1
-    if (current.prerelease && minimum.prerelease) {
-      return current.prerelease >= minimum.prerelease;
-    }
-
-    return true; // versions are equal
   }
 
   private installPlugin(): Partial<State> {

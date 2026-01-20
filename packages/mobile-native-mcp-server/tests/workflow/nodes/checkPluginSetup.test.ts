@@ -553,6 +553,54 @@ describe('PluginCheckNode', () => {
         expect.any(Object)
       );
     });
+
+    it('should correctly compare numeric prerelease identifiers (alpha.10 > alpha.2)', () => {
+      const inputState = createTestState({});
+
+      mockExecSync.mockReturnValue(
+        JSON.stringify({
+          name: 'sfdx-mobilesdk-plugin',
+          version: '13.2.0-alpha.10',
+        })
+      );
+
+      const result = node.execute(inputState);
+
+      // alpha.10 should be greater than minimum alpha.1
+      expect(result.validPluginSetup).toBe(true);
+    });
+
+    it('should correctly compare alpha vs beta prerelease identifiers', () => {
+      const inputState = createTestState({});
+
+      mockExecSync.mockReturnValue(
+        JSON.stringify({
+          name: 'sfdx-mobilesdk-plugin',
+          version: '13.2.0-beta.1',
+        })
+      );
+
+      const result = node.execute(inputState);
+
+      // beta.1 should be greater than minimum alpha.1 (lexicographically "beta" > "alpha")
+      expect(result.validPluginSetup).toBe(true);
+    });
+
+    it('should correctly compare numeric vs non-numeric prerelease identifiers', () => {
+      const inputState = createTestState({});
+
+      mockExecSync.mockReturnValue(
+        JSON.stringify({
+          name: 'sfdx-mobilesdk-plugin',
+          version: '13.2.0-alpha.beta',
+        })
+      );
+
+      const result = node.execute(inputState);
+
+      // alpha.beta should be greater than alpha.1 (non-numeric > numeric per SemVer)
+      expect(result.validPluginSetup).toBe(true);
+    });
   });
 
   describe('execute() - JSON Parsing Errors', () => {
@@ -839,20 +887,21 @@ describe('PluginCheckNode', () => {
       expect(result.validPluginSetup).toBe(true);
     });
 
-    it('should handle very long version strings', () => {
+    it('should handle invalid version strings gracefully', () => {
       const inputState = createTestState({});
 
       mockExecSync.mockReturnValue(
         JSON.stringify({
           name: 'sfdx-mobilesdk-plugin',
-          version: '13.2.0.0.0.0',
+          version: '13.2.0.0.0.0', // Invalid SemVer (too many parts)
         })
       );
 
       const result = node.execute(inputState);
 
-      // Should accept version with extra numeric parts if base version meets minimum
-      expect(result.validPluginSetup).toBe(true);
+      // Should reject invalid versions (semver library will throw, caught by try-catch)
+      expect(result.validPluginSetup).toBe(false);
+      expect(result.workflowFatalErrorMessages).toBeDefined();
     });
   });
 
