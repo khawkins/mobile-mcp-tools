@@ -18,8 +18,9 @@ const PLUGIN_INFO_SCHEMA = z.object({
 
 type PluginInfo = z.infer<typeof PLUGIN_INFO_SCHEMA>;
 
-const MINIMUM_PLUGIN_VERSION = '13.1.0';
+const MINIMUM_PLUGIN_VERSION = '13.2.0-alpha.1';
 const PLUGIN_NAME = 'sfdx-mobilesdk-plugin';
+const PLUGIN_INSTALL_TAG = '@alpha';
 
 export class PluginCheckNode extends BaseNode<State> {
   protected readonly logger: Logger;
@@ -95,19 +96,37 @@ export class PluginCheckNode extends BaseNode<State> {
   }
 
   private isVersionSufficient(version: string): boolean {
-    const parseVersion = (v: string): number[] => {
-      return v.split('.').map(part => parseInt(part, 10) || 0);
+    // Parse semantic version: major.minor.patch[-prerelease]
+    const parseVersion = (v: string): { numeric: number[]; prerelease?: string } => {
+      const parts = v.split('-');
+      const numericPart = parts[0];
+      const prerelease = parts.length > 1 ? parts.slice(1).join('-') : undefined;
+      const numeric = numericPart.split('.').map(part => parseInt(part, 10) || 0);
+      return { numeric, prerelease };
     };
 
     const current = parseVersion(version);
     const minimum = parseVersion(MINIMUM_PLUGIN_VERSION);
 
-    for (let i = 0; i < Math.max(current.length, minimum.length); i++) {
-      const currentPart = current[i] || 0;
-      const minimumPart = minimum[i] || 0;
+    // Compare numeric parts (major.minor.patch)
+    for (let i = 0; i < Math.max(current.numeric.length, minimum.numeric.length); i++) {
+      const currentPart = current.numeric[i] || 0;
+      const minimumPart = minimum.numeric[i] || 0;
 
       if (currentPart > minimumPart) return true;
       if (currentPart < minimumPart) return false;
+    }
+
+    // Numeric parts are equal, compare prerelease identifiers
+    // A version without prerelease is greater than one with prerelease
+    if (!current.prerelease && minimum.prerelease) return true;
+    if (current.prerelease && !minimum.prerelease) return false;
+    if (!current.prerelease && !minimum.prerelease) return true; // Both are stable, equal
+
+    // Both have prerelease, compare lexicographically
+    // For alpha versions: alpha.1 < alpha.2, alpha.1 < beta.1
+    if (current.prerelease && minimum.prerelease) {
+      return current.prerelease >= minimum.prerelease;
     }
 
     return true; // versions are equal
@@ -115,7 +134,7 @@ export class PluginCheckNode extends BaseNode<State> {
 
   private installPlugin(): Partial<State> {
     try {
-      const installCommand = `sf plugins install ${PLUGIN_NAME}`;
+      const installCommand = `sf plugins install ${PLUGIN_NAME}${PLUGIN_INSTALL_TAG}`;
       this.logger.debug(`Installing plugin`, { command: installCommand });
 
       execSync(installCommand, { encoding: 'utf-8', timeout: 60000 });
@@ -149,7 +168,8 @@ export class PluginCheckNode extends BaseNode<State> {
 
   private upgradePlugin(): Partial<State> {
     try {
-      const updateCommand = `sf plugins update ${PLUGIN_NAME}`;
+      // Use install with @alpha tag to ensure we get the alpha version
+      const updateCommand = `sf plugins install ${PLUGIN_NAME}${PLUGIN_INSTALL_TAG}`;
       this.logger.debug(`Upgrading plugin`, { command: updateCommand });
 
       execSync(updateCommand, { encoding: 'utf-8', timeout: 60000 });
