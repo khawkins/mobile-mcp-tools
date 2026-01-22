@@ -12,7 +12,7 @@ import { execSync } from 'child_process';
 import { gte } from 'semver';
 
 // Constants for execSync configuration
-const EXEC_SYNC_TIMEOUT = 10000;
+const EXEC_SYNC_TIMEOUT = 3 * 60 * 1000;
 const EXEC_SYNC_MAX_BUFFER = 2 * 1024 * 1024;
 
 const PLUGIN_INFO_SCHEMA = z.object({

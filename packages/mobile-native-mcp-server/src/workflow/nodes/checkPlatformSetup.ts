@@ -43,6 +43,16 @@ export class PlatformCheckNode extends BaseNode<State> {
     this.logger = logger ?? createComponentLogger('PlatformCheckNode');
   }
 
+  /**
+   * Get Android environment properties from process.env to carry in state.
+   */
+  private getAndroidEnvProperties(): Pick<State, 'androidHome' | 'javaHome'> {
+    return {
+      androidHome: process.env.ANDROID_HOME ?? '',
+      javaHome: process.env.JAVA_HOME ?? '',
+    };
+  }
+
   execute = (state: State): Partial<State> => {
     const platform = state.platform;
     const apiLevel = PLATFORM_API_LEVELS[platform];
@@ -64,6 +74,7 @@ export class PlatformCheckNode extends BaseNode<State> {
         if (!process.env.ANDROID_HOME || !process.env.JAVA_HOME) {
           return {
             validPlatformSetup: false,
+            ...this.getAndroidEnvProperties(),
           };
         }
       }
@@ -85,6 +96,7 @@ export class PlatformCheckNode extends BaseNode<State> {
           platformCheckResult.errorMessages.length > 0
             ? platformCheckResult.errorMessages
             : undefined,
+        ...this.getAndroidEnvProperties(),
       };
     } catch (error) {
       this.logger.error(`Error executing platform check command: ${command}`, error as Error);
@@ -92,6 +104,7 @@ export class PlatformCheckNode extends BaseNode<State> {
       return {
         validPlatformSetup: false,
         workflowFatalErrorMessages: [`Error executing platform check command: ${errorMessage}`],
+        ...this.getAndroidEnvProperties(),
       };
     }
   };
