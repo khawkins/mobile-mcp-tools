@@ -95,7 +95,7 @@ const deploymentNode = new DeploymentNode();
 const completionNode = new CompletionNode();
 const failureNode = new FailureNode();
 const checkPropertiesFulFilledRouter = new CheckPropertiesFulfilledRouter<State>(
-  platformCheckNode.name,
+  pluginCheckNode.name,
   userInputNode.name,
   WORKFLOW_USER_INPUT_PROPERTIES
 );
@@ -104,13 +104,13 @@ const checkEnvironmentValidatedRouter = new CheckEnvironmentValidatedRouter(
   failureNode.name
 );
 const checkSetupValidatedRouter = new CheckSetupValidatedRouter(
-  pluginCheckNode.name,
+  templateOptionsFetchNode.name,
   getAndroidSetupNode.name,
   failureNode.name
 );
 
 const checkPluginValidatedRouter = new CheckPluginValidatedRouter(
-  templateOptionsFetchNode.name,
+  platformCheckNode.name,
   failureNode.name
 );
 const checkAndroidSetupExtractedRouter = new CheckAndroidSetupExtractedRouter(
@@ -227,11 +227,11 @@ export function createMobileNativeWorkflow(logger?: Logger) {
         checkPropertiesFulFilledRouter.execute
       )
       .addEdge(userInputNode.name, initialUserInputExtractionNode.name)
+      .addConditionalEdges(pluginCheckNode.name, checkPluginValidatedRouter.execute)
       .addConditionalEdges(platformCheckNode.name, checkSetupValidatedRouter.execute)
       // Android setup recovery flow
       .addEdge(getAndroidSetupNode.name, extractAndroidSetupNode.name)
       .addConditionalEdges(extractAndroidSetupNode.name, checkAndroidSetupExtractedRouter.execute)
-      .addConditionalEdges(pluginCheckNode.name, checkPluginValidatedRouter.execute)
       .addEdge(templateOptionsFetchNode.name, templateSelectionNode.name)
       .addEdge(templateSelectionNode.name, templatePropertiesExtractionNode.name)
       .addConditionalEdges(
