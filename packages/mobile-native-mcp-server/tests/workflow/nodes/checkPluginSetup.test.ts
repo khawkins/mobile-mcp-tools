@@ -101,14 +101,14 @@ describe('PluginCheckNode', () => {
       expect(result.workflowFatalErrorMessages).toBeUndefined();
       expect(mockExecSync).toHaveBeenCalledWith('sf plugins inspect sfdx-mobilesdk-plugin --json', {
         encoding: 'utf-8',
-        timeout: 10000,
+        timeout: 3 * 60 * 1000,
         maxBuffer: 2 * 1024 * 1024,
       });
       expect(mockExecSync).toHaveBeenCalledWith(
         'sf plugins inspect @salesforce/lwc-dev-mobile --json',
         {
           encoding: 'utf-8',
-          timeout: 10000,
+          timeout: 3 * 60 * 1000,
           maxBuffer: 2 * 1024 * 1024,
         }
       );
@@ -255,7 +255,7 @@ describe('PluginCheckNode', () => {
         'echo "y" | sf plugins install sfdx-mobilesdk-plugin@alpha',
         {
           encoding: 'utf-8',
-          timeout: 10000,
+          timeout: 3 * 60 * 1000,
           maxBuffer: 2 * 1024 * 1024,
         }
       );
@@ -263,7 +263,7 @@ describe('PluginCheckNode', () => {
         'echo "y" | sf plugins install @salesforce/lwc-dev-mobile',
         {
           encoding: 'utf-8',
-          timeout: 10000,
+          timeout: 3 * 60 * 1000,
           maxBuffer: 2 * 1024 * 1024,
         }
       );
@@ -376,7 +376,7 @@ describe('PluginCheckNode', () => {
         'echo "y" | sf plugins install sfdx-mobilesdk-plugin@alpha',
         {
           encoding: 'utf-8',
-          timeout: 10000,
+          timeout: 3 * 60 * 1000,
           maxBuffer: 2 * 1024 * 1024,
         }
       );
@@ -1033,7 +1033,7 @@ describe('PluginCheckNode', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith(expect.any(String), {
         encoding: 'utf-8',
-        timeout: 10000,
+        timeout: 3 * 60 * 1000,
         maxBuffer: 2 * 1024 * 1024,
       });
     });
@@ -1059,7 +1059,7 @@ describe('PluginCheckNode', () => {
         'echo "y" | sf plugins install sfdx-mobilesdk-plugin@alpha',
         {
           encoding: 'utf-8',
-          timeout: 10000,
+          timeout: 3 * 60 * 1000,
           maxBuffer: 2 * 1024 * 1024,
         }
       );
@@ -1089,7 +1089,7 @@ describe('PluginCheckNode', () => {
         'echo "y" | sf plugins install sfdx-mobilesdk-plugin@alpha',
         {
           encoding: 'utf-8',
-          timeout: 10000,
+          timeout: 3 * 60 * 1000,
           maxBuffer: 2 * 1024 * 1024,
         }
       );
