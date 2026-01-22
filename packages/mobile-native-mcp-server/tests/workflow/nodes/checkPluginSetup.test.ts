@@ -102,12 +102,14 @@ describe('PluginCheckNode', () => {
       expect(mockExecSync).toHaveBeenCalledWith('sf plugins inspect sfdx-mobilesdk-plugin --json', {
         encoding: 'utf-8',
         timeout: 10000,
+        maxBuffer: 2 * 1024 * 1024,
       });
       expect(mockExecSync).toHaveBeenCalledWith(
         'sf plugins inspect @salesforce/lwc-dev-mobile --json',
         {
           encoding: 'utf-8',
           timeout: 10000,
+          maxBuffer: 2 * 1024 * 1024,
         }
       );
     });
@@ -249,15 +251,20 @@ describe('PluginCheckNode', () => {
       const result = node.execute(inputState);
 
       expect(result.validPluginSetup).toBe(true);
-      expect(mockExecSync).toHaveBeenCalledWith('sf plugins install sfdx-mobilesdk-plugin@alpha', {
-        encoding: 'utf-8',
-        timeout: 60000,
-      });
       expect(mockExecSync).toHaveBeenCalledWith(
-        'sf plugins install @salesforce/lwc-dev-mobile@alpha',
+        'echo "y" | sf plugins install sfdx-mobilesdk-plugin@alpha',
         {
           encoding: 'utf-8',
-          timeout: 60000,
+          timeout: 10000,
+          maxBuffer: 2 * 1024 * 1024,
+        }
+      );
+      expect(mockExecSync).toHaveBeenCalledWith(
+        'echo "y" | sf plugins install @salesforce/lwc-dev-mobile',
+        {
+          encoding: 'utf-8',
+          timeout: 10000,
+          maxBuffer: 2 * 1024 * 1024,
         }
       );
     });
@@ -365,10 +372,14 @@ describe('PluginCheckNode', () => {
       const result = node.execute(inputState);
 
       expect(result.validPluginSetup).toBe(true);
-      expect(mockExecSync).toHaveBeenCalledWith('sf plugins install sfdx-mobilesdk-plugin@alpha', {
-        encoding: 'utf-8',
-        timeout: 60000,
-      });
+      expect(mockExecSync).toHaveBeenCalledWith(
+        'echo "y" | sf plugins install sfdx-mobilesdk-plugin@alpha',
+        {
+          encoding: 'utf-8',
+          timeout: 10000,
+          maxBuffer: 2 * 1024 * 1024,
+        }
+      );
     });
 
     it('should log info when upgrading plugin', () => {
@@ -452,7 +463,7 @@ describe('PluginCheckNode', () => {
       expect(result.validPluginSetup).toBe(false);
       expect(result.workflowFatalErrorMessages).toBeDefined();
       expect(result.workflowFatalErrorMessages![0]).toContain(
-        'Plugin upgraded but version 12.5.0 is still below minimum 13.2.0-alpha.1'
+        'Plugin upgraded but version 12.5.0 is below minimum 13.2.0-alpha.1'
       );
     });
   });
@@ -1023,10 +1034,11 @@ describe('PluginCheckNode', () => {
       expect(mockExecSync).toHaveBeenCalledWith(expect.any(String), {
         encoding: 'utf-8',
         timeout: 10000,
+        maxBuffer: 2 * 1024 * 1024,
       });
     });
 
-    it('should set timeout to 60000ms for install command', () => {
+    it('should set timeout to 10000ms for install command', () => {
       const inputState = createTestState({});
 
       mockExecSync.mockImplementationOnce(() => {
@@ -1043,13 +1055,17 @@ describe('PluginCheckNode', () => {
 
       node.execute(inputState);
 
-      expect(mockExecSync).toHaveBeenCalledWith('sf plugins install sfdx-mobilesdk-plugin@alpha', {
-        encoding: 'utf-8',
-        timeout: 60000,
-      });
+      expect(mockExecSync).toHaveBeenCalledWith(
+        'echo "y" | sf plugins install sfdx-mobilesdk-plugin@alpha',
+        {
+          encoding: 'utf-8',
+          timeout: 10000,
+          maxBuffer: 2 * 1024 * 1024,
+        }
+      );
     });
 
-    it('should set timeout to 60000ms for update command', () => {
+    it('should set timeout to 10000ms for update command', () => {
       const inputState = createTestState({});
 
       mockExecSync.mockReturnValueOnce(
@@ -1069,10 +1085,14 @@ describe('PluginCheckNode', () => {
 
       node.execute(inputState);
 
-      expect(mockExecSync).toHaveBeenCalledWith('sf plugins install sfdx-mobilesdk-plugin@alpha', {
-        encoding: 'utf-8',
-        timeout: 60000,
-      });
+      expect(mockExecSync).toHaveBeenCalledWith(
+        'echo "y" | sf plugins install sfdx-mobilesdk-plugin@alpha',
+        {
+          encoding: 'utf-8',
+          timeout: 10000,
+          maxBuffer: 2 * 1024 * 1024,
+        }
+      );
     });
   });
 

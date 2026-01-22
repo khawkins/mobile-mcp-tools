@@ -11,6 +11,10 @@ import z from 'zod';
 import { execSync } from 'child_process';
 import { gte } from 'semver';
 
+// Constants for execSync configuration
+const EXEC_SYNC_TIMEOUT = 10000;
+const EXEC_SYNC_MAX_BUFFER = 2 * 1024 * 1024;
+
 const PLUGIN_INFO_SCHEMA = z.object({
   name: z.string(),
   version: z.string(),
@@ -23,7 +27,7 @@ type PluginInfo = z.infer<typeof PLUGIN_INFO_SCHEMA>;
 interface PluginConfig {
   name: string;
   minimumVersion: string;
-  installTag: string;
+  installTag?: string;
 }
 
 const REQUIRED_PLUGINS: readonly PluginConfig[] = [
@@ -35,7 +39,6 @@ const REQUIRED_PLUGINS: readonly PluginConfig[] = [
   {
     name: '@salesforce/lwc-dev-mobile',
     minimumVersion: '3.0.0-alpha.3',
-    installTag: '@alpha',
   },
 ] as const;
 
@@ -107,66 +110,50 @@ export class PluginCheckNode extends BaseNode<State> {
     }
   }
 
-  private installPlugin(config: PluginConfig): Partial<State> {
-    try {
-      const installCommand = `sf plugins install ${config.name}${config.installTag}`;
-      this.logger.debug(`Installing plugin`, { command: installCommand, plugin: config.name });
-
-      execSync(installCommand, { encoding: 'utf-8', timeout: 60000 });
-
-      // Verify installation
-      const inspectCommand = `sf plugins inspect ${config.name} --json`;
-      const output = execSync(inspectCommand, { encoding: 'utf-8', timeout: 10000 });
-      const pluginInfo = this.parsePluginOutput(output);
-
-      if (!this.isVersionSufficient(pluginInfo.version, config.minimumVersion)) {
-        return {
-          validPluginSetup: false,
-          workflowFatalErrorMessages: [
-            `${config.name}: Plugin installed but version ${pluginInfo.version} is below minimum ${config.minimumVersion}`,
-          ],
-        };
-      }
-
-      this.logger.info(`Plugin successfully installed`, {
-        plugin: config.name,
-        version: pluginInfo.version,
-      });
-      return {
-        validPluginSetup: true,
-      };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : `${error}`;
-      return {
-        validPluginSetup: false,
-        workflowFatalErrorMessages: [`${config.name}: Failed to install plugin: ${errorMessage}`],
-      };
-    }
+  private inspectPlugin(config: PluginConfig): PluginInfo {
+    const inspectCommand = `sf plugins inspect ${config.name} --json`;
+    const output = execSync(inspectCommand, {
+      encoding: 'utf-8',
+      timeout: EXEC_SYNC_TIMEOUT,
+      maxBuffer: EXEC_SYNC_MAX_BUFFER,
+    });
+    return this.parsePluginOutput(output);
   }
 
-  private upgradePlugin(config: PluginConfig): Partial<State> {
+  private installOrUpgradePlugin(
+    config: PluginConfig,
+    operation: 'install' | 'upgrade'
+  ): Partial<State> {
     try {
-      // Use install with tag to ensure we get the correct version
-      const updateCommand = `sf plugins install ${config.name}${config.installTag}`;
-      this.logger.debug(`Upgrading plugin`, { command: updateCommand, plugin: config.name });
+      // Pipe "y" to automatically answer the trust prompt
+      const installCommand = `echo "y" | sf plugins install ${config.name}${config.installTag ?? ''}`;
+      const operationVerb = operation === 'install' ? 'Installing' : 'Upgrading';
+      this.logger.debug(`${operationVerb} plugin`, {
+        command: installCommand,
+        plugin: config.name,
+      });
 
-      execSync(updateCommand, { encoding: 'utf-8', timeout: 60000 });
+      execSync(installCommand, {
+        encoding: 'utf-8',
+        timeout: EXEC_SYNC_TIMEOUT,
+        maxBuffer: EXEC_SYNC_MAX_BUFFER,
+      });
 
-      // Verify upgrade
-      const inspectCommand = `sf plugins inspect ${config.name} --json`;
-      const output = execSync(inspectCommand, { encoding: 'utf-8', timeout: 10000 });
-      const pluginInfo = this.parsePluginOutput(output);
+      // Verify installation/upgrade
+      const pluginInfo = this.inspectPlugin(config);
 
       if (!this.isVersionSufficient(pluginInfo.version, config.minimumVersion)) {
+        const operationPast = operation === 'install' ? 'installed' : 'upgraded';
         return {
           validPluginSetup: false,
           workflowFatalErrorMessages: [
-            `${config.name}: Plugin upgraded but version ${pluginInfo.version} is still below minimum ${config.minimumVersion}`,
+            `${config.name}: Plugin ${operationPast} but version ${pluginInfo.version} is below minimum ${config.minimumVersion}`,
           ],
         };
       }
 
-      this.logger.info(`Plugin successfully upgraded`, {
+      const operationPast = operation === 'install' ? 'installed' : 'upgraded';
+      this.logger.info(`Plugin successfully ${operationPast}`, {
         plugin: config.name,
         version: pluginInfo.version,
       });
@@ -177,7 +164,9 @@ export class PluginCheckNode extends BaseNode<State> {
       const errorMessage = error instanceof Error ? error.message : `${error}`;
       return {
         validPluginSetup: false,
-        workflowFatalErrorMessages: [`${config.name}: Failed to upgrade plugin: ${errorMessage}`],
+        workflowFatalErrorMessages: [
+          `${config.name}: Failed to ${operation} plugin: ${errorMessage}`,
+        ],
       };
     }
   }
@@ -193,12 +182,11 @@ export class PluginCheckNode extends BaseNode<State> {
       let pluginInfo: PluginInfo;
 
       try {
-        const output = execSync(inspectCommand, { encoding: 'utf-8', timeout: 10000 });
-        pluginInfo = this.parsePluginOutput(output);
+        pluginInfo = this.inspectPlugin(config);
       } catch (_error) {
         // Plugin not installed, attempt to install it
         this.logger.info(`Plugin not installed, attempting installation`, { plugin: config.name });
-        const installResult = this.installPlugin(config);
+        const installResult = this.installOrUpgradePlugin(config, 'install');
         return {
           success: installResult.validPluginSetup === true,
           errorMessages: installResult.workflowFatalErrorMessages || [],
@@ -211,7 +199,7 @@ export class PluginCheckNode extends BaseNode<State> {
           `Plugin version ${pluginInfo.version} is below minimum ${config.minimumVersion}, attempting upgrade`,
           { plugin: config.name }
         );
-        const upgradeResult = this.upgradePlugin(config);
+        const upgradeResult = this.installOrUpgradePlugin(config, 'upgrade');
         return {
           success: upgradeResult.validPluginSetup === true,
           errorMessages: upgradeResult.workflowFatalErrorMessages || [],
