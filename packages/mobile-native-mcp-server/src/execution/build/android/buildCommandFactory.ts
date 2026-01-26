@@ -5,6 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
+import path from 'node:path';
 import type { Command, ProgressParseResult } from '@salesforce/magen-mcp-workflow';
 import {
   BuildCommandFactory,
@@ -14,6 +15,8 @@ import {
   PROGRESS_FAILURE,
   parseProgressWithPatterns,
 } from '../types.js';
+
+const isWindows = process.platform === 'win32';
 
 /**
  * Gradle progress patterns
@@ -52,6 +55,16 @@ const ANDROID_PROGRESS_PATTERNS: ProgressPattern[] = [
  */
 export class AndroidBuildCommandFactory implements BuildCommandFactory {
   create(params: BuildCommandParams): Command {
+    if (isWindows) {
+      const gradlewPath = path.join(params.projectPath, 'gradlew.bat');
+      return {
+        executable: 'cmd',
+        args: ['/c', gradlewPath, 'assemble'],
+        env: process.env,
+        cwd: params.projectPath,
+      };
+    }
+    
     return {
       executable: 'sh',
       args: ['-c', `cd "${params.projectPath}" && ./gradlew assemble`],

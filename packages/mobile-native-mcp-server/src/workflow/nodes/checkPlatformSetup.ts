@@ -85,7 +85,7 @@ export class PlatformCheckNode extends BaseNode<State> {
 
     try {
       this.logger.debug(`Executing command (pre-execution)`, { command });
-      const output = execSync(command, { encoding: 'utf-8', timeout: 20000 });
+      const output = execSync(command, { encoding: 'utf-8', timeout: 120000 });
 
       const platformCheckResult = this.parsePlatformCheckOutput(output, command);
 

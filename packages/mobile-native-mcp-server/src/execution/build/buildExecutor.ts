@@ -55,6 +55,12 @@ export interface BuildExecutor {
 }
 
 /**
+ * Default timeout for build commands: 30 minutes.
+ * Builds (especially first-time Android/iOS builds) can take significant time.
+ */
+const BUILD_TIMEOUT_MS = 30 * 60 * 1000;
+
+/**
  * Default implementation of BuildExecutor.
  */
 export class DefaultBuildExecutor implements BuildExecutor {
@@ -101,6 +107,7 @@ export class DefaultBuildExecutor implements BuildExecutor {
       const result = await this.commandRunner.execute(command.executable, command.args, {
         env: command.env,
         cwd: command.cwd,
+        timeout: BUILD_TIMEOUT_MS,
         progressParser: (output: string, currentProgress: number) =>
           factory.parseProgress(output, currentProgress),
         progressReporter,
