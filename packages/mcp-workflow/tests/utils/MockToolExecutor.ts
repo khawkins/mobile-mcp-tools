@@ -16,7 +16,9 @@ import { InterruptData, isNodeGuidanceData } from '../../src/common/metadata.js'
  */
 export class MockToolExecutor implements ToolExecutor {
   private results: Map<string, unknown> = new Map();
-  private callHistory: Array<InterruptData<z.ZodObject<z.ZodRawShape>>> = [];
+  private callHistory: Array<
+    InterruptData<z.ZodObject<z.ZodRawShape>, z.ZodObject<z.ZodRawShape>>
+  > = [];
 
   /**
    * Configures the mock to return a specific result for a given tool/node.
@@ -37,7 +39,9 @@ export class MockToolExecutor implements ToolExecutor {
    * @param interruptData The interrupt data (tool invocation or node guidance)
    * @returns The pre-configured result for this tool/node
    */
-  execute(interruptData: InterruptData<z.ZodObject<z.ZodRawShape>>): unknown {
+  execute(
+    interruptData: InterruptData<z.ZodObject<z.ZodRawShape>, z.ZodObject<z.ZodRawShape>>
+  ): unknown {
     this.callHistory.push(interruptData);
 
     // Get the identifier based on the interrupt data type
@@ -52,14 +56,16 @@ export class MockToolExecutor implements ToolExecutor {
    * Returns the history of all tool/node invocations.
    * Useful for asserting that tools/nodes were called with correct parameters.
    */
-  getCallHistory(): ReadonlyArray<InterruptData<z.ZodObject<z.ZodRawShape>>> {
+  getCallHistory(): ReadonlyArray<
+    InterruptData<z.ZodObject<z.ZodRawShape>, z.ZodObject<z.ZodRawShape>>
+  > {
     return [...this.callHistory];
   }
 
   /**
    * Returns the most recent tool/node invocation, or undefined if no calls have been made.
    */
-  getLastCall(): InterruptData<z.ZodObject<z.ZodRawShape>> | undefined {
+  getLastCall(): InterruptData<z.ZodObject<z.ZodRawShape>, z.ZodObject<z.ZodRawShape>> | undefined {
     return this.callHistory[this.callHistory.length - 1];
   }
 

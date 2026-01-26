@@ -61,14 +61,16 @@ export interface MCPToolInvocationData<TInputSchema extends z.ZodObject<z.ZodRaw
  * When the orchestrator receives this data, it generates guidance directly inline
  * instead of delegating to a separate tool. This reduces latency by eliminating
  * an intermediate tool call.
+ *
+ * @template TResultSchema - The Zod schema for validating the result
  */
-export interface NodeGuidanceData {
-  /** Unique identifier for this node - used for logging and debugging */
+export interface NodeGuidanceData<TResultSchema extends z.ZodObject<z.ZodRawShape>> {
+  /** Unique identifier for this service/node - used for logging and debugging */
   nodeId: string;
   /** The task guidance/prompt that instructs the LLM what to do */
   taskGuidance: string;
   /** Zod schema defining expected output structure for result validation */
-  resultSchema: z.ZodObject<z.ZodRawShape>;
+  resultSchema: TResultSchema;
   /**
    * Optional example output to help the LLM understand the expected response format.
    * When provided, this concrete example is shown alongside the schema to improve
@@ -80,10 +82,14 @@ export interface NodeGuidanceData {
 /**
  * Union type for all interrupt data types.
  * The orchestrator uses this to handle both delegate and direct guidance modes.
+ *
+ * @template TInputSchema - For MCPToolInvocationData: the full workflow input schema
+ * @template TResultSchema - For NodeGuidanceData: the result validation schema
  */
-export type InterruptData<TInputSchema extends z.ZodObject<z.ZodRawShape>> =
-  | MCPToolInvocationData<TInputSchema>
-  | NodeGuidanceData;
+export type InterruptData<
+  TInputSchema extends z.ZodObject<z.ZodRawShape>,
+  TResultSchema extends z.ZodObject<z.ZodRawShape>,
+> = MCPToolInvocationData<TInputSchema> | NodeGuidanceData<TResultSchema>;
 
 /**
  * Type guard to check if interrupt data is NodeGuidanceData (direct guidance mode).
@@ -91,9 +97,10 @@ export type InterruptData<TInputSchema extends z.ZodObject<z.ZodRawShape>> =
  * @param data - The interrupt data to check
  * @returns true if the data is NodeGuidanceData, false if it's MCPToolInvocationData
  */
-export function isNodeGuidanceData<TInputSchema extends z.ZodObject<z.ZodRawShape>>(
-  data: InterruptData<TInputSchema>
-): data is NodeGuidanceData {
+export function isNodeGuidanceData<
+  TInputSchema extends z.ZodObject<z.ZodRawShape>,
+  TResultSchema extends z.ZodObject<z.ZodRawShape>,
+>(data: InterruptData<TInputSchema, TResultSchema>): data is NodeGuidanceData<TResultSchema> {
   return 'taskGuidance' in data && 'resultSchema' in data && 'nodeId' in data;
 }
 

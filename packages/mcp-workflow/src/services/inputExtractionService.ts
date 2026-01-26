@@ -9,7 +9,6 @@ import z from 'zod';
 import { ToolExecutor } from '../nodes/toolExecutor.js';
 import { AbstractService } from './abstractService.js';
 import { PropertyMetadataCollection } from '../common/propertyMetadata.js';
-import { createInputExtractionMetadata } from '../tools/utilities/index.js';
 import { Logger } from '../logging/logger.js';
 import { NodeGuidanceData } from '../common/metadata.js';
 
@@ -70,7 +69,6 @@ export class InputExtractionService
 
     const propertiesToExtract = this.preparePropertiesForExtraction(properties);
     const resultSchema = this.preparePropertyResultsSchema(properties);
-    const metadata = createInputExtractionMetadata(this.toolId);
 
     // Build a concrete example based on the actual properties being requested
     const exampleProperties = propertiesToExtract.reduce(
@@ -82,8 +80,8 @@ export class InputExtractionService
     );
 
     // Create NodeGuidanceData for direct guidance mode
-    const nodeGuidanceData: NodeGuidanceData = {
-      nodeId: metadata.toolId,
+    const nodeGuidanceData: NodeGuidanceData<typeof resultSchema> = {
+      nodeId: this.toolId,
       taskGuidance: this.generateTaskGuidance(userInput, propertiesToExtract),
       resultSchema: resultSchema,
       // Provide example to help LLM understand the expected extractedProperties wrapper

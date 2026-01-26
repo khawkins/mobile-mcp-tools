@@ -49,7 +49,7 @@ export abstract class AbstractToolNode<
    * @returns The validated result from the tool execution
    */
   protected executeToolWithLogging<TResultSchema extends z.ZodObject<z.ZodRawShape>>(
-    interruptData: InterruptData<z.ZodObject<z.ZodRawShape>>,
+    interruptData: InterruptData<z.ZodObject<z.ZodRawShape>, TResultSchema>,
     resultSchema: TResultSchema,
     validator?: (result: unknown, schema: TResultSchema) => z.infer<TResultSchema>
   ): z.infer<TResultSchema> {

@@ -58,22 +58,8 @@ export { executeToolWithLogging } from './utils/toolExecutionUtils.js';
 // Base Tool Classes
 export { AbstractTool, AbstractWorkflowTool } from './tools/base/index.js';
 
-// Utility Tool Metadata (tools removed, now services use these directly)
-export {
-  // Get Input Metadata
-  createGetInputMetadata,
-  type GetInputToolMetadata,
-  type GetInputWorkflowInput,
-  GET_INPUT_PROPERTY_SCHEMA,
-  GET_INPUT_WORKFLOW_INPUT_SCHEMA,
-  GET_INPUT_WORKFLOW_RESULT_SCHEMA,
-  // Input Extraction Metadata
-  createInputExtractionMetadata,
-  type InputExtractionToolMetadata,
-  type InputExtractionWorkflowInput,
-  INPUT_EXTRACTION_WORKFLOW_INPUT_SCHEMA,
-  INPUT_EXTRACTION_WORKFLOW_RESULT_SCHEMA,
-} from './tools/utilities/index.js';
+// Get Input Result Schema (for NodeGuidanceData / direct guidance mode services)
+export { GET_INPUT_WORKFLOW_RESULT_SCHEMA } from './tools/utilities/index.js';
 
 // Graph Configuration
 export { type BaseGraphConfig, type WorkflowRunnableConfig } from './common/graphConfig.js';

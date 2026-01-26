@@ -31,7 +31,7 @@ type TestState = {
  */
 class TestNode extends AbstractToolNode<TestState> {
   public lastExecutedState?: TestState;
-  public lastInterruptData?: InterruptData<z.ZodObject<z.ZodRawShape>>;
+  public lastInterruptData?: InterruptData<z.ZodObject<z.ZodRawShape>, z.ZodObject<z.ZodRawShape>>;
   public lastResultSchema?: z.ZodObject<z.ZodRawShape>;
 
   execute = (state: TestState): Partial<TestState> => {
@@ -41,7 +41,7 @@ class TestNode extends AbstractToolNode<TestState> {
 
   // Expose executeToolWithLogging for testing
   public executeToolPublic<TResultSchema extends z.ZodObject<z.ZodRawShape>>(
-    interruptData: InterruptData<z.ZodObject<z.ZodRawShape>>,
+    interruptData: InterruptData<z.ZodObject<z.ZodRawShape>, TResultSchema>,
     resultSchema: TResultSchema,
     validator?: (result: unknown, schema: TResultSchema) => z.infer<TResultSchema>
   ): z.infer<TResultSchema> {
@@ -547,7 +547,7 @@ describe('AbstractToolNode', () => {
 
   describe('executeToolWithLogging - NodeGuidanceData Support', () => {
     it('should execute with NodeGuidanceData and validate result with schema', () => {
-      const nodeGuidanceData: NodeGuidanceData = {
+      const nodeGuidanceData: NodeGuidanceData<typeof TestResultSchema> = {
         nodeId: 'test-node',
         taskGuidance: 'Test guidance for the LLM',
         resultSchema: TestResultSchema,
@@ -568,7 +568,7 @@ describe('AbstractToolNode', () => {
     });
 
     it('should log NodeGuidanceData pre-execution', () => {
-      const nodeGuidanceData: NodeGuidanceData = {
+      const nodeGuidanceData: NodeGuidanceData<typeof TestResultSchema> = {
         nodeId: 'test-node',
         taskGuidance: 'Test guidance',
         resultSchema: TestResultSchema,
@@ -589,7 +589,7 @@ describe('AbstractToolNode', () => {
     });
 
     it('should throw ZodError when NodeGuidanceData result does not match schema', () => {
-      const nodeGuidanceData: NodeGuidanceData = {
+      const nodeGuidanceData: NodeGuidanceData<typeof TestResultSchema> = {
         nodeId: 'test-node',
         taskGuidance: 'Test guidance',
         resultSchema: TestResultSchema,
@@ -604,7 +604,7 @@ describe('AbstractToolNode', () => {
     });
 
     it('should use custom validator with NodeGuidanceData', () => {
-      const nodeGuidanceData: NodeGuidanceData = {
+      const nodeGuidanceData: NodeGuidanceData<typeof TestResultSchema> = {
         nodeId: 'test-node',
         taskGuidance: 'Test guidance',
         resultSchema: TestResultSchema,
@@ -641,7 +641,7 @@ describe('AbstractToolNode', () => {
     });
 
     it('should handle NodeGuidanceData with exampleOutput', () => {
-      const nodeGuidanceData: NodeGuidanceData = {
+      const nodeGuidanceData: NodeGuidanceData<typeof TestResultSchema> = {
         nodeId: 'test-node',
         taskGuidance: 'Test guidance',
         resultSchema: TestResultSchema,
@@ -668,7 +668,7 @@ describe('AbstractToolNode', () => {
         },
       };
 
-      const nodeGuidanceData: NodeGuidanceData = {
+      const nodeGuidanceData: NodeGuidanceData<typeof TestResultSchema> = {
         nodeId: 'guidance-node',
         taskGuidance: 'Guidance for LLM',
         resultSchema: TestResultSchema,

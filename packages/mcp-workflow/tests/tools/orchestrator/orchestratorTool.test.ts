@@ -506,7 +506,7 @@ describe('OrchestratorTool', () => {
       const workflow = new StateGraph(TestState)
         .addNode('getUserInput', (_state: State) => {
           // Create NodeGuidanceData for direct guidance mode
-          const nodeGuidanceData: NodeGuidanceData = {
+          const nodeGuidanceData: NodeGuidanceData<typeof GET_INPUT_WORKFLOW_RESULT_SCHEMA> = {
             nodeId: 'test-get-input',
             taskGuidance: `
 # ROLE

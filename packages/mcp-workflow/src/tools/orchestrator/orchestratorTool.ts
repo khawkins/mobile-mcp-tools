@@ -182,11 +182,13 @@ export class OrchestratorTool extends AbstractTool<OrchestratorToolMetadata> {
     graphState = await compiledWorkflow.getState(threadConfig);
     if (graphState.next.length > 0) {
       // There are more nodes to execute.
-      const interruptData: InterruptData<z.ZodObject<z.ZodRawShape>> | undefined =
+      const interruptData:
+        | InterruptData<z.ZodObject<z.ZodRawShape>, z.ZodObject<z.ZodRawShape>>
+        | undefined =
         '__interrupt__' in result
           ? (
               result.__interrupt__ as Array<{
-                value: InterruptData<z.ZodObject<z.ZodRawShape>>;
+                value: InterruptData<z.ZodObject<z.ZodRawShape>, z.ZodObject<z.ZodRawShape>>;
               }>
             )[0].value
           : undefined;
@@ -315,7 +317,7 @@ instructions for continuing the workflow.
    * @returns A prompt with the task guidance and post-task instructions
    */
   private createDirectGuidancePrompt(
-    nodeGuidanceData: NodeGuidanceData,
+    nodeGuidanceData: NodeGuidanceData<z.ZodObject<z.ZodRawShape>>,
     workflowStateData: WorkflowStateData
   ): string {
     const resultSchemaJson = JSON.stringify(
