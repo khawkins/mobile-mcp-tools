@@ -32,7 +32,6 @@ export {
   WORKFLOW_TOOL_BASE_INPUT_SCHEMA,
   MCP_WORKFLOW_TOOL_OUTPUT_SCHEMA,
   type WorkflowStateData,
-  type BaseInterruptData,
   type MCPToolInvocationData,
   type NodeGuidanceData,
   type InterruptData,

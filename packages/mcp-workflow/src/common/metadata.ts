@@ -36,19 +36,6 @@ export const WORKFLOW_TOOL_BASE_INPUT_SCHEMA = z.object({
 });
 
 /**
- * Base interrupt data interface - shared properties for all interrupt types.
- *
- * This is the parent interface for both delegate mode (MCPToolInvocationData) and
- * direct guidance mode (NodeGuidanceData). Contains only the truly shared `input` property.
- *
- * @template TInputSchema - The input schema (includes workflowStateData)
- */
-export interface BaseInterruptData<TInputSchema extends z.ZodObject<z.ZodRawShape>> {
-  /** Input parameters - typed to business logic schema only (excludes workflowStateData) */
-  input: Omit<z.infer<TInputSchema>, 'workflowStateData'>;
-}
-
-/**
  * MCP tool invocation data structure used in LangGraph interrupts (Delegate Mode).
  *
  * When the orchestrator receives this data, it instructs the LLM to invoke a separate
@@ -56,8 +43,9 @@ export interface BaseInterruptData<TInputSchema extends z.ZodObject<z.ZodRawShap
  *
  * @template TInputSchema - The full workflow input schema (includes workflowStateData)
  */
-export interface MCPToolInvocationData<TInputSchema extends z.ZodObject<z.ZodRawShape>>
-  extends BaseInterruptData<TInputSchema> {
+export interface MCPToolInvocationData<TInputSchema extends z.ZodObject<z.ZodRawShape>> {
+  /** Input parameters - typed to business logic schema only (excludes workflowStateData) */
+  input: Omit<z.infer<TInputSchema>, 'workflowStateData'>;
   /** Metadata about the tool to invoke, including the input schema for LLM context */
   llmMetadata: {
     name: string;
@@ -76,8 +64,7 @@ export interface MCPToolInvocationData<TInputSchema extends z.ZodObject<z.ZodRaw
  *
  * @template TInputSchema - The input schema (includes workflowStateData)
  */
-export interface NodeGuidanceData<TInputSchema extends z.ZodObject<z.ZodRawShape>>
-  extends BaseInterruptData<TInputSchema> {
+export interface NodeGuidanceData<TInputSchema extends z.ZodObject<z.ZodRawShape>> {
   /** Unique identifier for this node - used for logging and debugging */
   nodeId: string;
   /** The task guidance/prompt that instructs the LLM what to do */

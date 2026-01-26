@@ -71,7 +71,6 @@ export class GetInputService extends AbstractService implements GetInputServiceP
     });
 
     const metadata = createGetInputMetadata(this.toolId);
-    const input = { propertiesRequiringInput: unfulfilledProperties };
 
     // Build a concrete example based on the actual properties being requested
     const exampleProperties = unfulfilledProperties.reduce(
@@ -86,7 +85,6 @@ export class GetInputService extends AbstractService implements GetInputServiceP
     const nodeGuidanceData: NodeGuidanceData<typeof GET_INPUT_WORKFLOW_INPUT_SCHEMA> = {
       nodeId: metadata.toolId,
       inputSchema: metadata.inputSchema,
-      input,
       taskGuidance: this.generateTaskGuidance(unfulfilledProperties),
       resultSchema: metadata.resultSchema,
       // Provide example to help LLM understand the expected userUtterance wrapper
