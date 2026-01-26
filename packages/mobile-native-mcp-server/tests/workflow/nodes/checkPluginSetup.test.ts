@@ -252,7 +252,7 @@ describe('PluginCheckNode', () => {
 
       expect(result.validPluginSetup).toBe(true);
       expect(mockExecSync).toHaveBeenCalledWith(
-        'echo "y" | sf plugins install sfdx-mobilesdk-plugin@alpha',
+        'echo y | sf plugins install sfdx-mobilesdk-plugin@alpha',
         {
           encoding: 'utf-8',
           timeout: 3 * 60 * 1000,
@@ -260,7 +260,7 @@ describe('PluginCheckNode', () => {
         }
       );
       expect(mockExecSync).toHaveBeenCalledWith(
-        'echo "y" | sf plugins install @salesforce/lwc-dev-mobile',
+        'echo y | sf plugins install @salesforce/lwc-dev-mobile',
         {
           encoding: 'utf-8',
           timeout: 3 * 60 * 1000,
@@ -373,7 +373,7 @@ describe('PluginCheckNode', () => {
 
       expect(result.validPluginSetup).toBe(true);
       expect(mockExecSync).toHaveBeenCalledWith(
-        'echo "y" | sf plugins install sfdx-mobilesdk-plugin@alpha',
+        'echo y | sf plugins install sfdx-mobilesdk-plugin@alpha',
         {
           encoding: 'utf-8',
           timeout: 3 * 60 * 1000,
@@ -1038,7 +1038,7 @@ describe('PluginCheckNode', () => {
       });
     });
 
-    it('should set timeout to 10000ms for install command', () => {
+    it('should set timeout to 3 minutes for install command', () => {
       const inputState = createTestState({});
 
       mockExecSync.mockImplementationOnce(() => {
@@ -1056,7 +1056,7 @@ describe('PluginCheckNode', () => {
       node.execute(inputState);
 
       expect(mockExecSync).toHaveBeenCalledWith(
-        'echo "y" | sf plugins install sfdx-mobilesdk-plugin@alpha',
+        'echo y | sf plugins install sfdx-mobilesdk-plugin@alpha',
         {
           encoding: 'utf-8',
           timeout: 3 * 60 * 1000,
@@ -1065,7 +1065,7 @@ describe('PluginCheckNode', () => {
       );
     });
 
-    it('should set timeout to 10000ms for update command', () => {
+    it('should set timeout to 3 minutes for update command', () => {
       const inputState = createTestState({});
 
       mockExecSync.mockReturnValueOnce(
@@ -1086,7 +1086,7 @@ describe('PluginCheckNode', () => {
       node.execute(inputState);
 
       expect(mockExecSync).toHaveBeenCalledWith(
-        'echo "y" | sf plugins install sfdx-mobilesdk-plugin@alpha',
+        'echo y | sf plugins install sfdx-mobilesdk-plugin@alpha',
         {
           encoding: 'utf-8',
           timeout: 3 * 60 * 1000,

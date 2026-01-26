@@ -112,7 +112,7 @@ describe('DefaultCommandRunner', () => {
         env: expect.objectContaining({
           ...process.env,
         }),
-        shell: false,
+        shell: true,
         stdio: ['ignore', 'pipe', 'pipe'],
         cwd: undefined,
       });
@@ -431,8 +431,9 @@ describe('DefaultCommandRunner', () => {
 
       await promise;
 
+      // On failure, progress stays at current (0) to indicate incomplete
       expect(mockProgressReporter.report).toHaveBeenCalledWith(
-        100,
+        0,
         100,
         'Command failed with exit code: 1'
       );
@@ -454,8 +455,9 @@ describe('DefaultCommandRunner', () => {
 
       await promise;
 
+      // On signal termination, progress stays at current (0) to indicate incomplete
       expect(mockProgressReporter.report).toHaveBeenCalledWith(
-        100,
+        0,
         100,
         'Command terminated by signal: SIGTERM'
       );

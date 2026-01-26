@@ -192,7 +192,7 @@ export class DefaultCommandRunner implements CommandRunner {
             const errorMsg = signal
               ? `Command terminated by signal: ${signal}`
               : `Command failed with exit code: ${code}`;
-           // Don't report 100% for failures - keep current progress to indicate incomplete
+            // Don't report 100% for failures - keep current progress to indicate incomplete
             progressReporter.report(currentProgress, DefaultCommandRunner.PROGRESS_TOTAL, errorMsg);
           }
         }
