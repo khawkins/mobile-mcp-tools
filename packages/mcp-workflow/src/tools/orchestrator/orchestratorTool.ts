@@ -315,7 +315,7 @@ instructions for continuing the workflow.
    * @returns A prompt with the task guidance and post-task instructions
    */
   private createDirectGuidancePrompt(
-    nodeGuidanceData: NodeGuidanceData<z.ZodObject<z.ZodRawShape>>,
+    nodeGuidanceData: NodeGuidanceData,
     workflowStateData: WorkflowStateData
   ): string {
     const resultSchemaJson = JSON.stringify(

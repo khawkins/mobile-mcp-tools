@@ -9,10 +9,7 @@ import z from 'zod';
 import { ToolExecutor } from '../nodes/toolExecutor.js';
 import { AbstractService } from './abstractService.js';
 import { PropertyMetadataCollection } from '../common/propertyMetadata.js';
-import {
-  createInputExtractionMetadata,
-  INPUT_EXTRACTION_WORKFLOW_INPUT_SCHEMA,
-} from '../tools/utilities/index.js';
+import { createInputExtractionMetadata } from '../tools/utilities/index.js';
 import { Logger } from '../logging/logger.js';
 import { NodeGuidanceData } from '../common/metadata.js';
 
@@ -85,9 +82,8 @@ export class InputExtractionService
     );
 
     // Create NodeGuidanceData for direct guidance mode
-    const nodeGuidanceData: NodeGuidanceData<typeof INPUT_EXTRACTION_WORKFLOW_INPUT_SCHEMA> = {
+    const nodeGuidanceData: NodeGuidanceData = {
       nodeId: metadata.toolId,
-      inputSchema: metadata.inputSchema,
       taskGuidance: this.generateTaskGuidance(userInput, propertiesToExtract),
       resultSchema: resultSchema,
       // Provide example to help LLM understand the expected extractedProperties wrapper

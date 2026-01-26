@@ -9,7 +9,6 @@ import { ToolExecutor } from '../nodes/toolExecutor.js';
 import { AbstractService } from './abstractService.js';
 import {
   createGetInputMetadata,
-  GET_INPUT_WORKFLOW_INPUT_SCHEMA,
   GET_INPUT_WORKFLOW_RESULT_SCHEMA,
 } from '../tools/utilities/index.js';
 import { Logger } from '../logging/logger.js';
@@ -82,9 +81,8 @@ export class GetInputService extends AbstractService implements GetInputServiceP
     );
 
     // Create NodeGuidanceData for direct guidance mode
-    const nodeGuidanceData: NodeGuidanceData<typeof GET_INPUT_WORKFLOW_INPUT_SCHEMA> = {
+    const nodeGuidanceData: NodeGuidanceData = {
       nodeId: metadata.toolId,
-      inputSchema: metadata.inputSchema,
       taskGuidance: this.generateTaskGuidance(unfulfilledProperties),
       resultSchema: metadata.resultSchema,
       // Provide example to help LLM understand the expected userUtterance wrapper

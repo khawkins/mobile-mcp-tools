@@ -16,10 +16,7 @@ import { WorkflowStateManager } from '../../../src/checkpointing/workflowStateMa
 import { MockLogger } from '../../utils/MockLogger.js';
 import { MockFileSystem } from '../../utils/MockFileSystem.js';
 import { MCPToolInvocationData, NodeGuidanceData } from '../../../src/common/metadata.js';
-import {
-  GET_INPUT_WORKFLOW_INPUT_SCHEMA,
-  GET_INPUT_WORKFLOW_RESULT_SCHEMA,
-} from '../../../src/tools/utilities/getInput/metadata.js';
+import { GET_INPUT_WORKFLOW_RESULT_SCHEMA } from '../../../src/tools/utilities/getInput/metadata.js';
 
 /**
  * Creates a mock RequestHandlerExtra object for testing.
@@ -509,23 +506,8 @@ describe('OrchestratorTool', () => {
       const workflow = new StateGraph(TestState)
         .addNode('getUserInput', (_state: State) => {
           // Create NodeGuidanceData for direct guidance mode
-          const nodeGuidanceData: NodeGuidanceData<typeof GET_INPUT_WORKFLOW_INPUT_SCHEMA> = {
+          const nodeGuidanceData: NodeGuidanceData = {
             nodeId: 'test-get-input',
-            inputSchema: GET_INPUT_WORKFLOW_INPUT_SCHEMA,
-            input: {
-              propertiesRequiringInput: [
-                {
-                  propertyName: 'platform',
-                  friendlyName: 'Platform',
-                  description: 'The target mobile platform (iOS or Android)',
-                },
-                {
-                  propertyName: 'projectName',
-                  friendlyName: 'Project Name',
-                  description: 'The name of the mobile project',
-                },
-              ],
-            },
             taskGuidance: `
 # ROLE
 You are an input gathering tool.

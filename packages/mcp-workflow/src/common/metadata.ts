@@ -61,16 +61,12 @@ export interface MCPToolInvocationData<TInputSchema extends z.ZodObject<z.ZodRaw
  * When the orchestrator receives this data, it generates guidance directly inline
  * instead of delegating to a separate tool. This reduces latency by eliminating
  * an intermediate tool call.
- *
- * @template TInputSchema - The input schema (includes workflowStateData)
  */
-export interface NodeGuidanceData<TInputSchema extends z.ZodObject<z.ZodRawShape>> {
+export interface NodeGuidanceData {
   /** Unique identifier for this node - used for logging and debugging */
   nodeId: string;
   /** The task guidance/prompt that instructs the LLM what to do */
   taskGuidance: string;
-  /** Zod schema for input validation and LLM context */
-  inputSchema: TInputSchema;
   /** Zod schema defining expected output structure for result validation */
   resultSchema: z.ZodObject<z.ZodRawShape>;
   /**
@@ -87,7 +83,7 @@ export interface NodeGuidanceData<TInputSchema extends z.ZodObject<z.ZodRawShape
  */
 export type InterruptData<TInputSchema extends z.ZodObject<z.ZodRawShape>> =
   | MCPToolInvocationData<TInputSchema>
-  | NodeGuidanceData<TInputSchema>;
+  | NodeGuidanceData;
 
 /**
  * Type guard to check if interrupt data is NodeGuidanceData (direct guidance mode).
@@ -97,7 +93,7 @@ export type InterruptData<TInputSchema extends z.ZodObject<z.ZodRawShape>> =
  */
 export function isNodeGuidanceData<TInputSchema extends z.ZodObject<z.ZodRawShape>>(
   data: InterruptData<TInputSchema>
-): data is NodeGuidanceData<TInputSchema> {
+): data is NodeGuidanceData {
   return 'taskGuidance' in data && 'resultSchema' in data && 'nodeId' in data;
 }
 
