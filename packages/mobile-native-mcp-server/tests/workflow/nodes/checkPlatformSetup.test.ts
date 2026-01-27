@@ -127,7 +127,7 @@ describe('PlatformCheckNode', () => {
       expect(result.workflowFatalErrorMessages).toBeUndefined();
       expect(mockExecSync).toHaveBeenCalledWith(
         'sf force lightning local setup -p ios -l 17.0 --json',
-        { encoding: 'utf-8', timeout: 20000 }
+        { encoding: 'utf-8', timeout: 120000 }
       );
     });
 
@@ -209,7 +209,7 @@ describe('PlatformCheckNode', () => {
       expect(result.workflowFatalErrorMessages).toBeUndefined();
       expect(mockExecSync).toHaveBeenCalledWith(
         'sf force lightning local setup -p android -l 35 --json',
-        { encoding: 'utf-8', timeout: 20000 }
+        { encoding: 'utf-8', timeout: 120000 }
       );
     });
 
@@ -1096,7 +1096,7 @@ describe('PlatformCheckNode', () => {
   });
 
   describe('execute() - Command Timeout Configuration', () => {
-    it('should set timeout to 20000ms', () => {
+    it('should set timeout to 120000ms', () => {
       const inputState = createTestState({
         platform: 'iOS',
       });
@@ -1114,7 +1114,7 @@ describe('PlatformCheckNode', () => {
 
       expect(mockExecSync).toHaveBeenCalledWith(expect.any(String), {
         encoding: 'utf-8',
-        timeout: 20000,
+        timeout: 120000,
       });
     });
   });

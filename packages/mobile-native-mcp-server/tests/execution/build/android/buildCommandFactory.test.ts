@@ -10,76 +10,92 @@ import { AndroidBuildCommandFactory } from '../../../../src/execution/build/andr
 import { PROGRESS_COMPLETE } from '../../../../src/execution/build/types.js';
 
 describe('AndroidBuildCommandFactory', () => {
-  let factory: AndroidBuildCommandFactory;
-
-  beforeEach(() => {
-    factory = new AndroidBuildCommandFactory();
-  });
-
   describe('create', () => {
-    it('should create command with correct executable', () => {
-      const params = {
-        projectPath: '/path/to/project',
-        projectName: 'TestApp',
-        buildOutputDir: '/output',
-      };
+    describe('Unix/macOS', () => {
+      let factory: AndroidBuildCommandFactory;
 
-      const command = factory.create(params);
+      beforeEach(() => {
+        // Pass false to indicate Unix/macOS
+        factory = new AndroidBuildCommandFactory(false);
+      });
 
-      expect(command.executable).toBe('sh');
-      expect(command.args).toContain('-c');
+      it('should create command with correct executable', () => {
+        const params = {
+          projectPath: '/path/to/project',
+          projectName: 'TestApp',
+          buildOutputDir: '/output',
+        };
+
+        const command = factory.create(params);
+
+        expect(command.executable).toBe('./gradlew');
+        expect(command.args).toEqual(['assemble']);
+      });
+
+      it('should set cwd to project path', () => {
+        const params = {
+          projectPath: '/path/to/project',
+          projectName: 'TestApp',
+          buildOutputDir: '/output',
+        };
+
+        const command = factory.create(params);
+
+        expect(command.cwd).toBe('/path/to/project');
+      });
+
+      it('should use process.env for environment', () => {
+        const params = {
+          projectPath: '/path/to/project',
+          projectName: 'TestApp',
+          buildOutputDir: '/output',
+        };
+
+        const command = factory.create(params);
+
+        expect(command.env).toBe(process.env);
+      });
     });
 
-    it('should include project path in command', () => {
-      const params = {
-        projectPath: '/custom/path',
-        projectName: 'TestApp',
-        buildOutputDir: '/output',
-      };
+    describe('Windows', () => {
+      let factory: AndroidBuildCommandFactory;
 
-      const command = factory.create(params);
+      beforeEach(() => {
+        // Pass true to indicate Windows
+        factory = new AndroidBuildCommandFactory(true);
+      });
 
-      expect(command.args[1]).toContain('/custom/path');
-    });
+      it('should create command with gradlew.bat executable', () => {
+        const params = {
+          projectPath: 'C:\\path\\to\\project',
+          projectName: 'TestApp',
+          buildOutputDir: 'C:\\output',
+        };
 
-    it('should include gradlew assemble command', () => {
-      const params = {
-        projectPath: '/path/to/project',
-        projectName: 'TestApp',
-        buildOutputDir: '/output',
-      };
+        const command = factory.create(params);
 
-      const command = factory.create(params);
+        expect(command.executable).toBe('gradlew.bat');
+        expect(command.args).toEqual(['assemble']);
+      });
 
-      expect(command.args[1]).toContain('./gradlew assemble');
-    });
+      it('should set cwd to project path', () => {
+        const params = {
+          projectPath: 'C:\\path\\to\\project',
+          projectName: 'TestApp',
+          buildOutputDir: 'C:\\output',
+        };
 
-    it('should set cwd to project path', () => {
-      const params = {
-        projectPath: '/path/to/project',
-        projectName: 'TestApp',
-        buildOutputDir: '/output',
-      };
+        const command = factory.create(params);
 
-      const command = factory.create(params);
-
-      expect(command.cwd).toBe('/path/to/project');
-    });
-
-    it('should use process.env for environment', () => {
-      const params = {
-        projectPath: '/path/to/project',
-        projectName: 'TestApp',
-        buildOutputDir: '/output',
-      };
-
-      const command = factory.create(params);
-
-      expect(command.env).toBe(process.env);
+        expect(command.cwd).toBe('C:\\path\\to\\project');
+      });
     });
   });
 
   describe('parseProgress', () => {
+    // parseProgress doesn't depend on platform, so we can use either
+    const factory = new AndroidBuildCommandFactory(false);
+
     describe('initialization phase', () => {
       it('should track Gradle daemon startup', () => {
         const output = 'Starting a Gradle Daemon (subsequent builds will be faster)';

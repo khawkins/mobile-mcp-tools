@@ -90,8 +90,14 @@ describe('DefaultBuildExecutor', () => {
 
       expect(mockCommandRunner.execute).toHaveBeenCalled();
       const callArgs = vi.mocked(mockCommandRunner.execute).mock.calls[0];
-      expect(callArgs[0]).toBe('sh');
-      expect(callArgs[1][1]).toContain('./gradlew assemble');
+
+      // Platform-aware assertions: Windows uses 'gradlew.bat', Unix uses './gradlew'
+      if (process.platform === 'win32') {
+        expect(callArgs[0]).toBe('gradlew.bat');
+      } else {
+        expect(callArgs[0]).toBe('./gradlew');
+      }
+      expect(callArgs[1]).toEqual(['assemble']);
     });
 
     it('should return successful result when build succeeds', async () => {

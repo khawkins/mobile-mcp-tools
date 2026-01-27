@@ -47,14 +47,26 @@ const ANDROID_PROGRESS_PATTERNS: ProgressPattern[] = [
 ];
 
 /**
+ * Default check if running on Windows.
+ */
+export const isWindows = process.platform === 'win32';
+
+/**
  * Android build command factory.
  * Creates Gradle build commands and parses Gradle output for progress.
  */
 export class AndroidBuildCommandFactory implements BuildCommandFactory {
+  private readonly isWindows: boolean;
+
+  constructor(isWindows: boolean) {
+    this.isWindows = isWindows;
+  }
+
   create(params: BuildCommandParams): Command {
+    const gradlew = this.isWindows ? 'gradlew.bat' : './gradlew';
     return {
-      executable: 'sh',
-      args: ['-c', `cd "${params.projectPath}" && ./gradlew assemble`],
+      executable: gradlew,
+      args: ['assemble'],
       env: process.env,
       cwd: params.projectPath,
     };
