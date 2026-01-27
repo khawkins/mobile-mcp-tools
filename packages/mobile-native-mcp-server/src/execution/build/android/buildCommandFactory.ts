@@ -16,8 +16,6 @@ import {
   parseProgressWithPatterns,
 } from '../types.js';
 
-const isWindows = process.platform === 'win32';
-
 /**
  * Gradle progress patterns
  * Ordered by phase: initialization -> configuration -> compilation -> packaging -> assembly
@@ -50,24 +48,63 @@ const ANDROID_PROGRESS_PATTERNS: ProgressPattern[] = [
 ];
 
 /**
+ * Platform detection function type for dependency injection.
+ */
+export type PlatformDetector = () => boolean;
+
+/**
+ * Default platform detector that checks if running on Windows.
+ */
+export const isWindows: PlatformDetector = () => process.platform === 'win32';
+
+/**
+ * Platform-specific build configuration.
+ * Encapsulates the differences between Windows and Unix build commands.
+ */
+interface PlatformBuildConfig {
+  /** Shell executable (e.g., 'cmd' for Windows, 'sh' for Unix) */
+  executable: string;
+  /** Shell flag to execute a command (e.g., '/c' for cmd, '-c' for sh) */
+  shellFlag: string;
+  /** Function to generate the command arguments for the shell */
+  buildArgs: (projectPath: string) => string[];
+}
+
+/**
+ * Windows build configuration using cmd.exe and gradlew.bat
+ */
+const WINDOWS_CONFIG: PlatformBuildConfig = {
+  executable: 'cmd',
+  shellFlag: '/c',
+  buildArgs: (projectPath: string) => [path.join(projectPath, 'gradlew.bat'), 'assemble'],
+};
+
+/**
+ * Unix/macOS build configuration using sh and gradlew
+ */
+const UNIX_CONFIG: PlatformBuildConfig = {
+  executable: 'sh',
+  shellFlag: '-c',
+  buildArgs: (projectPath: string) => [`cd "${projectPath}" && ./gradlew assemble`],
+};
+
+/**
  * Android build command factory.
  * Creates Gradle build commands and parses Gradle output for progress.
  */
 export class AndroidBuildCommandFactory implements BuildCommandFactory {
+  private readonly platformDetector: PlatformDetector;
+
+  constructor(platformDetector: PlatformDetector = isWindows) {
+    this.platformDetector = platformDetector;
+  }
+
   create(params: BuildCommandParams): Command {
-    if (isWindows) {
-      const gradlewPath = path.join(params.projectPath, 'gradlew.bat');
-      return {
-        executable: 'cmd',
-        args: ['/c', gradlewPath, 'assemble'],
-        env: process.env,
-        cwd: params.projectPath,
-      };
-    }
+    const config = this.platformDetector() ? WINDOWS_CONFIG : UNIX_CONFIG;
 
     return {
-      executable: 'sh',
-      args: ['-c', `cd "${params.projectPath}" && ./gradlew assemble`],
+      executable: config.executable,
+      args: [config.shellFlag, ...config.buildArgs(params.projectPath)],
       env: process.env,
       cwd: params.projectPath,
     };
