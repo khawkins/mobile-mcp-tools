@@ -36,19 +36,6 @@ export const WORKFLOW_TOOL_BASE_INPUT_SCHEMA = z.object({
 });
 
 /**
- * Base interrupt data interface - shared properties for all interrupt types.
- *
- * This is the parent interface for both delegate mode (MCPToolInvocationData) and
- * direct guidance mode (NodeGuidanceData). Contains only the truly shared `input` property.
- *
- * @template TInputSchema - The input schema (includes workflowStateData)
- */
-export interface BaseInterruptData<TInputSchema extends z.ZodObject<z.ZodRawShape>> {
-  /** Input parameters - typed to business logic schema only (excludes workflowStateData) */
-  input: Omit<z.infer<TInputSchema>, 'workflowStateData'>;
-}
-
-/**
  * MCP tool invocation data structure used in LangGraph interrupts (Delegate Mode).
  *
  * When the orchestrator receives this data, it instructs the LLM to invoke a separate
@@ -56,8 +43,9 @@ export interface BaseInterruptData<TInputSchema extends z.ZodObject<z.ZodRawShap
  *
  * @template TInputSchema - The full workflow input schema (includes workflowStateData)
  */
-export interface MCPToolInvocationData<TInputSchema extends z.ZodObject<z.ZodRawShape>>
-  extends BaseInterruptData<TInputSchema> {
+export interface MCPToolInvocationData<TInputSchema extends z.ZodObject<z.ZodRawShape>> {
+  /** Input parameters - typed to business logic schema only (excludes workflowStateData) */
+  input: Omit<z.infer<TInputSchema>, 'workflowStateData'>;
   /** Metadata about the tool to invoke, including the input schema for LLM context */
   llmMetadata: {
     name: string;
@@ -74,18 +62,15 @@ export interface MCPToolInvocationData<TInputSchema extends z.ZodObject<z.ZodRaw
  * instead of delegating to a separate tool. This reduces latency by eliminating
  * an intermediate tool call.
  *
- * @template TInputSchema - The input schema (includes workflowStateData)
+ * @template TResultSchema - The Zod schema for validating the result
  */
-export interface NodeGuidanceData<TInputSchema extends z.ZodObject<z.ZodRawShape>>
-  extends BaseInterruptData<TInputSchema> {
-  /** Unique identifier for this node - used for logging and debugging */
+export interface NodeGuidanceData<TResultSchema extends z.ZodObject<z.ZodRawShape>> {
+  /** Unique identifier for this service/node - used for logging and debugging */
   nodeId: string;
   /** The task guidance/prompt that instructs the LLM what to do */
   taskGuidance: string;
-  /** Zod schema for input validation and LLM context */
-  inputSchema: TInputSchema;
   /** Zod schema defining expected output structure for result validation */
-  resultSchema: z.ZodObject<z.ZodRawShape>;
+  resultSchema: TResultSchema;
   /**
    * Optional example output to help the LLM understand the expected response format.
    * When provided, this concrete example is shown alongside the schema to improve
@@ -97,10 +82,14 @@ export interface NodeGuidanceData<TInputSchema extends z.ZodObject<z.ZodRawShape
 /**
  * Union type for all interrupt data types.
  * The orchestrator uses this to handle both delegate and direct guidance modes.
+ *
+ * @template TInputSchema - For MCPToolInvocationData: the full workflow input schema
+ * @template TResultSchema - For NodeGuidanceData: the result validation schema
  */
-export type InterruptData<TInputSchema extends z.ZodObject<z.ZodRawShape>> =
-  | MCPToolInvocationData<TInputSchema>
-  | NodeGuidanceData<TInputSchema>;
+export type InterruptData<
+  TInputSchema extends z.ZodObject<z.ZodRawShape>,
+  TResultSchema extends z.ZodObject<z.ZodRawShape>,
+> = MCPToolInvocationData<TInputSchema> | NodeGuidanceData<TResultSchema>;
 
 /**
  * Type guard to check if interrupt data is NodeGuidanceData (direct guidance mode).
@@ -108,9 +97,10 @@ export type InterruptData<TInputSchema extends z.ZodObject<z.ZodRawShape>> =
  * @param data - The interrupt data to check
  * @returns true if the data is NodeGuidanceData, false if it's MCPToolInvocationData
  */
-export function isNodeGuidanceData<TInputSchema extends z.ZodObject<z.ZodRawShape>>(
-  data: InterruptData<TInputSchema>
-): data is NodeGuidanceData<TInputSchema> {
+export function isNodeGuidanceData<
+  TInputSchema extends z.ZodObject<z.ZodRawShape>,
+  TResultSchema extends z.ZodObject<z.ZodRawShape>,
+>(data: InterruptData<TInputSchema, TResultSchema>): data is NodeGuidanceData<TResultSchema> {
   return 'taskGuidance' in data && 'resultSchema' in data && 'nodeId' in data;
 }
 

@@ -63,7 +63,7 @@ import { ToolExecutor } from '../nodes/toolExecutor.js';
 export function executeToolWithLogging<TResultSchema extends z.ZodObject<z.ZodRawShape>>(
   toolExecutor: ToolExecutor,
   logger: Logger,
-  interruptData: InterruptData<z.ZodObject<z.ZodRawShape>>,
+  interruptData: InterruptData<z.ZodObject<z.ZodRawShape>, TResultSchema>,
   resultSchema: TResultSchema,
   validator?: (result: unknown, schema: TResultSchema) => z.infer<TResultSchema>
 ): z.infer<TResultSchema> {

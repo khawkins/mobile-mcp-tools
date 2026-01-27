@@ -83,7 +83,7 @@ export abstract class AbstractService {
    * @throws {Error} If tool execution fails or custom validator throws
    */
   protected executeToolWithLogging<TResultSchema extends z.ZodObject<z.ZodRawShape>>(
-    interruptData: InterruptData<z.ZodObject<z.ZodRawShape>>,
+    interruptData: InterruptData<z.ZodObject<z.ZodRawShape>, TResultSchema>,
     resultSchema: TResultSchema,
     validator?: (result: unknown, schema: TResultSchema) => z.infer<TResultSchema>
   ): z.infer<TResultSchema> {
