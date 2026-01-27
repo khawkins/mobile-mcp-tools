@@ -15,8 +15,8 @@ describe('AndroidBuildCommandFactory', () => {
       let factory: AndroidBuildCommandFactory;
 
       beforeEach(() => {
-        // Inject platform detector that returns false (Unix/macOS)
-        factory = new AndroidBuildCommandFactory(() => false);
+        // Pass false to indicate Unix/macOS
+        factory = new AndroidBuildCommandFactory(false);
       });
 
       it('should create command with correct executable', () => {
@@ -28,32 +28,8 @@ describe('AndroidBuildCommandFactory', () => {
 
         const command = factory.create(params);
 
-        expect(command.executable).toBe('sh');
-        expect(command.args).toContain('-c');
-      });
-
-      it('should include project path in command', () => {
-        const params = {
-          projectPath: '/custom/path',
-          projectName: 'TestApp',
-          buildOutputDir: '/output',
-        };
-
-        const command = factory.create(params);
-
-        expect(command.args[1]).toContain('/custom/path');
-      });
-
-      it('should include gradlew assemble command', () => {
-        const params = {
-          projectPath: '/path/to/project',
-          projectName: 'TestApp',
-          buildOutputDir: '/output',
-        };
-
-        const command = factory.create(params);
-
-        expect(command.args[1]).toContain('./gradlew assemble');
+        expect(command.executable).toBe('./gradlew');
+        expect(command.args).toEqual(['assemble']);
       });
 
       it('should set cwd to project path', () => {
@@ -85,11 +61,11 @@ describe('AndroidBuildCommandFactory', () => {
       let factory: AndroidBuildCommandFactory;
 
       beforeEach(() => {
-        // Inject platform detector that returns true (Windows)
-        factory = new AndroidBuildCommandFactory(() => true);
+        // Pass true to indicate Windows
+        factory = new AndroidBuildCommandFactory(true);
       });
 
-      it('should create command with cmd executable', () => {
+      it('should create command with gradlew.bat executable', () => {
         const params = {
           projectPath: 'C:\\path\\to\\project',
           projectName: 'TestApp',
@@ -98,32 +74,8 @@ describe('AndroidBuildCommandFactory', () => {
 
         const command = factory.create(params);
 
-        expect(command.executable).toBe('cmd');
-        expect(command.args[0]).toBe('/c');
-      });
-
-      it('should include gradlew.bat path', () => {
-        const params = {
-          projectPath: 'C:\\path\\to\\project',
-          projectName: 'TestApp',
-          buildOutputDir: 'C:\\output',
-        };
-
-        const command = factory.create(params);
-
-        expect(command.args[1]).toContain('gradlew.bat');
-      });
-
-      it('should include assemble argument', () => {
-        const params = {
-          projectPath: 'C:\\path\\to\\project',
-          projectName: 'TestApp',
-          buildOutputDir: 'C:\\output',
-        };
-
-        const command = factory.create(params);
-
-        expect(command.args).toContain('assemble');
+        expect(command.executable).toBe('gradlew.bat');
+        expect(command.args).toEqual(['assemble']);
       });
 
       it('should set cwd to project path', () => {
@@ -141,8 +93,8 @@ describe('AndroidBuildCommandFactory', () => {
   });
 
   describe('parseProgress', () => {
-    // parseProgress doesn't depend on platform, so we can use default factory
-    const factory = new AndroidBuildCommandFactory();
+    // parseProgress doesn't depend on platform, so we can use either
+    const factory = new AndroidBuildCommandFactory(false);
 
     describe('initialization phase', () => {
       it('should track Gradle daemon startup', () => {

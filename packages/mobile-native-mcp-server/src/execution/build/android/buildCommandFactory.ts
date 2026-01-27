@@ -5,7 +5,6 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/MIT
  */
 
-import path from 'node:path';
 import type { Command, ProgressParseResult } from '@salesforce/magen-mcp-workflow';
 import {
   BuildCommandFactory,
@@ -48,63 +47,26 @@ const ANDROID_PROGRESS_PATTERNS: ProgressPattern[] = [
 ];
 
 /**
- * Platform detection function type for dependency injection.
+ * Default check if running on Windows.
  */
-export type PlatformDetector = () => boolean;
-
-/**
- * Default platform detector that checks if running on Windows.
- */
-export const isWindows: PlatformDetector = () => process.platform === 'win32';
-
-/**
- * Platform-specific build configuration.
- * Encapsulates the differences between Windows and Unix build commands.
- */
-interface PlatformBuildConfig {
-  /** Shell executable (e.g., 'cmd' for Windows, 'sh' for Unix) */
-  executable: string;
-  /** Shell flag to execute a command (e.g., '/c' for cmd, '-c' for sh) */
-  shellFlag: string;
-  /** Function to generate the command arguments for the shell */
-  buildArgs: (projectPath: string) => string[];
-}
-
-/**
- * Windows build configuration using cmd.exe and gradlew.bat
- */
-const WINDOWS_CONFIG: PlatformBuildConfig = {
-  executable: 'cmd',
-  shellFlag: '/c',
-  buildArgs: (projectPath: string) => [path.join(projectPath, 'gradlew.bat'), 'assemble'],
-};
-
-/**
- * Unix/macOS build configuration using sh and gradlew
- */
-const UNIX_CONFIG: PlatformBuildConfig = {
-  executable: 'sh',
-  shellFlag: '-c',
-  buildArgs: (projectPath: string) => [`cd "${projectPath}" && ./gradlew assemble`],
-};
+export const isWindows = process.platform === 'win32';
 
 /**
  * Android build command factory.
  * Creates Gradle build commands and parses Gradle output for progress.
  */
 export class AndroidBuildCommandFactory implements BuildCommandFactory {
-  private readonly platformDetector: PlatformDetector;
+  private readonly isWindows: boolean;
 
-  constructor(platformDetector: PlatformDetector = isWindows) {
-    this.platformDetector = platformDetector;
+  constructor(isWindows: boolean) {
+    this.isWindows = isWindows;
   }
 
   create(params: BuildCommandParams): Command {
-    const config = this.platformDetector() ? WINDOWS_CONFIG : UNIX_CONFIG;
-
+    const gradlew = this.isWindows ? 'gradlew.bat' : './gradlew';
     return {
-      executable: config.executable,
-      args: [config.shellFlag, ...config.buildArgs(params.projectPath)],
+      executable: gradlew,
+      args: ['assemble'],
       env: process.env,
       cwd: params.projectPath,
     };

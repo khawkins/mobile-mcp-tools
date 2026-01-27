@@ -15,7 +15,7 @@ import { PlatformEnum } from '../../common/schemas.js';
 import { TempDirectoryManager } from '../../common.js';
 import { BuildCommandFactory } from './types.js';
 import { iOSBuildCommandFactory } from './ios/buildCommandFactory.js';
-import { AndroidBuildCommandFactory } from './android/buildCommandFactory.js';
+import { AndroidBuildCommandFactory, isWindows } from './android/buildCommandFactory.js';
 
 /**
  * Result of build execution
@@ -75,7 +75,7 @@ export class DefaultBuildExecutor implements BuildExecutor {
     this.tempDirManager = tempDirManager;
     this.logger = logger ?? createComponentLogger('BuildExecutor');
     this.iosFactory = new iOSBuildCommandFactory();
-    this.androidFactory = new AndroidBuildCommandFactory();
+    this.androidFactory = new AndroidBuildCommandFactory(isWindows);
   }
 
   async execute(
