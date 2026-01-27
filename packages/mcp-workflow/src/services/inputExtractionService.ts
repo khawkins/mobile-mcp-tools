@@ -6,14 +6,9 @@
  */
 
 import z from 'zod';
-import { zodToJsonSchema } from 'zod-to-json-schema';
 import { ToolExecutor } from '../nodes/toolExecutor.js';
 import { AbstractService } from './abstractService.js';
 import { PropertyMetadataCollection } from '../common/propertyMetadata.js';
-import {
-  createInputExtractionMetadata,
-  INPUT_EXTRACTION_WORKFLOW_INPUT_SCHEMA,
-} from '../tools/utilities/index.js';
 import { Logger } from '../logging/logger.js';
 import { NodeGuidanceData } from '../common/metadata.js';
 
@@ -74,13 +69,6 @@ export class InputExtractionService
 
     const propertiesToExtract = this.preparePropertiesForExtraction(properties);
     const resultSchema = this.preparePropertyResultsSchema(properties);
-    const resultSchemaString = JSON.stringify(zodToJsonSchema(resultSchema));
-    const metadata = createInputExtractionMetadata(this.toolId);
-    const input = {
-      userUtterance: userInput,
-      propertiesToExtract,
-      resultSchema: resultSchemaString,
-    };
 
     // Build a concrete example based on the actual properties being requested
     const exampleProperties = propertiesToExtract.reduce(
@@ -92,10 +80,8 @@ export class InputExtractionService
     );
 
     // Create NodeGuidanceData for direct guidance mode
-    const nodeGuidanceData: NodeGuidanceData<typeof INPUT_EXTRACTION_WORKFLOW_INPUT_SCHEMA> = {
-      nodeId: metadata.toolId,
-      inputSchema: metadata.inputSchema,
-      input,
+    const nodeGuidanceData: NodeGuidanceData<typeof resultSchema> = {
+      nodeId: this.toolId,
       taskGuidance: this.generateTaskGuidance(userInput, propertiesToExtract),
       resultSchema: resultSchema,
       // Provide example to help LLM understand the expected extractedProperties wrapper

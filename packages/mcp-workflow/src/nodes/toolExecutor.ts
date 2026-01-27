@@ -21,7 +21,9 @@ export interface ToolExecutor {
    *   Can be either MCPToolInvocationData (delegate mode) or NodeGuidanceData (direct guidance mode).
    * @returns The result from the tool execution (as unknown, to be validated by caller)
    */
-  execute(interruptData: InterruptData<z.ZodObject<z.ZodRawShape>>): unknown;
+  execute(
+    interruptData: InterruptData<z.ZodObject<z.ZodRawShape>, z.ZodObject<z.ZodRawShape>>
+  ): unknown;
 }
 
 /**
@@ -30,7 +32,9 @@ export interface ToolExecutor {
  */
 /* c8 ignore start */
 export class LangGraphToolExecutor implements ToolExecutor {
-  execute(interruptData: InterruptData<z.ZodObject<z.ZodRawShape>>): unknown {
+  execute(
+    interruptData: InterruptData<z.ZodObject<z.ZodRawShape>, z.ZodObject<z.ZodRawShape>>
+  ): unknown {
     return interrupt(interruptData);
   }
 }

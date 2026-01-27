@@ -7,11 +7,7 @@
 
 import { ToolExecutor } from '../nodes/toolExecutor.js';
 import { AbstractService } from './abstractService.js';
-import {
-  createGetInputMetadata,
-  GET_INPUT_WORKFLOW_INPUT_SCHEMA,
-  GET_INPUT_WORKFLOW_RESULT_SCHEMA,
-} from '../tools/utilities/index.js';
+import { GET_INPUT_WORKFLOW_RESULT_SCHEMA } from '../tools/utilities/index.js';
 import { Logger } from '../logging/logger.js';
 import { NodeGuidanceData } from '../common/metadata.js';
 
@@ -70,9 +66,6 @@ export class GetInputService extends AbstractService implements GetInputServiceP
       unfulfilledProperties,
     });
 
-    const metadata = createGetInputMetadata(this.toolId);
-    const input = { propertiesRequiringInput: unfulfilledProperties };
-
     // Build a concrete example based on the actual properties being requested
     const exampleProperties = unfulfilledProperties.reduce(
       (acc, prop) => {
@@ -83,12 +76,10 @@ export class GetInputService extends AbstractService implements GetInputServiceP
     );
 
     // Create NodeGuidanceData for direct guidance mode
-    const nodeGuidanceData: NodeGuidanceData<typeof GET_INPUT_WORKFLOW_INPUT_SCHEMA> = {
-      nodeId: metadata.toolId,
-      inputSchema: metadata.inputSchema,
-      input,
+    const nodeGuidanceData: NodeGuidanceData<typeof GET_INPUT_WORKFLOW_RESULT_SCHEMA> = {
+      nodeId: this.toolId,
       taskGuidance: this.generateTaskGuidance(unfulfilledProperties),
-      resultSchema: metadata.resultSchema,
+      resultSchema: GET_INPUT_WORKFLOW_RESULT_SCHEMA,
       // Provide example to help LLM understand the expected userUtterance wrapper
       exampleOutput: JSON.stringify({ userUtterance: exampleProperties }),
     };
