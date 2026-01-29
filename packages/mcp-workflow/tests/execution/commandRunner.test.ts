@@ -108,11 +108,13 @@ describe('DefaultCommandRunner', () => {
       const spawnCall = vi.mocked(spawn).mock.calls[0];
       const env = spawnCall[2]?.env;
 
+      // shell: true on Windows, false on macOS/Linux
+      const expectedShell = process.platform === 'win32';
       expect(spawn).toHaveBeenCalledWith('echo', ['hello'], {
         env: expect.objectContaining({
           ...process.env,
         }),
-        shell: true,
+        shell: expectedShell,
         stdio: ['ignore', 'pipe', 'pipe'],
         cwd: undefined,
       });

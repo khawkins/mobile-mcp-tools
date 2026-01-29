@@ -1,4 +1,3 @@
-platform :ios, '18.0'
 
 project 'AgentforceDemo.xcodeproj'
 target 'AgentforceDemo' do
@@ -7,8 +6,8 @@ target 'AgentforceDemo' do
   source 'https://cdn.cocoapods.org/'
   use_frameworks!
 
-  pod 'AgentforceSDK', '14.7.6'
-  pod 'Messaging-InApp-Core', '1.9.3-Experimental'
+  pod 'AgentforceSDK', '14.13.1'
+  pod 'Messaging-InApp-Core', '1.10.2'
   pod 'LiveKitClient', '2.9.0'
   pod 'Logging', '~> 1.4'
 end

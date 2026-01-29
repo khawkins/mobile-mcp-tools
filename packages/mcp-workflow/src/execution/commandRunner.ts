@@ -31,6 +31,13 @@ export interface CommandRunner {
 }
 
 /**
+ * Determines if shell mode should be used based on platform.
+ * - Windows: shell: true (needed for command resolution)
+ * - macOS/Linux: shell: false (properly handles arguments with spaces)
+ */
+const isWindows = process.platform === 'win32';
+
+/**
  * Default implementation of CommandRunner using Node.js spawn.
  */
 export class DefaultCommandRunner implements CommandRunner {
@@ -78,9 +85,11 @@ export class DefaultCommandRunner implements CommandRunner {
     return new Promise<CommandResult>((resolve, reject) => {
       const outputStream = outputFilePath ? createWriteStream(outputFilePath) : null;
 
+      // Use shell: true on Windows (needed for command resolution),
+      // shell: false on macOS/Linux (properly handles arguments with spaces)
       const childProcess = spawn(command, args, {
         env,
-        shell: true,
+        shell: isWindows,
         stdio: ['ignore', 'pipe', 'pipe'],
         cwd,
       });

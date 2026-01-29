@@ -37,7 +37,7 @@ class CustomThemeManager: AgentforceThemeManager {
     }
     
     // MARK: - AgentforceAvatarCustomizable
-    var avatarConfiguration: [AvatarType : String?] {
+    var avatarConfiguration: [AvatarType : Image?] {
         return [:]
     }
 }
@@ -62,6 +62,7 @@ class CustomLightColors: AgentforceTheme.Colors {
     var accent5: Color
     var accent6: Color
     var accent7: Color
+    var accent8: Color
     var accentContainer1: Color
     var onAccent1: Color
     var error1: Color
@@ -135,6 +136,7 @@ class CustomLightColors: AgentforceTheme.Colors {
         self.accent5 = turtleGreen // Turtle power!
         self.accent6 = turtleGreenLight // Additional accent
         self.accent7 = shellBrown // Shell accent
+        self.accent8 = plastronYellowDark // Additional accent
         self.accentContainer1 = turtleGreenLight
         self.onAccent1 = .white
         
