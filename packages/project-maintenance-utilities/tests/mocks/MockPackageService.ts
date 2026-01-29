@@ -8,7 +8,6 @@ export class MockPackageService implements PackageServiceProvider {
   private packageInfoMap: Map<string, PackageInfo> = new Map();
   private releaseTagMap: Map<string, ParsedReleaseTag> = new Map();
   private validationMap: Map<string, PackageInfo> = new Map();
-  private workspaceRootMap: Map<string, string | null> = new Map();
   private wildcardResolutionMap: Map<string, { originalContent: string; modifiedContent: string }> =
     new Map();
 
@@ -25,10 +24,6 @@ export class MockPackageService implements PackageServiceProvider {
     this.validationMap.set(`${packagePath}:${expectedVersion}`, packageInfo);
   }
 
-  setWorkspaceRoot(startPath: string, workspaceRoot: string | null): void {
-    this.workspaceRootMap.set(startPath, workspaceRoot);
-  }
-
   setWildcardResolution(
     packagePath: string,
     workspaceRoot: string,
@@ -41,7 +36,6 @@ export class MockPackageService implements PackageServiceProvider {
     this.packageInfoMap.clear();
     this.releaseTagMap.clear();
     this.validationMap.clear();
-    this.workspaceRootMap.clear();
     this.wildcardResolutionMap.clear();
   }
 
@@ -74,21 +68,6 @@ export class MockPackageService implements PackageServiceProvider {
       );
     }
     return packageInfo;
-  }
-
-  findWorkspaceRoot(startPath: string): string | null {
-    // Check for exact match first
-    if (this.workspaceRootMap.has(startPath)) {
-      return this.workspaceRootMap.get(startPath) ?? null;
-    }
-    // Check for prefix matches (walking up directory tree)
-    for (const [key, value] of this.workspaceRootMap.entries()) {
-      if (startPath.startsWith(key) || key.startsWith(startPath)) {
-        return value;
-      }
-    }
-    // Default: return null (no workspace root found)
-    return null;
   }
 
   resolveWildcardDependencies(

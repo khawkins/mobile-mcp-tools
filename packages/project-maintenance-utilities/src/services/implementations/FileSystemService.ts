@@ -9,13 +9,13 @@ import { FileSystemServiceProvider } from '../interfaces/FileSystemServiceProvid
 export class FileSystemService implements FileSystemServiceProvider {
   /**
    * Workspace root resolved relative to the module location
-   * Assumes FileSystemService is at packages/project-maintenance-utilities/src/services/implementations/FileSystemService.ts
-   * and workspace root is 4 levels up
+   * Assumes FileSystemService is at packages/project-maintenance-utilities/dist/services/implementations/FileSystemService.js
+   * and workspace root is 5 levels up
    */
   public get workspaceRoot(): string {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    return resolve(__dirname, '..', '..', '..', '..');
+    return resolve(__dirname, '..', '..', '..', '..', '..');
   }
 
   existsSync(path: string): boolean {

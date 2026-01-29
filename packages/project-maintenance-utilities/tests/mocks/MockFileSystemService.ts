@@ -1,5 +1,5 @@
 import { FileSystemServiceProvider } from '../../src/services/interfaces/index.js';
-import { sep, join } from 'path';
+import { sep, join, resolve } from 'path';
 
 interface ErrorConfig {
   error: Error;
@@ -22,7 +22,7 @@ export class MockFileSystemService implements FileSystemServiceProvider {
   private files: Map<string, string | Buffer> = new Map();
   private directories: Set<string> = new Set();
   private errorConfigs: ErrorConfig[] = [];
-  private _workspaceRoot: string = '/workspace';
+  private _workspaceRoot: string = resolve('/workspace');
 
   /**
    * Get the workspace root directory path
