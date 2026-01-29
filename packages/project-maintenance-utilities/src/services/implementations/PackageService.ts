@@ -126,41 +126,9 @@ export class PackageService implements PackageServiceProvider {
   }
 
   /**
-   * Find workspace root by checking the workspaceRoot from FileSystemServiceProvider
-   * @param startPath - Path to start searching from (unused, kept for interface compatibility)
-   * @returns Path to workspace root or null if not found
-   */
-  findWorkspaceRoot(startPath: string): string | null {
-    // Unused parameter kept for interface compatibility
-    void startPath;
-
-    const workspaceRoot = this.fsService.workspaceRoot;
-    const packageJsonPath = join(workspaceRoot, 'package.json');
-
-    if (!this.fsService.existsSync(packageJsonPath)) {
-      this.debugLog(`package.json not found at workspace root: ${packageJsonPath}`);
-      return null;
-    }
-
-    try {
-      const packageJsonContent = this.fsService.readFileSync(packageJsonPath, 'utf8');
-      const packageJson = JSON.parse(packageJsonContent);
-      // Check if this is a workspace root (has workspaces field)
-      if (packageJson.workspaces) {
-        return workspaceRoot;
-      }
-      this.debugLog(`package.json at ${packageJsonPath} does not have workspaces field`);
-    } catch (error) {
-      this.debugLog(`Could not parse package.json at ${packageJsonPath}: ${error}`);
-    }
-
-    return null;
-  }
-
-  /**
    * Resolve wildcard dependencies by finding packages in the workspace and replacing * with versions
-   * @param packagePath - Path to package directory
-   * @param workspaceRoot - Path to workspace root directory
+   * @param packagePath - Absolute path to package directory
+   * @param workspaceRoot - Path to workspace root directory (used to find sibling packages)
    * @returns Object with original and modified package.json content
    */
   resolveWildcardDependencies(

@@ -43,16 +43,14 @@ describe('ReleaseOrchestrator', () => {
 
   describe('createRelease', () => {
     it('should create a release successfully', async () => {
-      // Setup package service
-      mockPackage.setPackageInfo(join('.', 'test-package'), {
+      // Setup package service with absolute path (orchestrator resolves to absolute)
+      const absolutePackagePath = join(mockFs.workspaceRoot, 'test-package');
+      mockPackage.setPackageInfo(absolutePackagePath, {
         packageFullName: '@test/package',
         version: '1.0.0',
         tagName: 'test-package_v1.0.0',
         tagPrefix: 'test-package',
       });
-
-      // Setup workspace root (return null to skip wildcard resolution)
-      mockPackage.setWorkspaceRoot(join('.', 'test-package'), null);
 
       // Setup GitHub service
       mockGitHub.clear();
@@ -74,8 +72,8 @@ describe('ReleaseOrchestrator', () => {
       // Setup filesystem - make sure tarball will exist after npm pack
       // When createTarball changes directory to packagePath, it checks for just the filename
       mockFs.setFileContent('test-package-1.0.0.tgz', 'tarball content');
-      // Also set it at the full path for when it's read later (without ./ prefix)
-      mockFs.setFileContent(join('test-package', 'test-package-1.0.0.tgz'), 'tarball content');
+      // Also set it at the full path for when it's read later
+      mockFs.setFileContent(join(absolutePackagePath, 'test-package-1.0.0.tgz'), 'tarball content');
 
       const options = {
         packagePath: join('.', 'test-package'),
@@ -92,8 +90,9 @@ describe('ReleaseOrchestrator', () => {
     });
 
     it('should fail if tag already exists', async () => {
-      // Setup package service
-      mockPackage.setPackageInfo(join('.', 'test-package'), {
+      // Setup package service with absolute path
+      const absolutePackagePath = join(mockFs.workspaceRoot, 'test-package');
+      mockPackage.setPackageInfo(absolutePackagePath, {
         packageFullName: '@test/package',
         version: '1.0.0',
         tagName: 'test-package_v1.0.0',
@@ -119,6 +118,7 @@ describe('ReleaseOrchestrator', () => {
       // Setup package service to throw error
       mockPackage.clear(); // No package info configured, so it will throw
 
+      const absolutePackagePath = join(mockFs.workspaceRoot, 'test-package');
       const options = {
         packagePath: join('.', 'test-package'),
         packageDisplayName: 'Test Package',
@@ -127,20 +127,21 @@ describe('ReleaseOrchestrator', () => {
       await orchestrator.createRelease(options);
 
       expect(mockActions.getFailureMessage()).toBe(
-        `Failed to create release: Mock: No package info configured for path: ${join('.', 'test-package')}`
+        `Failed to create release: Mock: No package info configured for path: ${absolutePackagePath}`
       );
     });
   });
 
   describe('publishRelease', () => {
     it('should publish a release successfully', async () => {
-      // Setup package service
+      // Setup package service with absolute path
+      const absolutePackagePath = join(mockFs.workspaceRoot, 'test-package');
       mockPackage.setReleaseTag('test-package_v1.0.0', {
         packageIdentifier: 'test-package',
         packageVersion: '1.0.0',
       });
 
-      mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
+      mockPackage.setValidation(absolutePackagePath, '1.0.0', {
         packageFullName: '@test/package',
         version: '1.0.0',
         tagName: 'test-package_v1.0.0',
@@ -213,13 +214,14 @@ describe('ReleaseOrchestrator', () => {
     });
 
     it('should handle dry run mode', async () => {
-      // Setup package service
+      // Setup package service with absolute path
+      const absolutePackagePath = join(mockFs.workspaceRoot, 'test-package');
       mockPackage.setReleaseTag('test-package_v1.0.0', {
         packageIdentifier: 'test-package',
         packageVersion: '1.0.0',
       });
 
-      mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
+      mockPackage.setValidation(absolutePackagePath, '1.0.0', {
         packageFullName: '@test/package',
         version: '1.0.0',
         tagName: 'test-package_v1.0.0',
@@ -291,13 +293,14 @@ describe('ReleaseOrchestrator', () => {
     });
 
     it('should fail if expected tarball is not found', async () => {
-      // Setup package service
+      // Setup package service with absolute path
+      const absolutePackagePath = join(mockFs.workspaceRoot, 'test-package');
       mockPackage.setReleaseTag('test-package_v1.0.0', {
         packageIdentifier: 'test-package',
         packageVersion: '1.0.0',
       });
 
-      mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
+      mockPackage.setValidation(absolutePackagePath, '1.0.0', {
         packageFullName: '@test/package',
         version: '1.0.0',
         tagName: 'test-package_v1.0.0',
@@ -356,13 +359,14 @@ describe('ReleaseOrchestrator', () => {
     });
 
     it('should fail if version is already published on NPM', async () => {
-      // Setup package service
+      // Setup package service with absolute path
+      const absolutePackagePath = join(mockFs.workspaceRoot, 'test-package');
       mockPackage.setReleaseTag('test-package_v1.0.0', {
         packageIdentifier: 'test-package',
         packageVersion: '1.0.0',
       });
 
-      mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
+      mockPackage.setValidation(absolutePackagePath, '1.0.0', {
         packageFullName: '@test/package',
         version: '1.0.0',
         tagName: 'test-package_v1.0.0',
@@ -389,13 +393,14 @@ describe('ReleaseOrchestrator', () => {
     });
 
     it('should fail if tarball verification fails', async () => {
-      // Setup package service
+      // Setup package service with absolute path
+      const absolutePackagePath = join(mockFs.workspaceRoot, 'test-package');
       mockPackage.setReleaseTag('test-package_v1.0.0', {
         packageIdentifier: 'test-package',
         packageVersion: '1.0.0',
       });
 
-      mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
+      mockPackage.setValidation(absolutePackagePath, '1.0.0', {
         packageFullName: '@test/package',
         version: '1.0.0',
         tagName: 'test-package_v1.0.0',
@@ -449,13 +454,14 @@ describe('ReleaseOrchestrator', () => {
     });
 
     it('should fail if NPM publish command fails', async () => {
-      // Setup package service
+      // Setup package service with absolute path
+      const absolutePackagePath = join(mockFs.workspaceRoot, 'test-package');
       mockPackage.setReleaseTag('test-package_v1.0.0', {
         packageIdentifier: 'test-package',
         packageVersion: '1.0.0',
       });
 
-      mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
+      mockPackage.setValidation(absolutePackagePath, '1.0.0', {
         packageFullName: '@test/package',
         version: '1.0.0',
         tagName: 'test-package_v1.0.0',
@@ -524,13 +530,14 @@ describe('ReleaseOrchestrator', () => {
     });
 
     it('should warn if cleanup fails', async () => {
-      // Setup package service
+      // Setup package service with absolute path
+      const absolutePackagePath = join(mockFs.workspaceRoot, 'test-package');
       mockPackage.setReleaseTag('test-package_v1.0.0', {
         packageIdentifier: 'test-package',
         packageVersion: '1.0.0',
       });
 
-      mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
+      mockPackage.setValidation(absolutePackagePath, '1.0.0', {
         packageFullName: '@test/package',
         version: '1.0.0',
         tagName: 'test-package_v1.0.0',
@@ -605,16 +612,14 @@ describe('ReleaseOrchestrator', () => {
   describe('Input sanitization', () => {
     describe('createRelease', () => {
       it('should handle input strings with leading/trailing spaces', async () => {
-        // Setup package service with trimmed path
-        mockPackage.setPackageInfo(`.${sep}test-package`, {
+        // Setup package service with absolute path (orchestrator resolves to absolute after trimming)
+        const absolutePackagePath = join(mockFs.workspaceRoot, 'test-package');
+        mockPackage.setPackageInfo(absolutePackagePath, {
           packageFullName: '@test/package',
           version: '1.0.0',
           tagName: 'test-package_v1.0.0',
           tagPrefix: 'test-package',
         });
-
-        // Setup workspace root (return null to skip wildcard resolution)
-        mockPackage.setWorkspaceRoot(`.${sep}test-package`, null);
 
         // Setup GitHub service
         mockGitHub.clear();
@@ -636,7 +641,10 @@ describe('ReleaseOrchestrator', () => {
         // Setup filesystem
         mockFs.clear();
         mockFs.setFileContent('test-package-1.0.0.tgz', 'tarball content');
-        mockFs.setFileContent(join('test-package', 'test-package-1.0.0.tgz'), 'tarball content');
+        mockFs.setFileContent(
+          join(absolutePackagePath, 'test-package-1.0.0.tgz'),
+          'tarball content'
+        );
 
         // Test with inputs that have leading/trailing spaces
         const options = {
@@ -657,13 +665,14 @@ describe('ReleaseOrchestrator', () => {
 
     describe('publishRelease', () => {
       it('should handle input strings with leading/trailing spaces', async () => {
-        // Setup package service
+        // Setup package service with absolute path
+        const absolutePackagePath = join(mockFs.workspaceRoot, 'test-package');
         mockPackage.setReleaseTag('test-package_v1.0.0', {
           packageIdentifier: 'test-package',
           packageVersion: '1.0.0',
         });
 
-        mockPackage.setValidation(`.${sep}test-package`, '1.0.0', {
+        mockPackage.setValidation(absolutePackagePath, '1.0.0', {
           packageFullName: '@test/package',
           version: '1.0.0',
           tagName: 'test-package_v1.0.0',
@@ -734,13 +743,14 @@ describe('ReleaseOrchestrator', () => {
       });
 
       it('should update release description after successful publish', async () => {
-        // Setup package service
+        // Setup package service with absolute path
+        const absolutePackagePath = join(mockFs.workspaceRoot, 'test-package');
         mockPackage.setReleaseTag('test-package_v1.0.0', {
           packageIdentifier: 'test-package',
           packageVersion: '1.0.0',
         });
 
-        mockPackage.setValidation(join('.', 'test-package'), '1.0.0', {
+        mockPackage.setValidation(absolutePackagePath, '1.0.0', {
           packageFullName: '@test/package',
           version: '1.0.0',
           tagName: 'test-package_v1.0.0',

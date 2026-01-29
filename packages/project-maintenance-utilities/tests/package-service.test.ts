@@ -608,61 +608,6 @@ describe('PackageService', () => {
     });
   });
 
-  describe('findWorkspaceRoot', () => {
-    it('should find workspace root with workspaces field', () => {
-      const rootPackageJson = {
-        name: 'workspace-root',
-        version: '1.0.0',
-        workspaces: ['packages/*'],
-      };
-
-      const workspacePath = '/workspace';
-      mockFileSystemService.setWorkspaceRoot(workspacePath);
-
-      mockFileSystemService.setFileContent(
-        join(workspacePath, 'package.json'),
-        JSON.stringify(rootPackageJson, null, 2)
-      );
-      mockFileSystemService.setDirectoryExists(workspacePath);
-
-      const result = packageService.findWorkspaceRoot(
-        join(workspacePath, 'packages', 'some-package')
-      );
-
-      expect(result).toBe(workspacePath);
-    });
-
-    it('should return null if package.json does not exist at workspace root', () => {
-      const workspacePath = '/workspace';
-      mockFileSystemService.setWorkspaceRoot(workspacePath);
-      mockFileSystemService.setDirectoryExists(workspacePath);
-
-      const result = packageService.findWorkspaceRoot(join('some', 'path'));
-
-      expect(result).toBeNull();
-    });
-
-    it('should return null if package.json does not have workspaces field', () => {
-      const rootPackageJson = {
-        name: 'not-workspace',
-        version: '1.0.0',
-      };
-
-      const workspacePath = '/workspace';
-      mockFileSystemService.setWorkspaceRoot(workspacePath);
-
-      mockFileSystemService.setFileContent(
-        join(workspacePath, 'package.json'),
-        JSON.stringify(rootPackageJson, null, 2)
-      );
-      mockFileSystemService.setDirectoryExists(workspacePath);
-
-      const result = packageService.findWorkspaceRoot(join('some', 'path'));
-
-      expect(result).toBeNull();
-    });
-  });
-
   describe('resolveWildcardDependencies', () => {
     beforeEach(() => {
       // Set up workspace root

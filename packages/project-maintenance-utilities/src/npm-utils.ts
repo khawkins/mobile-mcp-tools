@@ -89,12 +89,12 @@ export class NpmUtils {
       this.processService.chdir(packagePath);
 
       // Resolve wildcard dependencies if resolver function is provided
+      // Note: packagePath is absolute, so resolveWildcards receives an absolute path
       if (resolveWildcards) {
         const { originalContent, modifiedContent } = resolveWildcards(packagePath);
         originalPackageJson = originalContent;
         if (modifiedContent !== originalContent) {
-          const packageJsonPath = join(packagePath, 'package.json');
-          this.fsService.writeFileSync(packageJsonPath, modifiedContent, 'utf8');
+          this.fsService.writeFileSync('package.json', modifiedContent, 'utf8');
         }
       }
 
@@ -113,6 +113,7 @@ export class NpmUtils {
         throw new Error(`Tarball not created: ${tarballName}`);
       }
 
+      // Return absolute path to tarball
       const tarballPath = join(packagePath, tarballName);
 
       return {
@@ -122,8 +123,7 @@ export class NpmUtils {
     } finally {
       // Restore original package.json if it was modified
       if (originalPackageJson) {
-        const packageJsonPath = join(packagePath, 'package.json');
-        this.fsService.writeFileSync(packageJsonPath, originalPackageJson, 'utf8');
+        this.fsService.writeFileSync('package.json', originalPackageJson, 'utf8');
       }
       this.processService.chdir(originalCwd);
     }

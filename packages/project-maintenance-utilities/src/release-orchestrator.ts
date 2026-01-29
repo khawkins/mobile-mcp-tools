@@ -2,7 +2,7 @@ import { GitHubUtils } from './github-utils.js';
 import { NpmUtils, type CleanupResult } from './npm-utils.js';
 import { ActionsReporter } from './actions-reporter.js';
 import type { Context as GitHubContext } from '@actions/github/lib/context';
-import { join } from 'path';
+import { join, resolve } from 'path';
 import {
   FileSystemServiceProvider,
   ProcessServiceProvider,
@@ -70,7 +70,8 @@ export class ReleaseOrchestrator {
    * @param options - Release options
    */
   async createRelease(options: CreateReleaseOptions): Promise<void> {
-    const packagePath = options.packagePath.trim();
+    const workspaceRoot = this.fsService.workspaceRoot;
+    const packagePath = resolve(workspaceRoot, options.packagePath.trim());
     const packageDisplayName = options.packageDisplayName.trim();
 
     try {
@@ -100,38 +101,29 @@ export class ReleaseOrchestrator {
 
       this.reporter.step('Creating package tarball');
       // Resolve wildcard dependencies before packing
-      const workspaceRoot = this.packageService.findWorkspaceRoot(packagePath);
-      let resolveWildcards: WildcardResolver | undefined;
+      this.reporter.info(`Using workspace root: ${workspaceRoot}`);
+      const resolveWildcards: WildcardResolver = (pkgPath: string) => {
+        const result = this.packageService.resolveWildcardDependencies(pkgPath, workspaceRoot);
+        if (result.modifiedContent !== result.originalContent) {
+          // Parse to show what was resolved
+          const originalJson = JSON.parse(result.originalContent);
+          const modifiedJson = JSON.parse(result.modifiedContent);
+          const resolved: string[] = [];
 
-      if (workspaceRoot) {
-        this.reporter.info(`Found workspace root: ${workspaceRoot}`);
-        resolveWildcards = (pkgPath: string) => {
-          const result = this.packageService.resolveWildcardDependencies(pkgPath, workspaceRoot);
-          if (result.modifiedContent !== result.originalContent) {
-            // Parse to show what was resolved
-            const originalJson = JSON.parse(result.originalContent);
-            const modifiedJson = JSON.parse(result.modifiedContent);
-            const resolved: string[] = [];
-
-            if (originalJson.dependencies && modifiedJson.dependencies) {
-              for (const [depName, depVersion] of Object.entries(originalJson.dependencies)) {
-                if (depVersion === '*' && modifiedJson.dependencies[depName] !== '*') {
-                  resolved.push(`${depName}: * -> ${modifiedJson.dependencies[depName]}`);
-                }
+          if (originalJson.dependencies && modifiedJson.dependencies) {
+            for (const [depName, depVersion] of Object.entries(originalJson.dependencies)) {
+              if (depVersion === '*' && modifiedJson.dependencies[depName] !== '*') {
+                resolved.push(`${depName}: * -> ${modifiedJson.dependencies[depName]}`);
               }
             }
-
-            if (resolved.length > 0) {
-              this.reporter.info(`Resolved wildcard dependencies: ${resolved.join(', ')}`);
-            }
           }
-          return result;
-        };
-      } else {
-        this.reporter.warning(
-          'Could not detect workspace root. Wildcard dependencies will not be resolved.'
-        );
-      }
+
+          if (resolved.length > 0) {
+            this.reporter.info(`Resolved wildcard dependencies: ${resolved.join(', ')}`);
+          }
+        }
+        return result;
+      };
 
       const tarballInfo = this.npmUtils.createTarball(packagePath, resolveWildcards);
       this.reporter.setOutput('tarball_name', tarballInfo.tarballName);
@@ -197,7 +189,8 @@ export class ReleaseOrchestrator {
    * @param options - Publish options
    */
   async publishRelease(options: PublishReleaseOptions): Promise<void> {
-    const packagePath = options.packagePath.trim();
+    const workspaceRoot = this.fsService.workspaceRoot;
+    const packagePath = resolve(workspaceRoot, options.packagePath.trim());
     const releaseTag = options.releaseTag.trim();
     const npmTag = (options.npmTag ?? 'latest').trim();
     const dryRun = options.dryRun ?? false;
