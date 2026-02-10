@@ -857,4 +857,225 @@ Gather user input for platform and projectName.
       expect(mockLogger.hasLoggedMessage('Starting new workflow execution', 'info')).toBe(true);
     });
   });
+
+  describe('custom input schema', () => {
+    // Define a custom input schema with different property names
+    const CUSTOM_INPUT_SCHEMA = z.object({
+      payload: z.unknown().optional(),
+      sessionState: z
+        .object({
+          thread_id: z.string(),
+        })
+        .default({ thread_id: '' }),
+    });
+
+    type CustomInput = z.infer<typeof CUSTOM_INPUT_SCHEMA>;
+
+    /**
+     * Custom orchestrator subclass that uses a different input schema.
+     * Overrides the extractor methods to map custom property names to
+     * the semantic values the orchestrator needs.
+     */
+    class CustomSchemaOrchestrator extends OrchestratorTool<typeof CUSTOM_INPUT_SCHEMA> {
+      constructor(server: McpServer, config: OrchestratorConfig<typeof CUSTOM_INPUT_SCHEMA>) {
+        super(server, config);
+      }
+
+      protected extractUserInput(input: CustomInput): unknown | undefined {
+        return input.payload;
+      }
+
+      protected extractWorkflowStateData(input: CustomInput): { thread_id: string } | undefined {
+        return input.sessionState;
+      }
+    }
+
+    it('should accept custom input schema via config', () => {
+      const workflow = new StateGraph(TestState)
+        .addNode('testNode', (_state: State) => ({
+          messages: ['test'],
+        }))
+        .addEdge(START, 'testNode')
+        .addEdge('testNode', END);
+
+      const config: OrchestratorConfig<typeof CUSTOM_INPUT_SCHEMA> = {
+        toolId: 'custom-schema-orchestrator',
+        title: 'Custom Schema Orchestrator',
+        description: 'Tests custom input schema',
+        workflow,
+        inputSchema: CUSTOM_INPUT_SCHEMA,
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
+        logger: mockLogger,
+      };
+
+      const orchestrator = new CustomSchemaOrchestrator(server, config);
+
+      expect(orchestrator.toolMetadata.toolId).toBe('custom-schema-orchestrator');
+      // The input schema should be the custom one, not the default
+      expect(orchestrator.toolMetadata.inputSchema).toBe(CUSTOM_INPUT_SCHEMA);
+    });
+
+    it('should start and complete workflow with custom schema properties', async () => {
+      const workflow = new StateGraph(TestState)
+        .addNode('start', (_state: State) => ({
+          messages: ['Started workflow'],
+        }))
+        .addEdge(START, 'start')
+        .addEdge('start', END);
+
+      const config: OrchestratorConfig<typeof CUSTOM_INPUT_SCHEMA> = {
+        toolId: 'custom-schema-orchestrator',
+        title: 'Custom Schema Orchestrator',
+        description: 'Tests custom schema workflow execution',
+        workflow,
+        inputSchema: CUSTOM_INPUT_SCHEMA,
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
+        logger: mockLogger,
+      };
+
+      const orchestrator = new CustomSchemaOrchestrator(server, config);
+
+      const result = await orchestrator.handleRequest(
+        {
+          payload: { test: 'data' },
+          sessionState: { thread_id: '' },
+        },
+        createMockExtra()
+      );
+
+      expect(result).toBeDefined();
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
+
+      // Verify workflow completed
+      const output = result.structuredContent as { orchestrationInstructionsPrompt: string };
+      expect(output.orchestrationInstructionsPrompt).toContain('workflow has concluded');
+    });
+
+    it('should reuse existing thread_id from custom schema properties', async () => {
+      const workflow = new StateGraph(TestState)
+        .addNode('node', (_state: State) => ({
+          messages: ['test'],
+        }))
+        .addEdge(START, 'node')
+        .addEdge('node', END);
+
+      const config: OrchestratorConfig<typeof CUSTOM_INPUT_SCHEMA> = {
+        toolId: 'custom-schema-orchestrator',
+        title: 'Custom Schema Orchestrator',
+        description: 'Tests thread ID extraction from custom schema',
+        workflow,
+        inputSchema: CUSTOM_INPUT_SCHEMA,
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
+        logger: mockLogger,
+      };
+
+      const orchestrator = new CustomSchemaOrchestrator(server, config);
+
+      const existingThreadId = 'mmw-12345-abc123';
+      await orchestrator.handleRequest(
+        {
+          payload: {},
+          sessionState: { thread_id: existingThreadId },
+        },
+        createMockExtra()
+      );
+
+      // Find the processing log and verify it used the existing thread ID
+      const processingLog = mockLogger.logs.find(log =>
+        log.message.includes('Processing orchestrator request')
+      );
+      expect(processingLog).toBeDefined();
+      const threadId = (processingLog?.data as { threadId?: string })?.threadId;
+      expect(threadId).toBe(existingThreadId);
+    });
+
+    it('should handle interrupt/resume cycle with custom schema', async () => {
+      const mockFs = new MockFileSystem();
+      const testProjectPath = '/test/project';
+
+      const workflow = new StateGraph(TestState)
+        .addNode('requestData', (_state: State) => {
+          const mcpToolData: MCPToolInvocationData<z.ZodObject<z.ZodRawShape>> = {
+            llmMetadata: {
+              name: 'custom-schema-tool',
+              description: 'Test tool for custom schema',
+              inputSchema: z.object({
+                query: z.string(),
+                workflowStateData: z.object({ thread_id: z.string() }),
+              }),
+            },
+            input: {
+              query: 'What is your name?',
+            },
+          };
+          return interrupt(mcpToolData);
+        })
+        .addNode('processData', (state: State) => {
+          return {
+            userInput: state.userInput,
+            someBoolean: true,
+          };
+        })
+        .addEdge(START, 'requestData')
+        .addEdge('requestData', 'processData')
+        .addEdge('processData', END);
+
+      const stateManager = new WorkflowStateManager({
+        environment: 'production',
+        projectPath: testProjectPath,
+        fileSystemOperations: mockFs,
+      });
+
+      const config: OrchestratorConfig<typeof CUSTOM_INPUT_SCHEMA> = {
+        toolId: 'custom-schema-resume-orchestrator',
+        title: 'Custom Schema Resume Test',
+        description: 'Tests interrupt/resume with custom schema',
+        workflow,
+        inputSchema: CUSTOM_INPUT_SCHEMA,
+        stateManager,
+        logger: mockLogger,
+      };
+
+      const orchestrator = new CustomSchemaOrchestrator(server, config);
+
+      // STEP 1: Start workflow - should hit interrupt
+      const result1 = await orchestrator.handleRequest(
+        {
+          payload: {},
+          sessionState: { thread_id: '' },
+        },
+        createMockExtra()
+      );
+
+      expect(result1.structuredContent).toBeDefined();
+      const output1 = result1.structuredContent as { orchestrationInstructionsPrompt: string };
+      expect(output1.orchestrationInstructionsPrompt).toContain('custom-schema-tool');
+
+      // Extract thread_id from the prompt
+      const threadIdMatch = output1.orchestrationInstructionsPrompt.match(
+        /"thread_id":\s*"(mmw-[^"]+)"/
+      );
+      expect(threadIdMatch).not.toBeNull();
+      const threadId = threadIdMatch![1];
+
+      mockLogger.reset();
+
+      // STEP 2: Resume workflow with user input via custom schema properties
+      const result2 = await orchestrator.handleRequest(
+        {
+          payload: { userName: 'John Doe' },
+          sessionState: { thread_id: threadId },
+        },
+        createMockExtra()
+      );
+
+      // Should complete successfully
+      expect(result2).toBeDefined();
+      expect(mockLogger.hasLoggedMessage('Resuming interrupted workflow', 'info')).toBe(true);
+
+      const output2 = result2.structuredContent as { orchestrationInstructionsPrompt: string };
+      expect(output2.orchestrationInstructionsPrompt).toContain('The workflow has concluded');
+    });
+  });
 });

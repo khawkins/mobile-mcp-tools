@@ -93,6 +93,7 @@ export {
 export {
   OrchestratorTool,
   createOrchestratorToolMetadata,
+  type DefaultOrchestratorInputSchema,
   type OrchestratorConfig,
   type OrchestratorInput,
   type OrchestratorOutput,
