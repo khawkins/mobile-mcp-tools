@@ -77,6 +77,15 @@ export interface NodeGuidanceData<TResultSchema extends z.ZodObject<z.ZodRawShap
    * LLM compliance with the expected structure.
    */
   exampleOutput?: string;
+  /**
+   * Optional guidance for the LLM to return to the orchestrator.
+   * When provided, this guidance will replace the default "return to orchestrator"
+   * guidance that the orchestrator normally provides to the LLM, to return the
+   * workflow to the orchestrator after task completion. Make sure this custom
+   * guidance can properly return the workflow to the orchestrator, or the workflow
+   * will likely be broken.
+   */
+  returnGuidance?: (workflowStateData: WorkflowStateData) => string;
 }
 
 /**
