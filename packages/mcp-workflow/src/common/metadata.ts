@@ -78,12 +78,19 @@ export interface NodeGuidanceData<TResultSchema extends z.ZodObject<z.ZodRawShap
    */
   exampleOutput?: string;
   /**
-   * Optional guidance for the LLM to return to the orchestrator.
-   * When provided, this guidance will replace the default "return to orchestrator"
-   * guidance that the orchestrator normally provides to the LLM, to return the
-   * workflow to the orchestrator after task completion. Make sure this custom
-   * guidance can properly return the workflow to the orchestrator, or the workflow
-   * will likely be broken.
+   * Optional custom guidance for the LLM to return results to the orchestrator.
+   *
+   * When provided, this replaces the orchestrator's default "return to orchestrator"
+   * prompt. The function receives only `workflowStateData` (the runtime session state
+   * that the producer doesn't have at construction time). The producer already owns
+   * `resultSchema` and `exampleOutput` as sibling properties on this same struct,
+   * so they can be captured in the closure if needed.
+   *
+   * Ensure this custom guidance properly instructs the LLM to return the workflow
+   * to the orchestrator, or the workflow will likely be broken.
+   *
+   * @param workflowStateData - The workflow state data to round-trip back to the orchestrator
+   * @returns The return guidance prompt string
    */
   returnGuidance?: (workflowStateData: WorkflowStateData) => string;
 }

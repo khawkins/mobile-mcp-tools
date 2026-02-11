@@ -578,6 +578,62 @@ Gather user input for platform and projectName.
       expect(prompt).not.toContain('Invoke the following MCP server tool');
     });
 
+    it('should use custom returnGuidance when provided in NodeGuidanceData', async () => {
+      const orchestratorToolId = 'test-return-guidance-orchestrator';
+      const customReturnMarker = '## CUSTOM RETURN GUIDANCE MARKER';
+
+      const workflow = new StateGraph(TestState)
+        .addNode('guidedNode', (_state: State) => {
+          const nodeGuidanceData: NodeGuidanceData<typeof GET_INPUT_WORKFLOW_RESULT_SCHEMA> = {
+            nodeId: 'test-custom-return',
+            taskGuidance: 'Do something interesting.',
+            resultSchema: GET_INPUT_WORKFLOW_RESULT_SCHEMA,
+            exampleOutput: '{ "userUtterance": "example" }',
+            returnGuidance: workflowStateData =>
+              `${customReturnMarker}\nReturn to orchestrator with thread: ${workflowStateData.thread_id}`,
+          };
+          return interrupt(nodeGuidanceData);
+        })
+        .addEdge(START, 'guidedNode')
+        .addEdge('guidedNode', END);
+
+      const config: OrchestratorConfig = {
+        toolId: orchestratorToolId,
+        title: 'Return Guidance Test',
+        description: 'Tests custom returnGuidance in NodeGuidanceData',
+        workflow,
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
+        logger: mockLogger,
+      };
+
+      const orchestrator = new OrchestratorTool(server, config);
+
+      const result = await orchestrator.handleRequest(
+        {
+          userInput: {},
+          workflowStateData: { thread_id: '' },
+        },
+        createMockExtra()
+      );
+
+      expect(result.structuredContent).toBeDefined();
+      const output = result.structuredContent as { orchestrationInstructionsPrompt: string };
+      const prompt = output.orchestrationInstructionsPrompt;
+
+      // Should contain the custom return guidance
+      expect(prompt).toContain(customReturnMarker);
+      expect(prompt).toContain('Return to orchestrator with thread: mmw-');
+
+      // Should still contain the task guidance structure
+      expect(prompt).toContain('# TASK GUIDANCE');
+      expect(prompt).toContain('Do something interesting.');
+
+      // Should NOT contain the default return guidance sections
+      expect(prompt).not.toContain('# CRITICAL: REQUIRED NEXT STEP');
+      expect(prompt).not.toContain('# OUTPUT FORMAT');
+      expect(prompt).not.toContain('# EXAMPLE TOOL CALL');
+    });
+
     it('should use delegate mode (orchestration prompt) when MCPToolInvocationData is used', async () => {
       const workflow = new StateGraph(TestState)
         .addNode('regularInterrupt', (_state: State) => {

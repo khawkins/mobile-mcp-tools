@@ -364,22 +364,13 @@ instructions for continuing the workflow.
     nodeGuidanceData: NodeGuidanceData<z.ZodObject<z.ZodRawShape>>,
     workflowStateData: WorkflowStateData
   ): string {
-    const resultSchemaJson = JSON.stringify(
-      zodToJsonSchema(nodeGuidanceData.resultSchema),
-      null,
-      2
-    );
-
-    // Build example section if provided
-    const exampleSection = nodeGuidanceData.exampleOutput
-      ? `
-For example, a properly formatted result should look like:
-
-\`\`\`json
-${nodeGuidanceData.exampleOutput}
-\`\`\`
-`
-      : '';
+    const returnGuidance = nodeGuidanceData.returnGuidance
+      ? nodeGuidanceData.returnGuidance(workflowStateData)
+      : this.defaultReturnGuidance(
+          workflowStateData,
+          nodeGuidanceData.resultSchema,
+          nodeGuidanceData.exampleOutput
+        );
 
     return `
 # ROLE
@@ -391,7 +382,28 @@ you with direct guidance for the current task.
 
 ${nodeGuidanceData.taskGuidance}
 
-# CRITICAL: REQUIRED NEXT STEP
+${returnGuidance}
+`;
+  }
+
+  private defaultReturnGuidance(
+    workflowStateData: WorkflowStateData,
+    resultSchema: z.ZodObject<z.ZodRawShape>,
+    exampleOutput?: string
+  ): string {
+    const resultSchemaJson = JSON.stringify(zodToJsonSchema(resultSchema), null, 2);
+
+    // Build example section if provided
+    const exampleSection = exampleOutput
+      ? `
+For example, a properly formatted result should look like:
+
+\`\`\`json
+${exampleOutput}
+\`\`\`
+`
+      : '';
+    return `# CRITICAL: REQUIRED NEXT STEP
 
 After completing the task above, you **MUST** invoke the \`${this.toolMetadata.toolId}\` tool 
 to continue the workflow. The workflow CANNOT proceed without this tool call.
@@ -424,7 +436,7 @@ Here is an example of the EXACT format your tool call should follow:
 \`\`\`
 Tool: ${this.toolMetadata.toolId}
 Parameters:
-  ${WORKFLOW_PROPERTY_NAMES.userInput}: ${nodeGuidanceData.exampleOutput ? nodeGuidanceData.exampleOutput.replaceAll('\n', '\n    ') : '{ /* your result object here */ }'}
+  ${WORKFLOW_PROPERTY_NAMES.userInput}: ${exampleOutput ? exampleOutput.replaceAll('\n', '\n    ') : '{ /* your result object here */ }'}
   ${WORKFLOW_PROPERTY_NAMES.workflowStateData}: ${JSON.stringify(workflowStateData)}
 \`\`\`
 `;
