@@ -1046,6 +1046,79 @@ Gather user input for platform and projectName.
       expect(threadId).toBe(existingThreadId);
     });
 
+    it('should generate a new thread when extractWorkflowStateData returns undefined', async () => {
+      // Define a schema where sessionState is truly optional (no .default())
+      const OPTIONAL_STATE_SCHEMA = z.object({
+        payload: z.unknown().optional(),
+        sessionState: z
+          .object({
+            thread_id: z.string(),
+          })
+          .optional(),
+      });
+
+      type OptionalStateInput = z.infer<typeof OPTIONAL_STATE_SCHEMA>;
+
+      class OptionalStateOrchestrator extends OrchestratorTool<typeof OPTIONAL_STATE_SCHEMA> {
+        constructor(
+          mcpServer: McpServer,
+          config: OrchestratorConfig<typeof OPTIONAL_STATE_SCHEMA>
+        ) {
+          super(mcpServer, config);
+        }
+
+        protected extractUserInput(input: OptionalStateInput): unknown | undefined {
+          return input.payload;
+        }
+
+        protected extractWorkflowStateData(
+          input: OptionalStateInput
+        ): { thread_id: string } | undefined {
+          return input.sessionState;
+        }
+      }
+
+      const workflow = new StateGraph(TestState)
+        .addNode('start', (_state: State) => ({
+          messages: ['Started workflow'],
+        }))
+        .addEdge(START, 'start')
+        .addEdge('start', END);
+
+      const config: OrchestratorConfig<typeof OPTIONAL_STATE_SCHEMA> = {
+        toolId: 'optional-state-orchestrator',
+        title: 'Optional State Orchestrator',
+        description: 'Tests undefined extractWorkflowStateData',
+        workflow,
+        inputSchema: OPTIONAL_STATE_SCHEMA,
+        stateManager: new WorkflowStateManager({ environment: 'test' }),
+        logger: mockLogger,
+      };
+
+      const orchestrator = new OptionalStateOrchestrator(server, config);
+
+      // Omit sessionState entirely — extractWorkflowStateData should return undefined
+      const result = await orchestrator.handleRequest(
+        { payload: { test: 'data' } },
+        createMockExtra()
+      );
+
+      expect(result).toBeDefined();
+      expect(result.content).toBeDefined();
+
+      // Should have started a new workflow (not a resumption)
+      expect(mockLogger.hasLoggedMessage('Starting new workflow execution', 'info')).toBe(true);
+
+      // The generated thread ID should follow the mmw- prefix convention
+      const processingLog = mockLogger.logs.find(log =>
+        log.message.includes('Processing orchestrator request')
+      );
+      expect(processingLog).toBeDefined();
+      const threadId = (processingLog?.data as { threadId?: string })?.threadId;
+      expect(threadId).toBeDefined();
+      expect(threadId).toMatch(/^mmw-/);
+    });
+
     it('should handle interrupt/resume cycle with custom schema', async () => {
       const mockFs = new MockFileSystem();
       const testProjectPath = '/test/project';
